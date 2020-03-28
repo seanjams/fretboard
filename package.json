@@ -1,0 +1,34 @@
+{
+	"name": "fretboard",
+	"version": "1.0.0",
+	"main": "src/index.js",
+	"license": "MIT",
+	"scripts": {
+		"dev": "webpack --mode=development --devtool=eval-source-map --display-modules --progress",
+		"start": "webpack-dev-server --mode=development --progress --open",
+		"build": "webpack --mode=production --progress --display-modules",
+		"deps": "rm -rf node_modules && yarn install",
+		"clean": "rm -rf dist",
+		"deploy": "yarn run clean && yarn run deps && yarn run build && git add . && git commit -m 'Deployment Commit' && git push origin `git subtree split --prefix dist master`:gh-pages --force && git reset HEAD~ && echo DEPLOYMENT SUCCESSFULL"
+	},
+	"devDependencies": {
+		"@types/react": "^16.9.25",
+		"@types/react-dom": "^16.9.5",
+		"@types/styled-components": "^5.0.1",
+		"compression-webpack-plugin": "^2.0.0",
+		"html-webpack-plugin": "^3.2.0",
+		"source-map-loader": "^0.2.4",
+		"ts-loader": "^6.2.1",
+		"typescript": "^3.8.3",
+		"webpack": "^4.42.0",
+		"webpack-bundle-analyzer": "^3.0.3",
+		"webpack-cli": "^3.3.11",
+		"webpack-dev-server": "^3.10.0",
+		"webpack-merge": "^4.1.4"
+	},
+	"dependencies": {
+		"react": "^16.13.1",
+		"react-dom": "^16.13.1",
+		"styled-components": "^5.0.1"
+	}
+}
