@@ -24,7 +24,6 @@ const CircleDiv = styled.div<CSSProps>`
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	font-family: Roboto;
 	width: 30px;
 	height: 30px;
 	border-radius: 100%;

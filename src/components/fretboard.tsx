@@ -8,6 +8,10 @@ import { String } from "./string";
 interface CSSProps {}
 
 const ContainerDiv = styled.div<CSSProps>`
+	font-family: Arial;
+`;
+
+const FretboardDiv = styled.div<CSSProps>`
 	display: flex;
 	flex-direction: column;
 	width: 2000px;
@@ -16,11 +20,16 @@ const ContainerDiv = styled.div<CSSProps>`
 const ButtonBank = styled.div<CSSProps>`
 	display: flex;
 	align-items: center;
+	font-size: 10px;
 `;
 
 const ButtonInput = styled.div<CSSProps>`
 	margin: 10px;
 	height: 40px;
+`;
+
+const NotesPerStringLabel = styled.span<CSSProps>`
+	margin-right: 5px;
 `;
 
 // Component
@@ -52,7 +61,7 @@ export const Fretboard: React.FC<Props> = () => {
 
 	function setNotesPerString(e: React.FormEvent<HTMLInputElement>): void {
 		let notesPerString = parseInt(e.currentTarget.value);
-		if (!notesPerString || notesPerString < 0) {
+		if (e.type === "blur" && (!notesPerString || notesPerString < 0)) {
 			notesPerString = 0;
 		}
 
@@ -62,8 +71,26 @@ export const Fretboard: React.FC<Props> = () => {
 		});
 	}
 
+	const onKeyPress: (this: Window, e: KeyboardEvent) => any = e => {
+		if (e.key === "ArrowRight") {
+			e.preventDefault();
+			dispatch({ type: "INCREMENT_POSITION" });
+		} else if (e.key === "ArrowLeft") {
+			e.preventDefault();
+			dispatch({ type: "DECREMENT_POSITION" });
+		}
+	};
+
+	React.useEffect(() => {
+		window.addEventListener("keydown", onKeyPress);
+		// ✅  compiles
+		return () => {
+			window.removeEventListener("keydown", onKeyPress);
+		};
+	});
+
 	return (
-		<div>
+		<ContainerDiv>
 			<ButtonBank>
 				<ButtonInput>
 					<button onClick={() => dispatch({ type: "CLEAR" })}>Clear</button>
@@ -101,17 +128,17 @@ export const Fretboard: React.FC<Props> = () => {
 				</ButtonInput>
 				<ButtonInput>
 					<label>
-						Notes Per String
+						<NotesPerStringLabel>Notes Per String</NotesPerStringLabel>
 						<input
 							type="number"
-							onInput={setNotesPerString}
+							onChange={setNotesPerString}
+							value={state.notesPerString || ""}
 							onBlur={setNotesPerString}
-							defaultValue={state.notesPerString}
 						/>
 					</label>
 				</ButtonInput>
 			</ButtonBank>
-			<ContainerDiv>
+			<FretboardDiv>
 				{STANDARD_TUNING.map((value, i) => {
 					return (
 						<String
@@ -121,7 +148,7 @@ export const Fretboard: React.FC<Props> = () => {
 						/>
 					);
 				})}
-			</ContainerDiv>
-		</div>
+			</FretboardDiv>
+		</ContainerDiv>
 	);
 };
