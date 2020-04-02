@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { FretboardContext } from "../store";
-import { NOTE_BANK } from "../utils";
+import { NoteUtil } from "../utils";
 
 // CSS
 interface CSSProps {
@@ -33,29 +33,36 @@ const CircleDiv = styled.div<CSSProps>`
 // Component
 interface Props {
 	value: number;
+	stringIndex: number;
 	openString?: boolean;
-	active?: boolean;
 }
 
-export const Fret: React.FC<Props> = ({ value, openString, active }) => {
+export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 	const { state, dispatch } = React.useContext(FretboardContext);
 
-	const noteIndex = value % 12;
-	const note = NOTE_BANK[noteIndex];
-	const backgroundColor = active
-		? "#c36"
-		: state.selectedNotes[noteIndex]
+	const note = new NoteUtil(value);
+	const label = state.label === "value" ? value : note.getName(state.label);
+	const backgroundColor = state.fretboard.getFret(stringIndex, value)
+		? "#fc6"
+		: state.fretboard.get(value)
 		? "#3c6"
 		: "transparent";
 
+	function onClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>): any {
+		e.preventDefault();
+		if (e.metaKey || e.shiftKey) {
+			dispatch({
+				type: "SET_HIGHLIGHTED_NOTE",
+				payload: { stringIndex, value },
+			});
+		} else {
+			dispatch({ type: "SET_NOTE", payload: value });
+		}
+	}
+
 	return (
-		<FretDiv
-			border={openString ? "none" : "1px solid #333"}
-			onClick={() => dispatch({ type: "SET_NOTE", payload: noteIndex })}
-		>
-			<CircleDiv backgroundColor={backgroundColor}>
-				{state.label === "value" ? value : note.getName(state.label)}
-			</CircleDiv>
+		<FretDiv border={openString ? "none" : "1px solid #333"} onClick={onClick}>
+			<CircleDiv backgroundColor={backgroundColor}>{label}</CircleDiv>
 		</FretDiv>
 	);
 };

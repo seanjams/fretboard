@@ -14,26 +14,25 @@ const StringDiv = styled.div<CSSProps>`
 // Component
 interface Props {
 	base: number;
-	highlighted: number[];
+	stringIndex: number;
 }
 
-export const String: React.FC<Props> = ({ base, highlighted }) => {
+export const String: React.FC<Props> = ({ base, stringIndex }) => {
 	const { state } = React.useContext(FretboardContext);
 
-	return (
-		<StringDiv>
-			{Array(state.stringSize)
-				.fill(0)
-				.map((_, i) => {
-					return (
-						<Fret
-							value={base + i}
-							openString={i === 0}
-							active={highlighted.includes(base + i)}
-							key={`fret-${base + i}`}
-						/>
-					);
-				})}
-		</StringDiv>
-	);
+	const frets = Array(state.stringSize)
+		.fill(0)
+		.map((_, i) => {
+			const value = base + i;
+			return (
+				<Fret
+					value={value}
+					openString={i === 0}
+					key={`fret-${value}`}
+					stringIndex={stringIndex}
+				/>
+			);
+		});
+
+	return <StringDiv>{state.invert ? frets.reverse() : frets}</StringDiv>;
 };

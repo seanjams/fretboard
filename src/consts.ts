@@ -1,4 +1,10 @@
-import { SharpTypes, FlatTypes, NoteTypes } from "./types";
+import {
+	SharpTypes,
+	FlatTypes,
+	NoteTypes,
+	NoteSwitchType,
+	StringSwitchType,
+} from "./types";
 
 export const C = "C";
 export const Cs = "C#";
@@ -18,7 +24,7 @@ export const As = "A#";
 export const Bb = "Bb";
 export const B = "B";
 
-export const DEFAULT_NOTESWITCH = {
+export const DEFAULT_NOTESWITCH: NoteSwitchType = {
 	0: false,
 	1: false,
 	2: false,
@@ -32,6 +38,8 @@ export const DEFAULT_NOTESWITCH = {
 	10: false,
 	11: false,
 };
+
+export const DEFAULT_STRINGSWITCH: StringSwitchType = [{}, {}, {}, {}, {}, {}];
 
 export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
 	[C, C],
@@ -57,4 +65,6 @@ NOTE_NAMES.forEach((names, i) => {
 });
 
 // C0 = 0 in this system. Lowest string on guitar is E2 = 28
-export const STANDARD_TUNING = [52, 47, 43, 38, 33, 28];
+export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
+
+export const STRING_SIZE = 22;

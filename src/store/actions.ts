@@ -22,9 +22,16 @@ export type ClearNotes = {
 	readonly type: "CLEAR";
 };
 
-export type SetNotesPerString = {
-	readonly type: "SET_NOTES_PER_STRING";
-	readonly payload: number;
+export type InvertFretboard = {
+	readonly type: "INVERT";
+};
+
+export type setHighlightedNote = {
+	readonly type: "SET_HIGHLIGHTED_NOTE";
+	readonly payload: {
+		stringIndex: number;
+		value: number;
+	};
 };
 
 export type ActionTypes =
@@ -33,4 +40,5 @@ export type ActionTypes =
 	| ClearNotes
 	| IncrementPosition
 	| DecrementPosition
-	| SetNotesPerString;
+	| setHighlightedNote
+	| InvertFretboard;

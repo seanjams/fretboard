@@ -1,20 +1,17 @@
-import { DEFAULT_NOTESWITCH } from "../consts";
-import { NoteSwitchType, LabelTypes } from "../types";
+import { FretboardUtil } from "../utils";
+import { LabelTypes } from "../types";
+import { STRING_SIZE } from "../consts";
 
 export type StateType = {
-	selectedNotes: NoteSwitchType;
+	fretboard: FretboardUtil;
 	label: LabelTypes;
 	invert?: boolean;
 	stringSize: number;
-	notesPerString: number;
-	position: number;
 };
 
 export const DEFAULT_STATE: StateType = {
-	selectedNotes: { ...DEFAULT_NOTESWITCH },
+	fretboard: new FretboardUtil(),
 	label: "flat",
 	invert: false,
-	stringSize: 24,
-	notesPerString: 3,
-	position: 0,
+	stringSize: STRING_SIZE,
 };
