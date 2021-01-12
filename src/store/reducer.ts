@@ -2,35 +2,71 @@ import { ActionTypes } from "./actions";
 import { StateType } from "./state";
 import { FretboardUtil } from "../utils";
 
-export function reducer(state: StateType, action: ActionTypes): StateType {
-	let fretboard;
-	switch (action.type) {
-		case "CLEAR":
-			return { ...state, fretboard: new FretboardUtil() };
-		case "INVERT":
-			return { ...state, invert: !state.invert };
-		case "SET_NOTE":
-			fretboard = state.fretboard.copy();
-			fretboard.toggle(action.payload);
-			return { ...state, fretboard };
-		case "SET_LABEL":
-			return { ...state, label: action.payload };
-		case "INCREMENT_POSITION":
-			fretboard = state.fretboard.copy();
-			fretboard.incrementPosition(1);
-			return { ...state, fretboard };
-		case "DECREMENT_POSITION":
-			fretboard = state.fretboard.copy();
-			fretboard.incrementPosition(-1);
-			return { ...state, fretboard };
-		case "SET_HIGHLIGHTED_NOTE":
-			const { stringIndex, value } = action.payload;
-			fretboard = state.fretboard.copy();
-			fretboard.toggleFret(stringIndex, value);
-			return { ...state, fretboard };
-		default:
-			NeverCalled(action);
-	}
-}
-
 function NeverCalled(never: never): void {}
+
+export function reducer(state: StateType, action: ActionTypes): StateType {
+	const fretboards = state.fretboards;
+	if (action.type === "CLEAR") {
+		const fretboards = Array(state.fretboards.length).fill(0).map(() => new FretboardUtil())
+		return { ...state, fretboards };
+	}
+
+	if (action.type === "INVERT") {
+		return { ...state, invert: !state.invert };
+	}
+
+	if (action.type === "SET_NOTE") {
+		const { fretboardIndex, note } = action.payload;
+		const fretboard = fretboards[fretboardIndex].copy();
+		fretboard.toggle(note);
+		fretboards[fretboardIndex] = fretboard;
+		return { ...state, fretboards };
+	}
+
+	if (action.type === "SET_LABEL") {
+		const { label } = action.payload;
+		return { ...state, label };
+	}
+
+	if (action.type === "INCREMENT_POSITION") {
+		const { fretboardIndex } = action.payload;
+		const fretboard = fretboards[fretboardIndex].copy();
+		fretboard.incrementPosition(1);
+		fretboards[fretboardIndex] = fretboard;
+		return { ...state, fretboards };
+	}
+
+	if (action.type === "DECREMENT_POSITION") {
+		const { fretboardIndex } = action.payload;
+		const fretboard = fretboards[fretboardIndex].copy();
+		fretboard.incrementPosition(-1);
+		fretboards[fretboardIndex] = fretboard;
+		return { ...state, fretboards };
+	}
+
+	if (action.type === "SET_HIGHLIGHTED_NOTE") {
+		const { fretboardIndex, stringIndex, value } = action.payload;
+		const fretboard = fretboards[fretboardIndex].copy();
+		fretboard.toggleFret(stringIndex, value);
+		fretboards[fretboardIndex] = fretboard;
+		return { ...state, fretboards };
+	}
+
+	if (action.type === "ADD_FRETBOARD") {
+
+		fretboards.push(new FretboardUtil());
+		return { ...state, fretboards };
+	}
+
+	if (action.type === "REMOVE_FRETBOARD") {
+		if (fretboards.length > 1) fretboards.pop();
+		return { ...state, fretboards };
+	}
+
+	if (action.type === "SET_FOCUS") {
+		const { fretboardIndex } = action.payload;
+		return { ...state, focusedIndex: fretboardIndex };
+	}
+
+	NeverCalled(action);	
+}

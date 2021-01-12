@@ -4,7 +4,9 @@ import { mod } from "../utils";
 import { FretboardContext } from "../store";
 
 // CSS
-interface CSSProps {}
+interface CSSProps {
+	width?: number;
+}
 
 const StringDiv = styled.div<CSSProps>`
 	display: flex;
@@ -13,10 +15,11 @@ const StringDiv = styled.div<CSSProps>`
 
 const EmptyDiv = styled.div<CSSProps>`
 	height: 20px;
-	width: 8.333333%;
+	width: ${({ width }) => width}%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	margin-left: 4px;
 `;
 
 const Dot = styled.div<CSSProps>`
@@ -28,22 +31,26 @@ const Dot = styled.div<CSSProps>`
 `;
 
 // Component
-interface Props {}
+interface Props {
+	fretboardIndex: number;
+	top?: boolean;
+}
 
-export const Legend: React.FC<Props> = () => {
+export const Legend: React.FC<Props> = ({ fretboardIndex, top }) => {
 	const { state } = React.useContext(FretboardContext);
 
 	const frets = Array(state.stringSize)
-		.fill(0)
-		.map((_, i) => {
-			const dotIndex = mod(i, 12);
-			return (
-				<EmptyDiv>
-					{i !== 0 && [0, 3, 5, 7, 9].includes(dotIndex) && <Dot />}
-					{i !== 0 && dotIndex === 0 && <Dot />}
-				</EmptyDiv>
-			);
-		});
+	.fill(0)
+	.map((_, i) => {
+		const dotIndex = mod(i, 12);
+		const width = (1 + ((12 - i) / 30)) * 8.333333;
+		return (
+			<EmptyDiv width={width} key={`legend-${fretboardIndex}-${i}-${top ? 1 : 0}`}>
+				{i !== 0 && [0, 3, 5, 7, 9].includes(dotIndex) && <Dot />}
+				{i !== 0 && dotIndex === 0 && <Dot />}
+			</EmptyDiv>
+		);
+	});
 
 	return <StringDiv>{state.invert ? frets.reverse() : frets}</StringDiv>;
 };

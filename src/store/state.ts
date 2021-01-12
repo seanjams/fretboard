@@ -1,17 +1,19 @@
 import { FretboardUtil } from "../utils";
 import { LabelTypes } from "../types";
-import { STRING_SIZE } from "../consts";
+import { C_PENTATONIC, STRING_SIZE } from "../consts";
 
 export type StateType = {
-	fretboard: FretboardUtil;
+	fretboards: Array<FretboardUtil>;
 	label: LabelTypes;
 	invert?: boolean;
 	stringSize: number;
+	focusedIndex: number;
 };
 
 export const DEFAULT_STATE: StateType = {
-	fretboard: new FretboardUtil(),
+	fretboards: [new FretboardUtil(C_PENTATONIC)],
 	label: "flat",
 	invert: false,
 	stringSize: STRING_SIZE,
+	focusedIndex: 0,
 };

@@ -2,20 +2,31 @@ import { LabelTypes } from "../types";
 
 export type SetNote = {
 	readonly type: "SET_NOTE";
-	readonly payload: number;
+	readonly payload: {
+		fretboardIndex: number;
+		note: number;
+	}
 };
 
 export type SetLabel = {
 	readonly type: "SET_LABEL";
-	readonly payload: LabelTypes;
+	readonly payload: {
+		label: LabelTypes;
+	}
 };
 
 export type IncrementPosition = {
 	readonly type: "INCREMENT_POSITION";
+	readonly payload: {
+		fretboardIndex: number;
+	}
 };
 
 export type DecrementPosition = {
 	readonly type: "DECREMENT_POSITION";
+	readonly payload: {
+		fretboardIndex: number;
+	}
 };
 
 export type ClearNotes = {
@@ -26,11 +37,27 @@ export type InvertFretboard = {
 	readonly type: "INVERT";
 };
 
-export type setHighlightedNote = {
+export type SetHighlightedNote = {
 	readonly type: "SET_HIGHLIGHTED_NOTE";
 	readonly payload: {
 		stringIndex: number;
 		value: number;
+		fretboardIndex: number;
+	};
+};
+
+export type AddFretboard = {
+	readonly type: "ADD_FRETBOARD";
+};
+
+export type RemoveFretboard = {
+	readonly type: "REMOVE_FRETBOARD";
+};
+
+export type SetFocus = {
+	readonly type: "SET_FOCUS";
+	readonly payload: {
+		fretboardIndex: number;
 	};
 };
 
@@ -40,5 +67,8 @@ export type ActionTypes =
 	| ClearNotes
 	| IncrementPosition
 	| DecrementPosition
-	| setHighlightedNote
-	| InvertFretboard;
+	| SetHighlightedNote
+	| InvertFretboard
+	| AddFretboard
+	| RemoveFretboard
+	| SetFocus;

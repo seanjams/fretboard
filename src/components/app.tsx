@@ -6,7 +6,7 @@ import {
 	reducer,
 	Provider,
 } from "../store";
-import { Fretboard } from "./fretboard";
+import { Dashboard } from "./dashboard";
 
 interface Props {
 	oldState?: {};
@@ -19,7 +19,7 @@ export const App: React.FC<Props> = ({}) => {
 
 	return (
 		<Provider value={{ state, dispatch }}>
-			<Fretboard />
+			<Dashboard />
 		</Provider>
 	);
 };

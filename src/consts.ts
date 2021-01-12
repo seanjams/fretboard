@@ -39,6 +39,21 @@ export const DEFAULT_NOTESWITCH: NoteSwitchType = {
 	11: false,
 };
 
+export const C_PENTATONIC: NoteSwitchType = {
+	0: true,
+	1: false,
+	2: true,
+	3: false,
+	4: true,
+	5: false,
+	6: false,
+	7: true,
+	8: false,
+	9: true,
+	10: false,
+	11: false,
+}
+
 export const DEFAULT_STRINGSWITCH: StringSwitchType = [{}, {}, {}, {}, {}, {}];
 
 export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
