@@ -5,6 +5,12 @@ import { FretboardContext } from "../store";
 // CSS
 interface CSSProps {}
 
+const TextContainer = styled.div<CSSProps>`
+    font-family: Arial;
+    font-size: 14px;
+    padding-left: 40px;
+`;
+
 const ButtonBank = styled.div<CSSProps>`
 	display: flex;
 	align-items: center;
@@ -90,6 +96,10 @@ export const Controls: React.FC<Props> = () => {
                     &minus;
                 </ButtonInput>
             </ButtonContainer>
+            <TextContainer>
+                Click to set a note. Right click or Shift + click to highlight a pattern. Arrow keys Left/Right to move pattern.
+                +/- buttons to add more fretboards.
+            </TextContainer>
         </ButtonBank>
 	);
 };

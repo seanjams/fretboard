@@ -59,8 +59,10 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 	}
 
 	if (action.type === "REMOVE_FRETBOARD") {
+		let { focusedIndex } = state;
 		if (fretboards.length > 1) fretboards.pop();
-		return { ...state, fretboards };
+		if (focusedIndex >= fretboards.length) focusedIndex = fretboards.length - 1;
+		return { ...state, fretboards, focusedIndex };
 	}
 
 	if (action.type === "SET_FOCUS") {

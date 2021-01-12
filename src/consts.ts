@@ -4,6 +4,7 @@ import {
 	NoteTypes,
 	NoteSwitchType,
 	StringSwitchType,
+	NaturalTypes,
 } from "./types";
 
 export const C = "C";
@@ -83,3 +84,5 @@ NOTE_NAMES.forEach((names, i) => {
 export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
 
 export const STRING_SIZE = 22;
+
+export const NATURAL_NOTE_NAMES: NaturalTypes[] = [C, D, E, F, G, A, B];
