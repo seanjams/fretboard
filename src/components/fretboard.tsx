@@ -70,18 +70,18 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 
 	function onKeyPress(this: Window, e: KeyboardEvent): any {
 		if (fretboardIndex === focusedIndex) {
-			if (e.key === "ArrowUp" && focusedIndex > 0) {
+			if (e.key === "ArrowUp") {
 				e.preventDefault();
-				dispatch({ type: "SET_FOCUS", payload: { fretboardIndex: fretboardIndex - 1 } });
-			} else if (e.key === "ArrowDown" && focusedIndex < fretboards.length - 1) {
+				dispatch({ type: "INCREMENT_POSITION_Y", payload: { fretboardIndex } });
+			} else if (e.key === "ArrowDown") {
 				e.preventDefault();
-				dispatch({ type: "SET_FOCUS", payload: { fretboardIndex: fretboardIndex + 1 } });
+				dispatch({ type: "DECREMENT_POSITION_Y", payload: { fretboardIndex } });
 			} else if (e.key === "ArrowRight") {
 				e.preventDefault();
-				dispatch({ type: "INCREMENT_POSITION", payload: { fretboardIndex } });
+				dispatch({ type: "INCREMENT_POSITION_X", payload: { fretboardIndex } });
 			} else if (e.key === "ArrowLeft") {
 				e.preventDefault();
-				dispatch({ type: "DECREMENT_POSITION", payload: { fretboardIndex } });
+				dispatch({ type: "DECREMENT_POSITION_X", payload: { fretboardIndex } });
 			} else if (naturals.hasOwnProperty(e.key)) {
 				e.preventDefault();
 				dispatch({ type: "SET_NOTE", payload: { fretboardIndex, note: naturals[e.key] } })

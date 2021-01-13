@@ -2,13 +2,14 @@ import * as React from "react";
 import styled from "styled-components";
 import { STANDARD_TUNING } from "../consts";
 import { FretboardContext } from "../store";
-import { NoteUtil } from "../utils";
+import { mod, NoteUtil, COLORS } from "../utils";
 
 // CSS
 interface CSSProps {
 	width?: number;
 	height?: number;
 	border?: string;
+	color?: string;
 	backgroundColor?: string;
 }
 
@@ -33,6 +34,7 @@ const CircleDiv = styled.div<CSSProps>`
 	width: 30px;
 	height: 30px;
 	border-radius: 100%;
+	color: ${({ color }) => color};
 	background-color: ${({ backgroundColor }) => backgroundColor};
 	z-index: 9999;
 `;
@@ -55,14 +57,19 @@ interface Props {
 export const Fret: React.FC<Props> = ({ fretboardIndex, value, openString, stringIndex }) => {
 	const { state, dispatch } = React.useContext(FretboardContext);
 	const fretboard = state.fretboards[fretboardIndex];
+	const [secondaryColor, primaryColor] = COLORS[mod(fretboardIndex, COLORS.length)];
 
 	const note = new NoteUtil(value);
 	const label = state.label === "value" ? value : note.getName(state.label);
-	const backgroundColor = fretboard.getFret(stringIndex, value)
-		? "#fc6"
+	const isHighlighted = fretboard.getFret(stringIndex, value);
+	const backgroundColor = isHighlighted
+		? primaryColor
 		: fretboard.get(value)
-		? "#3c6"
+		? secondaryColor
 		: "white";
+	const color = isHighlighted
+		? "white"
+		: "#333";
 	const fretIndex = value - STANDARD_TUNING[stringIndex];
 	const fretWidth = (1 + ((12 - fretIndex) / 30)) * 8.333333;
 	const thickness = ((6 - stringIndex) + 1) / 2;
@@ -88,7 +95,7 @@ export const Fret: React.FC<Props> = ({ fretboardIndex, value, openString, strin
 	return (
 		<FretDiv border={border} width={fretWidth} onContextMenu={onContextMenu}>
 			{!!fretIndex && <LineDiv height={thickness} />}
-			<CircleDiv onClick={onClick} backgroundColor={backgroundColor}>{label}</CircleDiv>
+			<CircleDiv onClick={onClick} backgroundColor={backgroundColor} color={color}>{label}</CircleDiv>
 			{!!fretIndex && <LineDiv height={thickness} />}
 		</FretDiv>
 	);

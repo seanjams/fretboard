@@ -76,16 +76,6 @@ export const Controls: React.FC<Props> = () => {
                     Value
                 </ButtonInput>
             </ButtonContainer>
-            {/* <ButtonContainer>
-                <ButtonInput onClick={() => dispatch({ type: "DECREMENT_POSITION" })}>
-                    &#8592;
-                </ButtonInput>
-            </ButtonContainer>
-            <ButtonContainer>
-                <ButtonInput onClick={() => dispatch({ type: "INCREMENT_POSITION" })}>
-                    &#8594;
-                </ButtonInput>
-            </ButtonContainer> */}
             <ButtonContainer>
                 <ButtonInput onClick={() => dispatch({ type: "ADD_FRETBOARD" })}>
                     &#43;

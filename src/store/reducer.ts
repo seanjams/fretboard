@@ -28,20 +28,40 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		return { ...state, label };
 	}
 
-	if (action.type === "INCREMENT_POSITION") {
+	if (action.type === "INCREMENT_POSITION_X") {
 		const { fretboardIndex } = action.payload;
 		const fretboard = fretboards[fretboardIndex].copy();
-		fretboard.incrementPosition(1);
+		fretboard.incrementPosition(1, false);
 		fretboards[fretboardIndex] = fretboard;
 		return { ...state, fretboards };
 	}
 
-	if (action.type === "DECREMENT_POSITION") {
+	if (action.type === "DECREMENT_POSITION_X") {
 		const { fretboardIndex } = action.payload;
 		const fretboard = fretboards[fretboardIndex].copy();
-		fretboard.incrementPosition(-1);
+		fretboard.incrementPosition(-1, false);
 		fretboards[fretboardIndex] = fretboard;
 		return { ...state, fretboards };
+	}
+
+	if (action.type === "INCREMENT_POSITION_Y") {
+		let { focusedIndex } = state;
+		const { fretboardIndex } = action.payload;
+		const fretboard = fretboards[fretboardIndex].copy();
+		const valid = fretboard.incrementPosition(1, true);
+		if (!valid && focusedIndex > 0) focusedIndex--;
+		fretboards[fretboardIndex] = fretboard;
+		return { ...state, fretboards, focusedIndex };
+	}
+
+	if (action.type === "DECREMENT_POSITION_Y") {
+		let { focusedIndex, fretboards } = state;
+		const { fretboardIndex } = action.payload;
+		const fretboard = fretboards[fretboardIndex].copy();
+		const valid = fretboard.incrementPosition(-1, true);
+		if (!valid && focusedIndex < fretboards.length - 1) focusedIndex++;
+		fretboards[fretboardIndex] = fretboard;
+		return { ...state, fretboards, focusedIndex };
 	}
 
 	if (action.type === "SET_HIGHLIGHTED_NOTE") {

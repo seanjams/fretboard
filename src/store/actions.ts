@@ -15,15 +15,29 @@ export type SetLabel = {
 	}
 };
 
-export type IncrementPosition = {
-	readonly type: "INCREMENT_POSITION";
+export type IncrementPositionX = {
+	readonly type: "INCREMENT_POSITION_X";
 	readonly payload: {
 		fretboardIndex: number;
 	}
 };
 
-export type DecrementPosition = {
-	readonly type: "DECREMENT_POSITION";
+export type DecrementPositionX = {
+	readonly type: "DECREMENT_POSITION_X";
+	readonly payload: {
+		fretboardIndex: number;
+	}
+};
+
+export type IncrementPositionY = {
+	readonly type: "INCREMENT_POSITION_Y";
+	readonly payload: {
+		fretboardIndex: number;
+	}
+};
+
+export type DecrementPositionY = {
+	readonly type: "DECREMENT_POSITION_Y";
 	readonly payload: {
 		fretboardIndex: number;
 	}
@@ -65,8 +79,10 @@ export type ActionTypes =
 	| SetNote
 	| SetLabel
 	| ClearNotes
-	| IncrementPosition
-	| DecrementPosition
+	| IncrementPositionX
+	| DecrementPositionX
+	| IncrementPositionY
+	| DecrementPositionY
 	| SetHighlightedNote
 	| InvertFretboard
 	| AddFretboard
