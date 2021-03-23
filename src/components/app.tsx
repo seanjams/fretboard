@@ -7,6 +7,7 @@ import {
 	Provider,
 } from "../store";
 import { Dashboard } from "./dashboard";
+import 'reset-css';
 
 interface Props {
 	oldState?: {};
