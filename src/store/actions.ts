@@ -51,6 +51,10 @@ export type InvertFretboard = {
 	readonly type: "INVERT";
 };
 
+export type LeftHandFretboard = {
+	readonly type: "LEFT_HAND";
+};
+
 export type SetHighlightedNote = {
 	readonly type: "SET_HIGHLIGHTED_NOTE";
 	readonly payload: {
@@ -85,6 +89,7 @@ export type ActionTypes =
 	| DecrementPositionY
 	| SetHighlightedNote
 	| InvertFretboard
+	| LeftHandFretboard
 	| AddFretboard
 	| RemoveFretboard
 	| SetFocus;

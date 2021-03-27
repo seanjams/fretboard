@@ -22,3 +22,5 @@ export type StringSwitchType = [
 	NoteSwitchType,
 	NoteSwitchType
 ];
+
+export type KeyControlTypes = "INCREMENT_POSITION_X" | "DECREMENT_POSITION_X" | "INCREMENT_POSITION_Y" | "DECREMENT_POSITION_Y";

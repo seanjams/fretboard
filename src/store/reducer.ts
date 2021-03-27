@@ -15,6 +15,10 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		return { ...state, invert: !state.invert };
 	}
 
+	if (action.type === "LEFT_HAND") {
+		return { ...state, leftHand: !state.leftHand };
+	}
+
 	if (action.type === "SET_NOTE") {
 		const { fretboardIndex, note } = action.payload;
 		const fretboard = fretboards[fretboardIndex].copy();
