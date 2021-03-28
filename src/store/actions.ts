@@ -1,46 +1,47 @@
 import { LabelTypes } from "../types";
+import { StateType } from "./state";
 
 export type SetNote = {
 	readonly type: "SET_NOTE";
 	readonly payload: {
 		fretboardIndex: number;
 		note: number;
-	}
+	};
 };
 
 export type SetLabel = {
 	readonly type: "SET_LABEL";
 	readonly payload: {
 		label: LabelTypes;
-	}
+	};
 };
 
 export type IncrementPositionX = {
 	readonly type: "INCREMENT_POSITION_X";
 	readonly payload: {
 		fretboardIndex: number;
-	}
+	};
 };
 
 export type DecrementPositionX = {
 	readonly type: "DECREMENT_POSITION_X";
 	readonly payload: {
 		fretboardIndex: number;
-	}
+	};
 };
 
 export type IncrementPositionY = {
 	readonly type: "INCREMENT_POSITION_Y";
 	readonly payload: {
 		fretboardIndex: number;
-	}
+	};
 };
 
 export type DecrementPositionY = {
 	readonly type: "DECREMENT_POSITION_Y";
 	readonly payload: {
 		fretboardIndex: number;
-	}
+	};
 };
 
 export type ClearNotes = {
@@ -79,6 +80,15 @@ export type SetFocus = {
 	};
 };
 
+export type SaveToLocalStorage = {
+	readonly type: "SAVE_TO_LOCAL_STORAGE";
+};
+
+export type RehydrateState = {
+	readonly type: "REHYDRATE";
+	readonly payload: StateType;
+};
+
 export type ActionTypes =
 	| SetNote
 	| SetLabel
@@ -92,4 +102,6 @@ export type ActionTypes =
 	| LeftHandFretboard
 	| AddFretboard
 	| RemoveFretboard
-	| SetFocus;
+	| SetFocus
+	| SaveToLocalStorage
+	| RehydrateState;

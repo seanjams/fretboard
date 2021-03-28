@@ -7,7 +7,9 @@ function NeverCalled(never: never): void {}
 export function reducer(state: StateType, action: ActionTypes): StateType {
 	const fretboards = state.fretboards;
 	if (action.type === "CLEAR") {
-		const fretboards = Array(state.fretboards.length).fill(0).map(() => new FretboardUtil())
+		const fretboards = Array(state.fretboards.length)
+			.fill(0)
+			.map(() => new FretboardUtil());
 		return { ...state, fretboards };
 	}
 
@@ -77,7 +79,6 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 	}
 
 	if (action.type === "ADD_FRETBOARD") {
-
 		fretboards.push(new FretboardUtil());
 		return { ...state, fretboards };
 	}
@@ -85,7 +86,8 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 	if (action.type === "REMOVE_FRETBOARD") {
 		let { focusedIndex } = state;
 		if (fretboards.length > 1) fretboards.pop();
-		if (focusedIndex >= fretboards.length) focusedIndex = fretboards.length - 1;
+		if (focusedIndex >= fretboards.length)
+			focusedIndex = fretboards.length - 1;
 		return { ...state, fretboards, focusedIndex };
 	}
 
@@ -94,5 +96,25 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		return { ...state, focusedIndex: fretboardIndex };
 	}
 
-	NeverCalled(action);	
+	if (action.type === "REHYDRATE") {
+		return {
+			...action.payload,
+		};
+	}
+
+	if (action.type === "SAVE_TO_LOCAL_STORAGE") {
+		let key: keyof StateType;
+		let value: any;
+		for (key in state) {
+			value = JSON.stringify(
+				key === "fretboards"
+					? state[key].map((fretboard) => fretboard.toJSON())
+					: state[key]
+			);
+			localStorage.setItem(key, value);
+		}
+		return state;
+	}
+
+	NeverCalled(action);
 }

@@ -2,25 +2,25 @@ import * as React from "react";
 import {
 	StateType,
 	ActionTypes,
-	DEFAULT_STATE,
+	StateModel,
 	reducer,
 	Provider,
 } from "../store";
 import { Dashboard } from "./dashboard";
-import 'reset-css';
+import "reset-css";
 
 interface Props {
-	oldState?: {};
+	oldState?: StateType;
 }
 
-export const App: React.FC<Props> = ({}) => {
+export const App: React.FC<Props> = ({ oldState }) => {
 	const [state, dispatch] = React.useReducer<
 		React.Reducer<StateType, ActionTypes>
-	>(reducer, DEFAULT_STATE);
+	>(reducer, StateModel.default());
 
 	return (
 		<Provider value={{ state, dispatch }}>
-			<Dashboard />
+			<Dashboard oldState={oldState} />
 		</Provider>
 	);
 };

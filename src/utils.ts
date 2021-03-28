@@ -22,24 +22,24 @@ export function mod(a: numString, m: number): number {
 	return ((+a % m) + m) % m;
 }
 
-export function shuffleArray(array: any[]): void {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
+// export function shuffleArray(array: any[]): void {
+//     for (let i = array.length - 1; i > 0; i--) {
+//         const j = Math.floor(Math.random() * (i + 1));
+//         [array[i], array[j]] = [array[j], array[i]];
+//     }
+// }
 
 export const COLORS = [
 	["#C1BFB5", "#B02E0C"],
-	["#DBB3B1", "#6C534E"],
-	["#F2E3BC", "#618985"],
-	["#BBDFC5", "#14342B"],
-	["#CEDFD9", "#9B6A6C"],
-	["#E5D4ED", "#5941A9"],
-	["#D7BEA8", "#744253"],
-	["#CAD2C5", "#52489C"],
+	// ["#DBB3B1", "#6C534E"],
+	// ["#F2E3BC", "#618985"],
+	// ["#BBDFC5", "#14342B"],
+	// ["#CEDFD9", "#9B6A6C"],
+	// ["#E5D4ED", "#5941A9"],
+	// ["#D7BEA8", "#744253"],
+	// ["#CAD2C5", "#52489C"],
 ];
-shuffleArray(COLORS);
+// shuffleArray(COLORS);
 
 export class NoteUtil {
 	base: number;
@@ -56,7 +56,12 @@ export class NoteUtil {
 	}
 }
 
-export class FretboardUtil {
+export interface FretboardUtilType {
+	notes: NoteSwitchType;
+	strings: StringSwitchType;
+}
+
+export class FretboardUtil implements FretboardUtilType {
 	notes: NoteSwitchType;
 	strings: StringSwitchType;
 
@@ -128,7 +133,7 @@ export class FretboardUtil {
 
 	listString(stringIndex: number): number[] {
 		return Object.keys(this.strings[mod(stringIndex, 6)])
-			.map(key => +key)
+			.map((key) => +key)
 			.sort((a: number, b: number) => a - b);
 	}
 
@@ -152,11 +157,14 @@ export class FretboardUtil {
 			// get average interval between different scale steps
 			let average = 0;
 			for (let i = 0; i < scale.length; i++) {
-				const interval = mod(scale[mod(i + scaleStep, scale.length)] - scale[i], 12);
+				const interval = mod(
+					scale[mod(i + scaleStep, scale.length)] - scale[i],
+					12
+				);
 				average += interval;
 			}
 			average = Math.abs(average / scale.length);
-			
+
 			// Get distance from most "vertical" possible interval, the perfect 4th
 			const averageVerticalDelta = Math.abs(average - 5);
 			if (averageVerticalDelta < min) {
@@ -173,25 +181,34 @@ export class FretboardUtil {
 		const turnOn: [numString, numString][] = [];
 
 		const scale: number[] = Object.keys(this.notes)
-			.map(key => +key)
-			.filter(key => this.notes[key]);
-		let verticalIntervalIncrement = vertical ? this._getVerticalIntervalIncrement(scale, inc) : 0;
+			.map((key) => +key)
+			.filter((key) => this.notes[key]);
+		let verticalIntervalIncrement = vertical
+			? this._getVerticalIntervalIncrement(scale, inc)
+			: 0;
 
 		let valid = true;
 		for (let stringIndex in this.strings) {
-			const newStringIndex: number = vertical ? +stringIndex + inc : +stringIndex;
+			const newStringIndex: number = vertical
+				? +stringIndex + inc
+				: +stringIndex;
 			for (let fretValue in this.strings[stringIndex]) {
 				if (this.getFret(stringIndex, fretValue)) {
 					let newValue: number;
 					let conditions: boolean[];
 					if (vertical) {
 						// get most vertical interval step, find new note value, and apply to next string
-						newValue = this._getIncrement(+fretValue, verticalIntervalIncrement, scale);
+						newValue = this._getIncrement(
+							+fretValue,
+							verticalIntervalIncrement,
+							scale
+						);
 						conditions = [
 							newStringIndex < 0,
 							newStringIndex >= this.strings.length,
 							newValue < STANDARD_TUNING[newStringIndex],
-							newValue >= STANDARD_TUNING[newStringIndex] + STRING_SIZE
+							newValue >=
+								STANDARD_TUNING[newStringIndex] + STRING_SIZE,
 						];
 					} else {
 						// find new note value, and apply to same string
@@ -199,11 +216,12 @@ export class FretboardUtil {
 						conditions = [
 							newValue === +fretValue,
 							newValue < STANDARD_TUNING[stringIndex],
-							newValue >= STANDARD_TUNING[stringIndex] + STRING_SIZE
+							newValue >=
+								STANDARD_TUNING[stringIndex] + STRING_SIZE,
 						];
 					}
-					
-					if (conditions.some(_ => _)) {
+
+					if (conditions.some((_) => _)) {
 						valid = false;
 						break;
 					}
@@ -232,5 +250,12 @@ export class FretboardUtil {
 
 	copy(): FretboardUtil {
 		return new FretboardUtil(copy(this.notes), copy(this.strings));
+	}
+
+	toJSON(): FretboardUtilType {
+		return {
+			notes: copy(this.notes),
+			strings: copy(this.strings),
+		};
 	}
 }

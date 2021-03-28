@@ -54,10 +54,16 @@ interface Props {
 	openString?: boolean;
 }
 
-export const Fret: React.FC<Props> = ({ fretboardIndex, value, openString, stringIndex }) => {
+export const Fret: React.FC<Props> = ({
+	fretboardIndex,
+	value,
+	openString,
+	stringIndex,
+}) => {
 	const { state, dispatch } = React.useContext(FretboardContext);
 	const fretboard = state.fretboards[fretboardIndex];
-	const [secondaryColor, primaryColor] = COLORS[mod(fretboardIndex, COLORS.length)];
+	// const [secondaryColor, primaryColor] = COLORS[mod(fretboardIndex, COLORS.length)];
+	const [secondaryColor, primaryColor] = COLORS[0];
 
 	const note = new NoteUtil(value);
 	const label = state.label === "value" ? value : note.getName(state.label);
@@ -67,15 +73,15 @@ export const Fret: React.FC<Props> = ({ fretboardIndex, value, openString, strin
 		: fretboard.get(value)
 		? secondaryColor
 		: "white";
-	const color = isHighlighted
-		? "white"
-		: "#333";
+	const color = isHighlighted ? "white" : "#333";
 	const fretIndex = value - STANDARD_TUNING[stringIndex];
-	const fretWidth = (1 + ((12 - fretIndex) / 30)) * 8.333333;
-	const thickness = ((6 - stringIndex) + 1) / 2;
+	const fretWidth = (1 + (12 - fretIndex) / 30) * 8.333333;
+	const thickness = (6 - stringIndex + 1) / 2;
 	const border = openString ? "none" : "1px solid #333";
 
-	function onContextMenu(e?: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+	function onContextMenu(
+		e?: React.MouseEvent<HTMLDivElement, MouseEvent>
+	): void {
 		e && e.preventDefault();
 		dispatch({
 			type: "SET_HIGHLIGHTED_NOTE",
@@ -88,14 +94,27 @@ export const Fret: React.FC<Props> = ({ fretboardIndex, value, openString, strin
 		if (e.metaKey || e.shiftKey) {
 			onContextMenu();
 		} else {
-			dispatch({ type: "SET_NOTE", payload: { fretboardIndex, note: value} });
+			dispatch({
+				type: "SET_NOTE",
+				payload: { fretboardIndex, note: value },
+			});
 		}
 	}
 
 	return (
-		<FretDiv border={border} width={fretWidth} onContextMenu={onContextMenu}>
+		<FretDiv
+			border={border}
+			width={fretWidth}
+			onContextMenu={onContextMenu}
+		>
 			{!!fretIndex && <LineDiv height={thickness} />}
-			<CircleDiv onClick={onClick} backgroundColor={backgroundColor} color={color}>{label}</CircleDiv>
+			<CircleDiv
+				onClick={onClick}
+				backgroundColor={backgroundColor}
+				color={color}
+			>
+				{label}
+			</CircleDiv>
 			{!!fretIndex && <LineDiv height={thickness} />}
 		</FretDiv>
 	);
