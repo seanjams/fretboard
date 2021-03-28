@@ -55,7 +55,13 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		const { fretboardIndex } = action.payload;
 		const fretboard = fretboards[fretboardIndex].copy();
 		const valid = fretboard.incrementPosition(1, true);
-		if (!valid && focusedIndex > 0) focusedIndex--;
+		if (!valid) {
+			if (state.invert !== state.leftHand) {
+				if (focusedIndex < fretboards.length - 1) focusedIndex++;
+			} else {
+				if (0 < focusedIndex) focusedIndex--;
+			}
+		}
 		fretboards[fretboardIndex] = fretboard;
 		return { ...state, fretboards, focusedIndex };
 	}
@@ -65,7 +71,13 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		const { fretboardIndex } = action.payload;
 		const fretboard = fretboards[fretboardIndex].copy();
 		const valid = fretboard.incrementPosition(-1, true);
-		if (!valid && focusedIndex < fretboards.length - 1) focusedIndex++;
+		if (!valid) {
+			if (state.invert !== state.leftHand) {
+				if (0 < focusedIndex) focusedIndex--;
+			} else {
+				if (focusedIndex < fretboards.length - 1) focusedIndex++;
+			}
+		}
 		fretboards[fretboardIndex] = fretboard;
 		return { ...state, fretboards, focusedIndex };
 	}
