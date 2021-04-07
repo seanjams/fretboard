@@ -3,7 +3,9 @@ import styled from "styled-components";
 import { FretboardContext } from "../store";
 
 // CSS
-interface CSSProps {}
+interface CSSProps {
+	width?: number;
+}
 
 const TextContainer = styled.div<CSSProps>`
 	font-family: Arial;
@@ -15,14 +17,13 @@ const ButtonBank = styled.div<CSSProps>`
 	display: flex;
 	align-items: center;
 	font-size: 10px;
-	position: fixed;
-	z-index: 10000;
 	background: white;
+	width: 100vw;
+	margin: 10px 0;
 `;
 
 const ButtonContainer = styled.div<CSSProps>`
-	margin: 10px;
-	height: 40px;
+	margin: 0 10px;
 `;
 
 const ButtonInput = styled.button<CSSProps>`
@@ -112,28 +113,6 @@ export const NavControls: React.FC<Props> = () => {
 				Click to set a note. Right click or Shift + click to highlight a
 				pattern. Arrow keys Up/Down/Left/Right to move pattern.
 			</TextContainer>
-		</ButtonBank>
-	);
-};
-
-export const AddFretboardControls: React.FC<Props> = () => {
-	const { dispatch } = React.useContext(FretboardContext);
-	return (
-		<ButtonBank>
-			<ButtonContainer>
-				<ButtonInput
-					onClick={() => dispatch({ type: "ADD_FRETBOARD" })}
-				>
-					&#43;
-				</ButtonInput>
-			</ButtonContainer>
-			<ButtonContainer>
-				<ButtonInput
-					onClick={() => dispatch({ type: "REMOVE_FRETBOARD" })}
-				>
-					&minus;
-				</ButtonInput>
-			</ButtonContainer>
 		</ButtonBank>
 	);
 };

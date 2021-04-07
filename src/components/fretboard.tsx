@@ -12,7 +12,6 @@ interface CSSProps {
 }
 
 const FretboardContainer = styled.div<CSSProps>`
-	margin-top: 30px;
 	display: flex;
 	align-items: stretch;
 `;
@@ -40,7 +39,7 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 
 	// whether the high E string appears on the top or bottom of the fretboard,
 	// depending on invert/leftHand views
-	const highEBottom: boolean = state.invert !== state.leftHand;
+	const highEBottom = state.invert !== state.leftHand;
 
 	let naturals: { [key in string]: number } = {};
 	let i = 0;
@@ -66,19 +65,34 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 	});
 
 	const strings = STANDARD_TUNING.map((value, i) => {
-		return <String fretboardIndex={fretboardIndex} stringIndex={i} base={value} key={`string-${fretboardIndex}-${i}`} />;
+		return (
+			<String
+				fretboardIndex={fretboardIndex}
+				stringIndex={i}
+				base={value}
+				key={`string-${fretboardIndex}-${i}`}
+			/>
+		);
 	});
 
 	function onClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-		dispatch({ type: "SET_FOCUS", payload: { fretboardIndex }});
+		dispatch({ type: "SET_FOCUS", payload: { fretboardIndex } });
 	}
 
 	function onKeyPress(this: Window, e: KeyboardEvent): any {
-		const keyMap: {[key: string]: KeyControlTypes} = {
-			"ArrowUp": highEBottom ? "DECREMENT_POSITION_Y" : "INCREMENT_POSITION_Y",
-			"ArrowDown": highEBottom ? "INCREMENT_POSITION_Y" : "DECREMENT_POSITION_Y",
-			"ArrowRight": state.invert ? "DECREMENT_POSITION_X" : "INCREMENT_POSITION_X",
-			"ArrowLeft": state.invert ? "INCREMENT_POSITION_X" : "DECREMENT_POSITION_X",
+		const keyMap: { [key: string]: KeyControlTypes } = {
+			ArrowUp: highEBottom
+				? "DECREMENT_POSITION_Y"
+				: "INCREMENT_POSITION_Y",
+			ArrowDown: highEBottom
+				? "INCREMENT_POSITION_Y"
+				: "DECREMENT_POSITION_Y",
+			ArrowRight: state.invert
+				? "DECREMENT_POSITION_X"
+				: "INCREMENT_POSITION_X",
+			ArrowLeft: state.invert
+				? "INCREMENT_POSITION_X"
+				: "DECREMENT_POSITION_X",
 		};
 
 		if (fretboardIndex === focusedIndex) {
@@ -87,20 +101,21 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 				dispatch({ type: keyMap[e.key], payload: { fretboardIndex } });
 			} else if (naturals.hasOwnProperty(e.key)) {
 				e.preventDefault();
-				dispatch({ type: "SET_NOTE", payload: { fretboardIndex, note: naturals[e.key] } })
+				dispatch({
+					type: "SET_NOTE",
+					payload: { fretboardIndex, note: naturals[e.key] },
+				});
 			}
 		}
 	}
 
 	return (
 		<FretboardContainer>
-			{!state.invert && <FocusBar color={fretboardIndex === state.focusedIndex ? "#933" : "transparent"} />}
 			<FretboardDiv onClick={onClick} onContextMenu={onClick}>
 				<Legend fretboardIndex={fretboardIndex} top={true} />
-					{highEBottom ? strings : strings.reverse()}
+				{highEBottom ? strings : strings.reverse()}
 				<Legend fretboardIndex={fretboardIndex} />
 			</FretboardDiv>
-			{state.invert && <FocusBar color={fretboardIndex === state.focusedIndex ? "#933" : "transparent"} />}
 		</FretboardContainer>
 	);
 };

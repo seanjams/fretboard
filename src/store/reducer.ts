@@ -91,7 +91,10 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 	}
 
 	if (action.type === "ADD_FRETBOARD") {
-		fretboards.push(new FretboardUtil());
+		const lastFretboard = state.fretboards[
+			state.fretboards.length - 1
+		].copy();
+		fretboards.push(lastFretboard);
 		return { ...state, fretboards };
 	}
 

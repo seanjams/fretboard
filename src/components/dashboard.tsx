@@ -2,21 +2,22 @@ import * as React from "react";
 import styled from "styled-components";
 import { StateType, FretboardContext, StateModel } from "../store";
 import { Fretboard } from "./fretboard";
-import { NavControls, AddFretboardControls } from "./controls";
+import { NavControls } from "./controls";
+import { Slider } from "./slider";
 
 // CSS
 interface CSSProps {}
 
+const NavContainerDiv = styled.div<CSSProps>`
+	position: fixed;
+	z-index: 10000;
+	width: 100vw;
+`;
+
 const ContainerDiv = styled.div<CSSProps>`
 	font-family: Arial;
 	position: absolute;
-	top: 40px;
-`;
-
-const FretboardControlsContainerDiv = styled.div<CSSProps>`
-	width: 100vw;
-	display: flex;
-	justify-content: flex-end;
+	top: 160px;
 `;
 
 // Component
@@ -53,14 +54,12 @@ export const Dashboard: React.FC<Props> = ({ oldState }) => {
 
 	return (
 		<div>
-			<NavControls />
+			<NavContainerDiv>
+				<NavControls />
+				<Slider />
+			</NavContainerDiv>
 			<ContainerDiv>
-				{state.fretboards.map((_, i) => (
-					<Fretboard key={`fretboard-${i}`} fretboardIndex={i} />
-				))}
-				<FretboardControlsContainerDiv>
-					<AddFretboardControls />
-				</FretboardControlsContainerDiv>
+				<Fretboard fretboardIndex={state.focusedIndex} />
 			</ContainerDiv>
 		</div>
 	);
