@@ -1,9 +1,9 @@
 import {
-	SharpTypes,
-	FlatTypes,
-	NoteTypes,
-	NoteSwitchType,
-	StringSwitchType,
+    SharpTypes,
+    FlatTypes,
+    NoteTypes,
+    NoteSwitchType,
+    StringSwitchType,
 } from "./types";
 
 export const C = "C";
@@ -25,46 +25,84 @@ export const Bb = "Bb";
 export const B = "B";
 
 export const DEFAULT_NOTESWITCH: NoteSwitchType = {
-	0: false,
-	1: false,
-	2: false,
-	3: false,
-	4: false,
-	5: false,
-	6: false,
-	7: false,
-	8: false,
-	9: false,
-	10: false,
-	11: false,
+    0: false,
+    1: false,
+    2: false,
+    3: false,
+    4: false,
+    5: false,
+    6: false,
+    7: false,
+    8: false,
+    9: false,
+    10: false,
+    11: false,
 };
 
 export const DEFAULT_STRINGSWITCH: StringSwitchType = [{}, {}, {}, {}, {}, {}];
 
 export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
-	[C, C],
-	[Cs, Db],
-	[D, D],
-	[Ds, Eb],
-	[E, E],
-	[F, F],
-	[Fs, Gb],
-	[G, G],
-	[Gs, Ab],
-	[A, A],
-	[As, Bb],
-	[B, B],
+    [C, C],
+    [Cs, Db],
+    [D, D],
+    [Ds, Eb],
+    [E, E],
+    [F, F],
+    [Fs, Gb],
+    [G, G],
+    [Gs, Ab],
+    [A, A],
+    [As, Bb],
+    [B, B],
 ];
 
-export const SHARP_NAMES: SharpTypes[] = NOTE_NAMES.map(names => names[0]);
-export const FLAT_NAMES: FlatTypes[] = NOTE_NAMES.map(names => names[1]);
+export const SHARP_NAMES: SharpTypes[] = NOTE_NAMES.map((names) => names[0]);
+export const FLAT_NAMES: FlatTypes[] = NOTE_NAMES.map((names) => names[1]);
 export const NOTE_VALUES: { [key in NoteTypes]?: number } = {};
 NOTE_NAMES.forEach((names, i) => {
-	NOTE_VALUES[names[0]] = i;
-	NOTE_VALUES[names[1]] = i;
+    NOTE_VALUES[names[0]] = i;
+    NOTE_VALUES[names[1]] = i;
 });
 
 // C0 = 0 in this system. Lowest string on guitar is E2 = 28
 export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
-
 export const STRING_SIZE = 22;
+export const COLORS = [
+    "#e6194B",
+    "#3cb44b",
+    "#ffe119",
+    "#4363d8",
+    "#f58231",
+    "#911eb4",
+    "#42d4f4",
+    "#f032e6",
+    "#bfef45",
+    "#fabed4",
+    "#469990",
+    "#dcbeff",
+    "#9A6324",
+    "#fffac8",
+    "#800000",
+    "#aaffc3",
+    "#808000",
+    "#ffd8b1",
+    "#000075",
+    "#a9a9a9",
+    "#ffffff",
+    "#000000",
+];
+
+export const NOTE_COLORS = [
+    "#bfef45",
+    "#469990",
+    "#9A6324",
+    "#800000",
+    "#808000",
+    "#000075",
+    "#e6194b",
+    "#911eb4",
+    "#f032e6",
+    "#3cb44b",
+    "#4363d8",
+    "#f58231",
+];

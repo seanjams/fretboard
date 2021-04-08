@@ -1,0 +1,10 @@
+{
+    "rulesDirectory": [
+        "tslint:latest",
+        "tslint-react",
+        "tslint-plugin-prettier"
+    ],
+    "rules": {
+        "prettier": true
+    }
+}
