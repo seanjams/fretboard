@@ -22,6 +22,16 @@ export function mod(a: numString, m: number): number {
 	return ((+a % m) + m) % m;
 }
 
+export function stopClick() {
+	// can be placed within a mouseup event to prevent
+	// the subsequent click event
+	window.addEventListener("click", captureClick, true);
+	function captureClick(e: MouseEvent | TouchEvent) {
+		e.stopPropagation();
+		window.removeEventListener("click", captureClick, true);
+	}
+}
+
 // export function shuffleArray(array: any[]): void {
 //     for (let i = array.length - 1; i > 0; i--) {
 //         const j = Math.floor(Math.random() * (i + 1));

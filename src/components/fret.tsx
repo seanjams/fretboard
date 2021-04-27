@@ -16,7 +16,7 @@ interface CSSProps {
 const FretDiv = styled.div<CSSProps>`
 	border-left: ${({ border }) => border};
 	border-right: ${({ border }) => border};
-	height: 40px;
+	height: 33px;
 	width: ${({ width }) => width}%;
 	display: flex;
 	justify-content: center;
@@ -24,15 +24,15 @@ const FretDiv = styled.div<CSSProps>`
 `;
 
 const CircleDiv = styled.div<CSSProps>`
-	margin-left: -15px;
-	margin-right: -15px;
+	margin-left: -13px;
+	margin-right: -13px;
 	border: 1px solid #333;
 	color: #333;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: 30px;
-	height: 30px;
+	width: 26px;
+	height: 26px;
 	border-radius: 100%;
 	color: ${({ color }) => color};
 	background-color: ${({ backgroundColor }) => backgroundColor};
@@ -83,15 +83,28 @@ export const Fret: React.FC<Props> = ({
 		e?: React.MouseEvent<HTMLDivElement, MouseEvent>
 	): void {
 		e && e.preventDefault();
+		console.log("IN HERE");
 		dispatch({
 			type: "SET_HIGHLIGHTED_NOTE",
 			payload: { stringIndex, value, fretboardIndex },
 		});
 	}
 
-	function onClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>): any {
-		e.preventDefault();
-		if (e.metaKey || e.shiftKey) {
+	function onClick(
+		e:
+			| React.TouchEvent<HTMLDivElement>
+			| React.MouseEvent<HTMLDivElement, MouseEvent>
+	) {
+		const conditions = [];
+		if (e.nativeEvent instanceof MouseEvent) {
+			conditions.push(e.nativeEvent.metaKey, e.nativeEvent.shiftKey);
+		} else if (e.nativeEvent instanceof TouchEvent) {
+			conditions.push(e.nativeEvent.touches.length > 1);
+		} else {
+			return;
+		}
+
+		if (conditions.some((condition) => condition)) {
 			onContextMenu();
 		} else {
 			dispatch({
@@ -110,6 +123,7 @@ export const Fret: React.FC<Props> = ({
 			{!!fretIndex && <LineDiv height={thickness} />}
 			<CircleDiv
 				onClick={onClick}
+				onTouchStart={onClick}
 				backgroundColor={backgroundColor}
 				color={color}
 			>

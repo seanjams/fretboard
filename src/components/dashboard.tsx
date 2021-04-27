@@ -8,16 +8,10 @@ import { Slider } from "./slider";
 // CSS
 interface CSSProps {}
 
-const NavContainerDiv = styled.div<CSSProps>`
-	position: fixed;
-	z-index: 10000;
-	width: 100vw;
-`;
-
 const ContainerDiv = styled.div<CSSProps>`
+	width: 100vw;
+	overflow-x: auto;
 	font-family: Arial;
-	position: absolute;
-	top: 160px;
 `;
 
 // Component
@@ -54,12 +48,14 @@ export const Dashboard: React.FC<Props> = ({ oldState }) => {
 
 	return (
 		<div>
-			<NavContainerDiv>
-				<NavControls />
+			<ContainerDiv>
 				<Slider />
-			</NavContainerDiv>
+			</ContainerDiv>
 			<ContainerDiv>
 				<Fretboard fretboardIndex={state.focusedIndex} />
+			</ContainerDiv>
+			<ContainerDiv>
+				<NavControls />
 			</ContainerDiv>
 		</div>
 	);

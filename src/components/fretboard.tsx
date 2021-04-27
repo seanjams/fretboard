@@ -14,18 +14,13 @@ interface CSSProps {
 const FretboardContainer = styled.div<CSSProps>`
 	display: flex;
 	align-items: stretch;
+	width: 1700px;
 `;
 
 const FretboardDiv = styled.div<CSSProps>`
 	display: flex;
 	flex-direction: column;
-	width: 2000px;
-`;
-
-const FocusBar = styled.div<CSSProps>`
-	width: 10px;
-	border-radius: 3px;
-	background-color: ${({ color }) => color};
+	width: 100%;
 `;
 
 // Component
@@ -35,7 +30,12 @@ interface Props {
 
 export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 	const { state, dispatch } = React.useContext(FretboardContext);
-	const { focusedIndex } = state;
+	const invertRef = React.useRef(false);
+	const leftHandRef = React.useRef(false);
+	const focusedIndexRef = React.useRef(0);
+	invertRef.current = state.invert;
+	leftHandRef.current = state.leftHand;
+	focusedIndexRef.current = state.focusedIndex;
 
 	// whether the high E string appears on the top or bottom of the fretboard,
 	// depending on invert/leftHand views
@@ -75,11 +75,16 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 		);
 	});
 
-	function onClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
+	function onClick(
+		e:
+			| React.TouchEvent<HTMLDivElement>
+			| React.MouseEvent<HTMLDivElement, MouseEvent>
+	) {
 		dispatch({ type: "SET_FOCUS", payload: { fretboardIndex } });
 	}
 
 	function onKeyPress(this: Window, e: KeyboardEvent): any {
+		const highEBottom = invertRef.current !== leftHandRef.current;
 		const keyMap: { [key: string]: KeyControlTypes } = {
 			ArrowUp: highEBottom
 				? "DECREMENT_POSITION_Y"
@@ -95,7 +100,7 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 				: "DECREMENT_POSITION_X",
 		};
 
-		if (fretboardIndex === focusedIndex) {
+		if (fretboardIndex === focusedIndexRef.current) {
 			if (keyMap.hasOwnProperty(e.key)) {
 				e.preventDefault();
 				dispatch({ type: keyMap[e.key], payload: { fretboardIndex } });
@@ -111,7 +116,11 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 
 	return (
 		<FretboardContainer>
-			<FretboardDiv onClick={onClick} onContextMenu={onClick}>
+			<FretboardDiv
+				onClick={onClick}
+				onTouchStart={onClick}
+				onContextMenu={onClick}
+			>
 				<Legend fretboardIndex={fretboardIndex} top={true} />
 				{highEBottom ? strings : strings.reverse()}
 				<Legend fretboardIndex={fretboardIndex} />
