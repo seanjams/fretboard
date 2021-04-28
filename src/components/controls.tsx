@@ -1,7 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import { FretboardContext } from "../store";
-import { KeyControlTypes, LabelTypes, ArrowTypes } from "../types";
+import { LabelTypes, ArrowTypes } from "../types";
+import { getPositionActionType } from "../utils";
 
 // CSS
 interface CSSProps {
@@ -104,28 +105,18 @@ export const NavControls: React.FC<Props> = () => {
 	};
 
 	const onArrowPress = (direction: ArrowTypes) => () => {
-		// whether the high E string appears on the top or bottom of the fretboard,
-		// depending on invert/leftHand views
-		const highEBottom = invertRef.current !== leftHandRef.current;
-		const keyMap: { [key: string]: KeyControlTypes } = {
-			ArrowUp: highEBottom
-				? "DECREMENT_POSITION_Y"
-				: "INCREMENT_POSITION_Y",
-			ArrowDown: highEBottom
-				? "INCREMENT_POSITION_Y"
-				: "DECREMENT_POSITION_Y",
-			ArrowRight: state.invert
-				? "DECREMENT_POSITION_X"
-				: "INCREMENT_POSITION_X",
-			ArrowLeft: state.invert
-				? "INCREMENT_POSITION_X"
-				: "DECREMENT_POSITION_X",
-		};
+		const actionType = getPositionActionType(
+			invertRef.current,
+			leftHandRef.current,
+			direction
+		);
 
-		dispatch({
-			type: keyMap[direction],
-			payload: { fretboardIndex: focusedIndexRef.current },
-		});
+		if (actionType) {
+			dispatch({
+				type: actionType,
+				payload: { fretboardIndex: focusedIndexRef.current },
+			});
+		}
 	};
 
 	return (

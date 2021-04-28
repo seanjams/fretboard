@@ -12,6 +12,8 @@ import {
 	NoteSwitchType,
 	StringSwitchType,
 	numString,
+	ArrowTypes,
+	KeyControlTypes,
 } from "./types";
 
 export function copy(obj: any): any {
@@ -30,6 +32,29 @@ export function stopClick() {
 		e.stopPropagation();
 		window.removeEventListener("click", captureClick, true);
 	}
+}
+
+export function getPositionActionType(
+	invert: boolean,
+	leftHand: boolean,
+	direction: string
+): KeyControlTypes | null {
+	// Get the action direction based on orientation of fretboard
+	// could maybe move this to reducer.
+	// highEBottom
+	// 	- whether the high E string appears on the top or bottom of the fretboard,
+	// 	- depending on invert/leftHand views
+	const highEBottom = invert !== leftHand;
+	const keyMap: { [key: string]: KeyControlTypes } = {
+		ArrowUp: highEBottom ? "DECREMENT_POSITION_Y" : "INCREMENT_POSITION_Y",
+		ArrowDown: highEBottom
+			? "INCREMENT_POSITION_Y"
+			: "DECREMENT_POSITION_Y",
+		ArrowRight: invert ? "DECREMENT_POSITION_X" : "INCREMENT_POSITION_X",
+		ArrowLeft: invert ? "INCREMENT_POSITION_X" : "DECREMENT_POSITION_X",
+	};
+
+	return keyMap[direction];
 }
 
 // export function shuffleArray(array: any[]): void {

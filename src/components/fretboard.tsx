@@ -4,7 +4,7 @@ import { STANDARD_TUNING, NATURAL_NOTE_NAMES, E, B, C, F } from "../consts";
 import { FretboardContext } from "../store";
 import { String } from "./string";
 import { Legend } from "./legend";
-import { KeyControlTypes } from "../types";
+import { getPositionActionType } from "../utils";
 
 // CSS
 interface CSSProps {
@@ -84,26 +84,18 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 	}
 
 	function onKeyPress(this: Window, e: KeyboardEvent): any {
-		const highEBottom = invertRef.current !== leftHandRef.current;
-		const keyMap: { [key: string]: KeyControlTypes } = {
-			ArrowUp: highEBottom
-				? "DECREMENT_POSITION_Y"
-				: "INCREMENT_POSITION_Y",
-			ArrowDown: highEBottom
-				? "INCREMENT_POSITION_Y"
-				: "DECREMENT_POSITION_Y",
-			ArrowRight: state.invert
-				? "DECREMENT_POSITION_X"
-				: "INCREMENT_POSITION_X",
-			ArrowLeft: state.invert
-				? "INCREMENT_POSITION_X"
-				: "DECREMENT_POSITION_X",
-		};
-
 		if (fretboardIndex === focusedIndexRef.current) {
-			if (keyMap.hasOwnProperty(e.key)) {
+			const actionType = getPositionActionType(
+				invertRef.current,
+				leftHandRef.current,
+				e.key
+			);
+			if (actionType) {
 				e.preventDefault();
-				dispatch({ type: keyMap[e.key], payload: { fretboardIndex } });
+				dispatch({
+					type: actionType,
+					payload: { fretboardIndex },
+				});
 			} else if (naturals.hasOwnProperty(e.key)) {
 				e.preventDefault();
 				dispatch({
