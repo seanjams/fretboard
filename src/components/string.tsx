@@ -18,7 +18,11 @@ interface Props {
 	fretboardIndex: number;
 }
 
-export const String: React.FC<Props> = ({ base, stringIndex, fretboardIndex }) => {
+export const String: React.FC<Props> = ({
+	base,
+	stringIndex,
+	fretboardIndex,
+}) => {
 	const { state } = React.useContext(FretboardContext);
 
 	const frets = Array(state.stringSize)

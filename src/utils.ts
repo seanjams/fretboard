@@ -159,7 +159,7 @@ export class FretboardUtil implements FretboardUtilType {
 	list(): number[] {
 		const result: number[] = [];
 		Object.keys(this.notes).forEach((note, i) => {
-			if (note) {
+			if (this.notes[+note]) {
 				result.push(i);
 			}
 		});
@@ -170,6 +170,150 @@ export class FretboardUtil implements FretboardUtilType {
 		return Object.keys(this.strings[mod(stringIndex, 6)])
 			.map((key) => +key)
 			.sort((a: number, b: number) => a - b);
+	}
+
+	compare1(fretboard: FretboardUtil) {
+		const list = this.list();
+		const compareList = fretboard.list();
+		const rotations = list.map((_, i) => (j: number) =>
+			(j + i) % list.length
+		);
+		let results: { [key: number]: { [key: number]: number } } = {};
+
+		function rotatedDistance(a: number, b: number, m: number) {
+			let min = a - b;
+			if (Math.abs(a - b + m) < Math.abs(min)) min = a - b + m;
+			if (Math.abs(a - b - m) < Math.abs(min)) min = a - b - m;
+			return min;
+		}
+
+		for (let rotation of rotations) {
+			let result: { [key: number]: number } = {};
+			for (let i = 0; i < list.length; i++) {
+				let j = rotation(i);
+				result[list[i]] = rotatedDistance(compareList[j], list[i], 12);
+			}
+
+			const sum = Object.values(result)
+				.map((d) => d * d)
+				.reduce((acc, el) => acc + el);
+
+			results[sum] = result;
+		}
+
+		let min;
+		for (let sum in results) {
+			if (min === undefined || +sum < min) {
+				min = +sum;
+			}
+		}
+
+		return results[min];
+	}
+
+	// compare2(fretboard: FretboardUtil) {
+	// 	// simple implementation for now, needs to be refined
+	// 	const list = this.list();
+	// 	const compareList = fretboard.list();
+	// 	const result: { [key: number]: number } = {};
+
+	// function rotatedDistance(a: number, b: number, m: number) {
+	// 	let min = a - b;
+	// 	if (Math.abs(a - b + m) < Math.abs(min)) min = a - b + m;
+	// 	if (Math.abs(a - b - m) < Math.abs(min)) min = a - b - m;
+	// 	return min;
+	// }
+
+	// 	// direct compare
+	// 	for (let i = 0; i < list.length; i++) {
+	// 		let min;
+	// 		for (let j = 0; j < compareList.length; j++) {
+	// 			const distance = rotatedDistance(compareList[j], list[i], 12);
+	// 			if (min === undefined || distance * distance <= min * min) {
+	// 				min = distance;
+	// 			}
+	// 		}
+	// 		result[list[i]] = min;
+	// 	}
+
+	// 	return result;
+	// }
+
+	compare(fretboard: FretboardUtil) {
+		const list = this.list();
+		const compareList = fretboard.list();
+
+		function rotatedDistance(a: number, b: number, m: number) {
+			let min = a - b;
+			if (Math.abs(a - b + m) < Math.abs(min)) min = a - b + m;
+			if (Math.abs(a - b - m) < Math.abs(min)) min = a - b - m;
+			return min;
+		}
+
+		type itemType = {
+			toIndex: number[];
+			fromIndex: number;
+			distance: number;
+		};
+
+		const available: { [key in number]: boolean } = {};
+		compareList.forEach((index) => (available[index] = true));
+
+		// let minItems: number[][] = [];
+		let minItems = [];
+		for (let i = 0; i < list.length; i++) {
+			let distances = compareList.map((index) => ({
+				toIndex: index,
+				distance: rotatedDistance(index, list[i], 12),
+			}));
+			if (distances.length) {
+				distances.sort(
+					(a, b) => Math.abs(a.distance) - Math.abs(b.distance)
+				);
+
+				distances = distances.filter(
+					(distance) =>
+						Math.abs(distance.distance) ===
+						Math.abs(distances[0].distance)
+				);
+
+				minItems.push({
+					distance: distances.map((distance) => distance.distance),
+					fromIndex: list[i],
+					toIndex: distances.map((distance) => distance.toIndex),
+				});
+			}
+		}
+
+		minItems.sort(
+			(a, b) => Math.abs(a.distance[0]) - Math.abs(b.distance[0])
+		);
+
+		const result: { [key in number]: number } = {};
+
+		for (let item of minItems) {
+			const { fromIndex, toIndex, distance } = item;
+			for (let i = 0; i < toIndex.length; i++) {
+				const index = toIndex[i];
+				const d = distance[i];
+				if (available[index]) {
+					result[fromIndex] = d;
+					available[index] = false;
+					break;
+				}
+			}
+		}
+
+		for (let index of list) {
+			if (result[index] === undefined) result[index] = -9999;
+		}
+
+		// maybe fix for later
+		for (let index of Object.keys(available)) {
+			if (available[+index]) result[+index] = 9999;
+		}
+
+		return result;
 	}
 
 	_getIncrement(value: number, inc: number, scale: number[]): number {

@@ -1,6 +1,14 @@
 import * as React from "react";
 import styled from "styled-components";
-import { STANDARD_TUNING, NATURAL_NOTE_NAMES, E, B, C, F } from "../consts";
+import {
+	STANDARD_TUNING,
+	NATURAL_NOTE_NAMES,
+	FRETBOARD_WIDTH,
+	E,
+	B,
+	C,
+	F,
+} from "../consts";
 import { FretboardContext } from "../store";
 import { String } from "./string";
 import { Legend } from "./legend";
@@ -8,13 +16,17 @@ import { getPositionActionType } from "../utils";
 
 // CSS
 interface CSSProps {
+	width?: number;
 	color?: string;
 }
 
-const FretboardContainer = styled.div<CSSProps>`
+const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
+	style: {
+		width: `${props.width}px`,
+	},
+}))<CSSProps>`
 	display: flex;
 	align-items: stretch;
-	width: 1700px;
 `;
 
 const FretboardDiv = styled.div<CSSProps>`
@@ -107,7 +119,7 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 	}
 
 	return (
-		<FretboardContainer>
+		<FretboardContainer width={FRETBOARD_WIDTH}>
 			<FretboardDiv
 				onClick={onClick}
 				onTouchStart={onClick}
