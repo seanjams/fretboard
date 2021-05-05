@@ -30,3 +30,10 @@ export type KeyControlTypes =
 	| "DECREMENT_POSITION_Y";
 
 export type ArrowTypes = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
+
+export type DiffType = { [key in number]: number };
+
+export interface FretboardUtilType {
+	notes: NoteSwitchType;
+	strings: StringSwitchType;
+}

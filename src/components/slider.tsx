@@ -17,7 +17,7 @@ const ContainerDiv = styled.div<CSSProps>`
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin: 20px 0 10px 0;
+	margin: 10px 0 20px 0;
 `;
 
 const ProgressBar = styled.div.attrs((props: CSSProps) => ({
@@ -161,7 +161,7 @@ export const Slider: React.FC<SliderProps> = () => {
 	// 	}
 	// }, 100);
 
-	const repositionSlider = (clientX: number) => {
+	const repositionSlider = React.useCallback((clientX: number) => {
 		// get widths, maxwidth is how far the left of the slider can move
 		// aka full bar - width of slider
 		const origin = progressBarRef.current.offsetLeft;
@@ -177,7 +177,8 @@ export const Slider: React.FC<SliderProps> = () => {
 		// get the current focused fretboard index from progress of slider
 		const progressBarFragmentWidth =
 			progressBarWidth / fretboardsLengthRef.current;
-		const sliderProgressFragment = clientX - origin;
+		const sliderProgressFragment = newLeft + sliderBarWidth / 2 - origin;
+
 		const focusedIndex = Math.min(
 			Math.max(
 				Math.floor(sliderProgressFragment / progressBarFragmentWidth),
@@ -202,7 +203,7 @@ export const Slider: React.FC<SliderProps> = () => {
 				payload: { fretboardIndex: focusedIndex || 0 },
 			});
 		}
-	};
+	}, []);
 
 	// slider drag release (set ratio for resize experiment)
 	const onMouseUp = React.useCallback((event: MouseEvent | TouchEvent) => {

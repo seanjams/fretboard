@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import { StateType, FretboardContext, StateModel } from "../store";
+import { StateType, FretboardContext, DEFAULT_STATE } from "../store";
+import { FretboardUtil } from "../utils";
 import { Fretboard } from "./fretboard";
 import { NavControls } from "./controls";
 import { Slider } from "./slider";
@@ -17,6 +18,36 @@ const ContainerDiv = styled.div<CSSProps>`
 // Component
 interface Props {
 	oldState?: StateType;
+}
+
+function parseItem(key: keyof StateType): any {
+	let value: any = localStorage.getItem(key);
+	if (value) {
+		try {
+			value = JSON.parse(value);
+			if (key === "fretboards" && Array.isArray(value)) {
+				value = value.map(
+					(fretboard) =>
+						new FretboardUtil(fretboard.notes, fretboard.strings)
+				);
+			}
+		} catch (e) {}
+	}
+	return value;
+}
+
+function fromLocalStorage(): StateType {
+	const defaultState = DEFAULT_STATE();
+	return {
+		fretboards: parseItem("fretboards") || defaultState.fretboards,
+		leftDiffs: parseItem("leftDiffs") || defaultState.leftDiffs,
+		rightDiffs: parseItem("rightDiffs") || defaultState.rightDiffs,
+		label: parseItem("label") || defaultState.label,
+		invert: parseItem("invert") || defaultState.invert,
+		leftHand: parseItem("leftHand") || defaultState.leftHand,
+		stringSize: parseItem("stringSize") || defaultState.stringSize,
+		focusedIndex: parseItem("focusedIndex") || defaultState.focusedIndex,
+	};
 }
 
 export const Dashboard: React.FC<Props> = ({ oldState }) => {
@@ -36,11 +67,11 @@ export const Dashboard: React.FC<Props> = ({ oldState }) => {
 	};
 
 	const rehydrateState = () => {
-		let newState: StateType = StateModel.default();
+		let newState = DEFAULT_STATE();
 		if (oldState) {
 			newState = { ...newState, ...oldState };
 		} else {
-			newState = { ...newState, ...StateModel.fromLocalStorage() };
+			newState = { ...newState, ...fromLocalStorage() };
 		}
 
 		dispatch({ type: "REHYDRATE", payload: newState });
@@ -49,13 +80,13 @@ export const Dashboard: React.FC<Props> = ({ oldState }) => {
 	return (
 		<div>
 			<ContainerDiv>
-				<Slider />
+				<NavControls />
 			</ContainerDiv>
 			<ContainerDiv>
 				<Fretboard fretboardIndex={state.focusedIndex} />
 			</ContainerDiv>
 			<ContainerDiv>
-				<NavControls />
+				<Slider />
 			</ContainerDiv>
 		</div>
 	);

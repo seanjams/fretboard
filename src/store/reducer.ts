@@ -1,16 +1,17 @@
 import { ActionTypes } from "./actions";
-import { StateType } from "./state";
+import { StateType, rebuildDiffs } from "./state";
 import { FretboardUtil } from "../utils";
 
 function NeverCalled(never: never): void {}
 
 export function reducer(state: StateType, action: ActionTypes): StateType {
-	const fretboards = state.fretboards;
+	let fretboards = state.fretboards;
+
 	if (action.type === "CLEAR") {
-		const fretboards = Array(state.fretboards.length)
+		const newFretboards = Array(fretboards.length)
 			.fill(0)
 			.map(() => new FretboardUtil());
-		return { ...state, fretboards };
+		return { ...state, ...rebuildDiffs(newFretboards) };
 	}
 
 	if (action.type === "INVERT") {
@@ -26,7 +27,8 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		const fretboard = fretboards[fretboardIndex].copy();
 		fretboard.toggle(note);
 		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards };
+
+		return { ...state, ...rebuildDiffs(fretboards) };
 	}
 
 	if (action.type === "SET_LABEL") {
@@ -39,7 +41,7 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		const fretboard = fretboards[fretboardIndex].copy();
 		fretboard.incrementPosition(1, false);
 		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards };
+		return { ...state, ...rebuildDiffs(fretboards) };
 	}
 
 	if (action.type === "DECREMENT_POSITION_X") {
@@ -47,7 +49,7 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		const fretboard = fretboards[fretboardIndex].copy();
 		fretboard.incrementPosition(-1, false);
 		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards };
+		return { ...state, ...rebuildDiffs(fretboards) };
 	}
 
 	if (action.type === "INCREMENT_POSITION_Y") {
@@ -63,11 +65,11 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 			}
 		}
 		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards, focusedIndex };
+		return { ...state, focusedIndex, ...rebuildDiffs(fretboards) };
 	}
 
 	if (action.type === "DECREMENT_POSITION_Y") {
-		let { focusedIndex, fretboards } = state;
+		let { focusedIndex } = state;
 		const { fretboardIndex } = action.payload;
 		const fretboard = fretboards[fretboardIndex].copy();
 		const valid = fretboard.incrementPosition(-1, true);
@@ -79,7 +81,7 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 			}
 		}
 		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards, focusedIndex };
+		return { ...state, focusedIndex, ...rebuildDiffs(fretboards) };
 	}
 
 	if (action.type === "SET_HIGHLIGHTED_NOTE") {
@@ -87,15 +89,13 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		const fretboard = fretboards[fretboardIndex].copy();
 		fretboard.toggleFret(stringIndex, value);
 		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards };
+		return { ...state, ...rebuildDiffs(fretboards) };
 	}
 
 	if (action.type === "ADD_FRETBOARD") {
-		const lastFretboard = state.fretboards[
-			state.fretboards.length - 1
-		].copy();
+		const lastFretboard = fretboards[fretboards.length - 1].copy();
 		fretboards.push(lastFretboard);
-		return { ...state, fretboards };
+		return { ...state, ...rebuildDiffs(fretboards) };
 	}
 
 	if (action.type === "REMOVE_FRETBOARD") {
@@ -103,7 +103,8 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		if (fretboards.length > 1) fretboards.pop();
 		if (focusedIndex >= fretboards.length)
 			focusedIndex = fretboards.length - 1;
-		return { ...state, fretboards, focusedIndex };
+
+		return { ...state, focusedIndex, ...rebuildDiffs(fretboards) };
 	}
 
 	if (action.type === "SET_FOCUS") {

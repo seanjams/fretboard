@@ -20,7 +20,7 @@ const ButtonBank = styled.div<CSSProps>`
 	align-items: center;
 	justify-content: space-between;
 	font-size: 10px;
-	background: white;
+	background: transparent;
 	width: 100vw;
 	margin: 5px 0 10px 0;
 `;

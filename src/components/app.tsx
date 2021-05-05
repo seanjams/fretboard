@@ -2,7 +2,7 @@ import * as React from "react";
 import {
 	StateType,
 	ActionTypes,
-	StateModel,
+	DEFAULT_STATE,
 	reducer,
 	Provider,
 } from "../store";
@@ -16,7 +16,7 @@ interface Props {
 export const App: React.FC<Props> = ({ oldState }) => {
 	const [state, dispatch] = React.useReducer<
 		React.Reducer<StateType, ActionTypes>
-	>(reducer, StateModel.default());
+	>(reducer, DEFAULT_STATE());
 
 	return (
 		<Provider value={{ state, dispatch }}>
