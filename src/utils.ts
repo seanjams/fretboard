@@ -168,63 +168,17 @@ export class FretboardUtil implements FretboardUtilType {
 			.sort((a: number, b: number) => a - b);
 	}
 
-	// compare1(fretboard: FretboardUtil) {
-	// 	const list = this.list();
-	// 	const compareList = fretboard.list();
-	// 	const rotations = list.map((_, i) => (j: number) =>
-	// 		(j + i) % list.length
-	// 	);
-	// 	let results: { [key: number]: { [key: number]: number } } = {};
-
-	// 	function rotatedDistance(a: number, b: number, m: number) {
-	// 		let min = a - b;
-	// 		if (Math.abs(a - b + m) < Math.abs(min)) min = a - b + m;
-	// 		if (Math.abs(a - b - m) < Math.abs(min)) min = a - b - m;
-	// 		return min;
-	// 	}
-
-	// 	for (let rotation of rotations) {
-	// 		let result: { [key: number]: number } = {};
-	// 		for (let i = 0; i < list.length; i++) {
-	// 			let j = rotation(i);
-	// 			result[list[i]] = rotatedDistance(compareList[j], list[i], 12);
-	// 		}
-
-	// 		const sum = Object.values(result)
-	// 			.map((d) => d * d)
-	// 			.reduce((acc, el) => acc + el);
-
-	// 		results[sum] = result;
-	// 	}
-
-	// 	let min;
-	// 	for (let sum in results) {
-	// 		if (min === undefined || +sum < min) {
-	// 			min = +sum;
-	// 		}
-	// 	}
-
-	// 	return results[min];
-	// }
-
 	// compare2(fretboard: FretboardUtil) {
 	// 	// simple implementation for now, needs to be refined
 	// 	const list = this.list();
 	// 	const compareList = fretboard.list();
 	// 	const result: { [key: number]: number } = {};
 
-	// function rotatedDistance(a: number, b: number, m: number) {
-	// 	let min = a - b;
-	// 	if (Math.abs(a - b + m) < Math.abs(min)) min = a - b + m;
-	// 	if (Math.abs(a - b - m) < Math.abs(min)) min = a - b - m;
-	// 	return min;
-	// }
-
 	// 	// direct compare
 	// 	for (let i = 0; i < list.length; i++) {
 	// 		let min;
 	// 		for (let j = 0; j < compareList.length; j++) {
-	// 			const distance = rotatedDistance(compareList[j], list[i], 12);
+	// 			const distance = _rotatedDistance(compareList[j], list[i], 12);
 	// 			if (min === undefined || distance * distance <= min * min) {
 	// 				min = distance;
 	// 			}
@@ -438,124 +392,230 @@ export class FretboardUtil implements FretboardUtilType {
 // leftDiffRef.current = getFretboardDiff(true);
 // rightDiffRef.current = getFretboardDiff(false);
 
-export function compare(fretboardA: FretboardUtil, fretboardB: FretboardUtil) {
-	// returns dict of fretboard notes that need to change between two fretboards,
-	// how far they move or if they are vanishing/appearing
-
-	const list = fretboardA.list();
-	const compareList = fretboardB.list();
-
-	// available notes left
-	const available: { [key in number]: boolean } = {};
-	compareList.forEach((index) => (available[index] = true));
-
-	// if (
-	// 	// fretboard.notes[0] &&
-	// 	fretboard.notes[2] &&
-	// 	fretboard.notes[4] &&
-	// 	fretboard.notes[6]
-	// 	// fretboard.notes[9]
-	// ) {
-	// 	console.log("in here");
-	// 	debugger;
-	// }
-
-	let minItems: Array<{
-		fromIndex: number;
-		distances: Array<{ toIndex: number; distance: number }>;
-	}> = [];
-	// loop over initial list and get distance to all items in compareList
-	// sort them and append to a list of other items
-	for (let i = 0; i < list.length; i++) {
-		let distances = compareList.map((index) => ({
-			toIndex: index,
-			distance: _rotatedDistance(index, list[i]),
-		}));
-		if (distances.length) {
-			distances.sort(
-				(a, b) => Math.abs(a.distance) - Math.abs(b.distance)
-			);
-			minItems.push({
-				fromIndex: list[i],
-				distances,
-			});
-		}
-	}
-
-	// iterate over minItems, sorting by first item distance
-	// (to allow best candidates to get first dibs at being in result),
-	// Then loop over these sorted distance lists,
-	// if it can be assigned to result, then great, otherwise we remove and continue
-	// this will mutate minItems until it is array of empty items with empty distance arrays
-	const resultItems: { [key in number]: any } = {};
-	for (let i = 0; i < compareList.length; i++) {
-		// remove items that are found
-		minItems = minItems.filter(
-			(minItem) => resultItems[minItem.fromIndex] === undefined
+export function getMinDiff(
+	longerList: number[],
+	shorterList: number[]
+): [number, DiffType] {
+	let minSum;
+	let minDiff = {};
+	let minDiffScore;
+	if (longerList.length === shorterList.length) {
+		// return min sum and Diff for best rotation
+		const rotatedIndexes = longerList.map((_, i) => (j: number) =>
+			(j + i) % longerList.length
 		);
 
-		// sort items by distance from next matching candidate
-		minItems.sort((a, b) => {
-			if (!a.distances.length && !b.distances.length) return 0;
-			if (!a.distances.length && b.distances.length) return 1;
-			if (a.distances.length && !b.distances.length) return -1;
+		for (let rotation of rotatedIndexes) {
+			let diff: DiffType = {};
+			let diffScore;
+			let absSum;
 
-			return (
-				Math.abs(a.distances[0].distance) -
-				Math.abs(b.distances[0].distance)
-			);
-		});
+			for (let i = 0; i < longerList.length; i++) {
+				const j = rotation(i);
+				const distance = _rotatedDistance(
+					shorterList[j],
+					longerList[i]
+				);
+				if (diffScore === undefined) diffScore = 0;
+				if (absSum === undefined) absSum = 0;
+				diffScore += distance * distance;
+				absSum += Math.abs(distance);
+				diff[longerList[i]] = distance;
+			}
 
-		for (let item of minItems) {
-			let distanceItem = item.distances.shift();
-			// check that toIndex is available and that building a path there isValid,
-			// IE doesnt cross another existing path
-			if (
-				available[distanceItem.toIndex] &&
-				Object.keys(resultItems).every((key) => {
-					const fromIndex = +key;
-					const toIndex = resultItems[fromIndex].toIndex;
-					return _isValid(
-						fromIndex,
-						toIndex,
-						item.fromIndex,
-						distanceItem.toIndex
-					);
-				})
-			) {
-				resultItems[item.fromIndex] = distanceItem;
-				available[distanceItem.toIndex] = false;
+			const overallMovementIsLess =
+				minSum === undefined || absSum < minSum;
+			const lateralMovementIsLess =
+				minSum !== undefined &&
+				absSum === minSum &&
+				diffScore < minDiffScore;
+
+			if (overallMovementIsLess || lateralMovementIsLess) {
+				minSum = absSum;
+				minDiff = diff;
+				minDiffScore = diffScore;
+			}
+		}
+	} else {
+		// remove each element of longerList and call compare on this reduced version (dynamic programming solution)
+		// return min result from each of these
+		for (let i = 0; i < longerList.length; i++) {
+			const reducedList = longerList
+				.slice(0, i)
+				.concat(longerList.slice(i + 1));
+			const [sum, diff] = getMinDiff(reducedList, shorterList);
+			if (minSum === undefined || sum < minSum) {
+				minSum = sum;
+				minDiff = diff;
 			}
 		}
 	}
 
+	return [minSum, minDiff];
+}
+
+export function compare(fretboardA: FretboardUtil, fretboardB: FretboardUtil) {
+	let listA = fretboardA.list();
+	let listB = fretboardB.list();
+	const listBLonger = listA.length < listB.length;
+	let longer = listBLonger ? listB : listA;
+	let shorter = listBLonger ? listA : listB;
+
+	const [_, diff] = getMinDiff(longer, shorter);
+
 	// build both directions
-	const rightResult: DiffType = {};
-	const leftResult: DiffType = {};
-	Object.keys(resultItems).forEach((fromIndex) => {
-		const { distance, toIndex } = resultItems[+fromIndex];
-		rightResult[+fromIndex] = distance;
-		leftResult[toIndex] = -distance;
+	const longToShort = diff;
+	const shortToLong: DiffType = {};
+	const toIndexes: Set<number> = new Set();
+
+	Object.keys(longToShort).forEach((fromIndex) => {
+		const distance = longToShort[+fromIndex];
+		const toIndex = mod(+fromIndex + distance, 12);
+		toIndexes.add(toIndex);
+		shortToLong[toIndex] = -distance;
 	});
 
 	// 9999 = fill
 	// -9999 = empty
-	for (let index of list) {
-		if (rightResult[index] === undefined) {
-			rightResult[index] = -9999;
-			leftResult[index] = 9999;
+	for (let index of longer) {
+		if (longToShort[+index] === undefined) {
+			longToShort[+index] = -9999;
+			shortToLong[+index] = 9999;
 		}
 	}
 
-	for (let index of compareList) {
-		if (available[+index]) {
-			rightResult[+index] = 9999;
-			leftResult[+index] = -9999;
+	for (let index of shorter) {
+		if (!toIndexes.has(+index)) {
+			longToShort[+index] = 9999;
+			shortToLong[+index] = -9999;
 		}
 	}
 
-	return [leftResult, rightResult];
+	// leftDiff is for the "fretboard on the right" which needs a diff against its left neighor
+	// rightDiff is for the "fretboard on the left" which needs a diff against its right neighor
+	let leftDiff = listBLonger ? longToShort : shortToLong;
+	let rightDiff = listBLonger ? shortToLong : longToShort;
+	return [leftDiff, rightDiff];
 }
+
+// export function compare(fretboardA: FretboardUtil, fretboardB: FretboardUtil) {
+// 	// returns dict of fretboard notes that need to change between two fretboards,
+// 	// how far they move or if they are vanishing/appearing
+
+// 	const list = fretboardA.list();
+// 	const compareList = fretboardB.list();
+
+// 	// available notes left
+// 	const available: { [key in number]: boolean } = {};
+// 	compareList.forEach((index) => (available[index] = true));
+
+// 	// if (
+// 	// 	// fretboard.notes[0] &&
+// 	// 	fretboard.notes[2] &&
+// 	// 	fretboard.notes[4] &&
+// 	// 	fretboard.notes[6]
+// 	// 	// fretboard.notes[9]
+// 	// ) {
+// 	// 	console.log("in here");
+// 	// 	debugger;
+// 	// }
+
+// 	let minItems: Array<{
+// 		fromIndex: number;
+// 		distances: Array<{ toIndex: number; distance: number }>;
+// 	}> = [];
+// 	// loop over initial list and get distance to all items in compareList
+// 	// sort them and append to a list of other items
+// 	for (let i = 0; i < list.length; i++) {
+// 		let distances = compareList.map((index) => ({
+// 			toIndex: index,
+// 			distance: _rotatedDistance(index, list[i]),
+// 		}));
+// 		if (distances.length) {
+// 			distances.sort(
+// 				(a, b) => Math.abs(a.distance) - Math.abs(b.distance)
+// 			);
+// 			minItems.push({
+// 				fromIndex: list[i],
+// 				distances,
+// 			});
+// 		}
+// 	}
+
+// 	// iterate over minItems, sorting by first item distance
+// 	// (to allow best candidates to get first dibs at being in result),
+// 	// Then loop over these sorted distance lists,
+// 	// if it can be assigned to result, then great, otherwise we remove and continue
+// 	// this will mutate minItems until it is array of empty items with empty distance arrays
+// 	const resultItems: { [key in number]: any } = {};
+// 	for (let i = 0; i < compareList.length; i++) {
+// 		// remove items that are found
+// 		minItems = minItems.filter(
+// 			(minItem) => resultItems[minItem.fromIndex] === undefined
+// 		);
+
+// 		// sort items by distance from next matching candidate
+// 		minItems.sort((a, b) => {
+// 			if (!a.distances.length && !b.distances.length) return 0;
+// 			if (!a.distances.length && b.distances.length) return 1;
+// 			if (a.distances.length && !b.distances.length) return -1;
+
+// 			return (
+// 				Math.abs(a.distances[0].distance) -
+// 				Math.abs(b.distances[0].distance)
+// 			);
+// 		});
+
+// 		for (let item of minItems) {
+// 			let distanceItem = item.distances.shift();
+// 			// check that toIndex is available and that building a path there isValid,
+// 			// IE doesnt cross another existing path
+// 			if (
+// 				available[distanceItem.toIndex] &&
+// 				Object.keys(resultItems).every((key) => {
+// 					const fromIndex = +key;
+// 					const toIndex = resultItems[fromIndex].toIndex;
+// 					return _isValid(
+// 						fromIndex,
+// 						toIndex,
+// 						item.fromIndex,
+// 						distanceItem.toIndex
+// 					);
+// 				})
+// 			) {
+// 				resultItems[item.fromIndex] = distanceItem;
+// 				available[distanceItem.toIndex] = false;
+// 			}
+// 		}
+// 	}
+
+// // build both directions
+// const rightResult: DiffType = {};
+// const leftResult: DiffType = {};
+// Object.keys(resultItems).forEach((fromIndex) => {
+// 	const { distance, toIndex } = resultItems[+fromIndex];
+// 	rightResult[+fromIndex] = distance;
+// 	leftResult[toIndex] = -distance;
+// });
+
+// // 9999 = fill
+// // -9999 = empty
+// for (let index of list) {
+// 	if (rightResult[index] === undefined) {
+// 		rightResult[index] = -9999;
+// 		leftResult[index] = 9999;
+// 	}
+// }
+
+// for (let index of compareList) {
+// 	if (available[+index]) {
+// 		rightResult[+index] = 9999;
+// 		leftResult[+index] = -9999;
+// 	}
+// }
+
+// 	return [leftResult, rightResult];
+// }
 
 // gets signed distance around the fretboard
 function _rotatedDistance(a: number, b: number, m: number = 12) {
@@ -672,3 +732,4 @@ function _isValid(fromA: number, toA: number, fromB: number, toB: number) {
 // 	10: false,
 // 	11: false,
 // });
+// window.compare = compare1;
