@@ -119,13 +119,21 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 	}
 
 	if (action.type === "SAVE_TO_LOCAL_STORAGE") {
+		// ignore keys we dont want to pull from localStorage
+		const IGNORE = ["rehydrateSuccess"];
+		// add in special formatters for keys that were serialized to localStorage
+		const HANDLERS: {
+			[key in string]: (state: StateType) => any;
+		} = {
+			fretboards: ({ fretboards }) =>
+				fretboards.map((fretboard) => fretboard.toJSON()),
+		};
+
 		let key: keyof StateType;
-		let value: any;
 		for (key in state) {
-			value = JSON.stringify(
-				key === "fretboards"
-					? state[key].map((fretboard) => fretboard.toJSON())
-					: state[key]
+			if (IGNORE.includes(key)) continue;
+			let value = JSON.stringify(
+				HANDLERS.hasOwnProperty(key) ? HANDLERS[key](state) : state[key]
 			);
 			localStorage.setItem(key, value);
 		}

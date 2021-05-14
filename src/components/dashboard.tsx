@@ -47,6 +47,7 @@ function fromLocalStorage(): StateType {
 		leftHand: parseItem("leftHand") || defaultState.leftHand,
 		stringSize: parseItem("stringSize") || defaultState.stringSize,
 		focusedIndex: parseItem("focusedIndex") || defaultState.focusedIndex,
+		rehydrateSuccess: false,
 	};
 }
 
@@ -67,14 +68,24 @@ export const Dashboard: React.FC<Props> = ({ oldState }) => {
 	};
 
 	const rehydrateState = () => {
-		let newState = DEFAULT_STATE();
+		let newState;
 		if (oldState) {
-			newState = { ...newState, ...oldState };
-		} else {
-			newState = { ...newState, ...fromLocalStorage() };
+			newState = {
+				...DEFAULT_STATE(),
+				...oldState,
+				rehydrateSuccess: true,
+			};
+		} else if (
+			Object.keys(state).some((key) => localStorage.getItem(key))
+		) {
+			newState = {
+				...DEFAULT_STATE(),
+				...fromLocalStorage(),
+				rehydrateSuccess: true,
+			};
 		}
 
-		dispatch({ type: "REHYDRATE", payload: newState });
+		if (newState) dispatch({ type: "REHYDRATE", payload: newState });
 	};
 
 	return (

@@ -104,15 +104,17 @@ export const Slider: React.FC<SliderProps> = () => {
 	// const [ratio, setRatio] = React.useState(0);
 
 	// refs
-	const focusedIndexRef = React.useRef<number>(state.focusedIndex);
-	const fretboardsLengthRef = React.useRef<number>(state.fretboards.length);
-	const draggingRef = React.useRef<boolean>(dragging);
-	const leftRef = React.useRef<number>(left);
-	const deltaRef = React.useRef<number>(delta);
+	const focusedIndexRef = React.useRef(0);
+	const fretboardsLengthRef = React.useRef(0);
+	const rehydrateSuccessRef = React.useRef(false);
+	const draggingRef = React.useRef(false);
+	const leftRef = React.useRef(0);
+	const deltaRef = React.useRef(0);
 	// const ratioRef = React.useRef<number>(ratio);
 
 	focusedIndexRef.current = state.focusedIndex;
 	fretboardsLengthRef.current = state.fretboards.length;
+	rehydrateSuccessRef.current = state.rehydrateSuccess;
 	draggingRef.current = dragging;
 	leftRef.current = left;
 	deltaRef.current = delta;
@@ -145,11 +147,22 @@ export const Slider: React.FC<SliderProps> = () => {
 		};
 	}, []);
 
+	function getProgressBarFragmentWidth() {
+		return progressBarRef.current.offsetWidth / fretboardsLengthRef.current;
+	}
+
 	React.useLayoutEffect(() => {
-		if (progressBarRef.current && sliderBarRef.current) {
-			setLeft(progressBarRef.current.offsetLeft);
+		// set default position to be halfway through the fragment of the current focusedIndex
+		if (sliderBarRef.current && progressBarRef.current) {
+			const progressBarFragmentWidth = getProgressBarFragmentWidth();
+			const origin = progressBarRef.current.offsetLeft;
+			const newLeft =
+				progressBarFragmentWidth * (focusedIndexRef.current + 0.5) -
+				sliderBarRef.current.offsetWidth / 2 +
+				origin;
+			setLeft(newLeft);
 		}
-	}, []);
+	}, [rehydrateSuccessRef.current]);
 
 	// Drag event listeners
 	// const onResize = lodash.debounce((event: UIEvent) => {
@@ -175,8 +188,7 @@ export const Slider: React.FC<SliderProps> = () => {
 		const newLeft = Math.min(Math.max(clientX - d, origin), maxLeft);
 
 		// get the current focused fretboard index from progress of slider
-		const progressBarFragmentWidth =
-			progressBarWidth / fretboardsLengthRef.current;
+		const progressBarFragmentWidth = getProgressBarFragmentWidth();
 		const sliderProgressFragment = newLeft + sliderBarWidth / 2 - origin;
 
 		const focusedIndex = Math.min(

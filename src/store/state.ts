@@ -11,6 +11,7 @@ export interface StateType {
 	leftHand?: boolean;
 	stringSize: number;
 	focusedIndex: number;
+	rehydrateSuccess: boolean;
 }
 
 export const rebuildDiffs = (fretboards: FretboardUtil[]) => {
@@ -47,5 +48,6 @@ export function DEFAULT_STATE(): StateType {
 		leftHand: false,
 		stringSize: STRING_SIZE,
 		focusedIndex: 0,
+		rehydrateSuccess: false,
 	};
 }
