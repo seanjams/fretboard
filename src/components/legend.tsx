@@ -33,11 +33,10 @@ const Dot = styled.div<CSSProps>`
 
 // Component
 interface Props {
-	fretboardIndex: number;
 	top?: boolean;
 }
 
-export const Legend: React.FC<Props> = ({ fretboardIndex, top }) => {
+export const Legend: React.FC<Props> = ({ top }) => {
 	const { state } = React.useContext(FretboardContext);
 
 	const frets = Array(state.stringSize)
@@ -48,10 +47,7 @@ export const Legend: React.FC<Props> = ({ fretboardIndex, top }) => {
 			// const width = (1 + ((12 - i) / 30)) * 8.333333;
 			const width = FRETBOARD_WIDTH / STRING_SIZE;
 			return (
-				<EmptyDiv
-					width={width}
-					key={`legend-${fretboardIndex}-${i}-${top ? 1 : 0}`}
-				>
+				<EmptyDiv width={width} key={`legend-${i}-${top ? 1 : 0}`}>
 					{i !== 0 && [0, 3, 5, 7, 9].includes(dotIndex) && <Dot />}
 					{i !== 0 && dotIndex === 0 && <Dot />}
 				</EmptyDiv>

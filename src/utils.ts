@@ -218,10 +218,12 @@ export class FretboardUtil implements FretboardUtilType {
 		this.strings = strings;
 	}
 
+	// gets whether index of note is "on" or "off" in this fretboard
 	get(index: numString): boolean {
 		return !!this.notes[mod(+index, 12)];
 	}
 
+	// sets whether index of note is "on" or "off" in this fretboard
 	set(index: numString, active: boolean): boolean {
 		if (!active) {
 			this.clearFrets(mod(+index, 12));
@@ -229,14 +231,17 @@ export class FretboardUtil implements FretboardUtilType {
 		return (this.notes[mod(+index, 12)] = active);
 	}
 
+	// toggles whether index of note is "on" or "off" in this fretboard
 	toggle(index: number): boolean {
 		return this.set(index, !this.get(index));
 	}
 
+	// gets whether stringIndex at fretValue is highlighted or not for this fretboard
 	getFret(stringIndex: numString, fretValue: numString): boolean {
 		return !!this.strings[mod(+stringIndex, 6)][+fretValue];
 	}
 
+	// sets whether stringIndex at fretValue is highlighted or not for this fretboard
 	setFret(
 		stringIndex: numString,
 		fretValue: numString,
@@ -248,6 +253,7 @@ export class FretboardUtil implements FretboardUtilType {
 		return (this.strings[mod(+stringIndex, 6)][+fretValue] = active);
 	}
 
+	// toggles whether stringIndex at fretValue is highlighted or not for this fretboard
 	toggleFret(stringIndex: number, fretValue: number): boolean {
 		return this.setFret(
 			stringIndex,

@@ -4,7 +4,6 @@ import { StateType } from "./state";
 export type SetNote = {
 	readonly type: "SET_NOTE";
 	readonly payload: {
-		fretboardIndex: number;
 		note: number;
 	};
 };
@@ -18,30 +17,18 @@ export type SetLabel = {
 
 export type IncrementPositionX = {
 	readonly type: "INCREMENT_POSITION_X";
-	readonly payload: {
-		fretboardIndex: number;
-	};
 };
 
 export type DecrementPositionX = {
 	readonly type: "DECREMENT_POSITION_X";
-	readonly payload: {
-		fretboardIndex: number;
-	};
 };
 
 export type IncrementPositionY = {
 	readonly type: "INCREMENT_POSITION_Y";
-	readonly payload: {
-		fretboardIndex: number;
-	};
 };
 
 export type DecrementPositionY = {
 	readonly type: "DECREMENT_POSITION_Y";
-	readonly payload: {
-		fretboardIndex: number;
-	};
 };
 
 export type ClearNotes = {
@@ -56,12 +43,15 @@ export type LeftHandFretboard = {
 	readonly type: "LEFT_HAND";
 };
 
+export type LockHighlight = {
+	readonly type: "LOCK_HIGHLIGHT";
+};
+
 export type SetHighlightedNote = {
 	readonly type: "SET_HIGHLIGHTED_NOTE";
 	readonly payload: {
 		stringIndex: number;
 		value: number;
-		fretboardIndex: number;
 	};
 };
 
@@ -104,4 +94,5 @@ export type ActionTypes =
 	| RemoveFretboard
 	| SetFocus
 	| SaveToLocalStorage
-	| RehydrateState;
+	| RehydrateState
+	| LockHighlight;

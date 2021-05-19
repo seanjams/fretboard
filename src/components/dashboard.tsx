@@ -47,6 +47,7 @@ function fromLocalStorage(): StateType {
 		leftHand: parseItem("leftHand") || defaultState.leftHand,
 		stringSize: parseItem("stringSize") || defaultState.stringSize,
 		focusedIndex: parseItem("focusedIndex") || defaultState.focusedIndex,
+		lockHighlight: parseItem("lockHighlight") || defaultState.lockHighlight,
 		rehydrateSuccess: false,
 	};
 }
@@ -94,7 +95,7 @@ export const Dashboard: React.FC<Props> = ({ oldState }) => {
 				<NavControls />
 			</ContainerDiv>
 			<ContainerDiv>
-				<Fretboard fretboardIndex={state.focusedIndex} />
+				<Fretboard />
 			</ContainerDiv>
 			<ContainerDiv>
 				<Slider />

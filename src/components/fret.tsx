@@ -85,25 +85,21 @@ const LineDiv = styled.div.attrs((props: CSSProps) => ({
 interface Props {
 	value: number;
 	stringIndex: number;
-	fretboardIndex: number;
 	openString?: boolean;
 }
 
-export const Fret: React.FC<Props> = ({
-	fretboardIndex,
-	value,
-	openString,
-	stringIndex,
-}) => {
+export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 	const { state, dispatch } = React.useContext(FretboardContext);
 	const shadowRef = React.useRef<HTMLDivElement>();
 	const leftDiffRef = React.useRef<DiffType>();
 	const rightDiffRef = React.useRef<DiffType>();
 	const backgroundColorRef = React.useRef<string>();
+	const focusedIndexRef = React.useRef(0);
 
-	const fretboard = state.fretboards[fretboardIndex];
-	const leftDiff = state.leftDiffs[fretboardIndex];
-	const rightDiff = state.rightDiffs[fretboardIndex];
+	const focusedIndex = state.focusedIndex;
+	const fretboard = state.fretboards[focusedIndex];
+	const leftDiff = state.leftDiffs[focusedIndex];
+	const rightDiff = state.rightDiffs[focusedIndex];
 
 	const noteValue = mod(value, 12);
 	// const [secondaryColor, primaryColor] = COLORS[mod(fretboardIndex, COLORS.length)];
@@ -136,6 +132,7 @@ export const Fret: React.FC<Props> = ({
 	leftDiffRef.current = leftDiff;
 	rightDiffRef.current = rightDiff;
 	backgroundColorRef.current = backgroundColor;
+	focusedIndexRef.current = focusedIndex;
 
 	const is = (
 		ref: React.RefObject<DiffType>,
@@ -171,7 +168,7 @@ export const Fret: React.FC<Props> = ({
 				const leftFill = is(leftDiffRef, noteValue, 9999);
 				const rightFill = is(rightDiffRef, noteValue, 9999);
 
-				const i = fretboardIndex; // to battle verbosity
+				const i = focusedIndexRef.current; // to battle verbosity
 				let x: number;
 				let diffSteps: number;
 
@@ -267,7 +264,10 @@ export const Fret: React.FC<Props> = ({
 		e && e.preventDefault();
 		dispatch({
 			type: "SET_HIGHLIGHTED_NOTE",
-			payload: { stringIndex, value, fretboardIndex },
+			payload: {
+				stringIndex,
+				value,
+			},
 		});
 	}
 
@@ -307,7 +307,9 @@ export const Fret: React.FC<Props> = ({
 		} else {
 			dispatch({
 				type: "SET_NOTE",
-				payload: { fretboardIndex, note: value },
+				payload: {
+					note: value,
+				},
 			});
 		}
 	}

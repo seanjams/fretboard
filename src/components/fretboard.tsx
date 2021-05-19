@@ -36,11 +36,9 @@ const FretboardDiv = styled.div<CSSProps>`
 `;
 
 // Component
-interface Props {
-	fretboardIndex: number;
-}
+interface Props {}
 
-export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
+export const Fretboard: React.FC<Props> = () => {
 	const { state, dispatch } = React.useContext(FretboardContext);
 	const invertRef = React.useRef(false);
 	const leftHandRef = React.useRef(false);
@@ -77,57 +75,37 @@ export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
 	});
 
 	const strings = STANDARD_TUNING.map((value, i) => {
-		return (
-			<String
-				fretboardIndex={fretboardIndex}
-				stringIndex={i}
-				base={value}
-				key={`string-${fretboardIndex}-${i}`}
-			/>
-		);
+		return <String stringIndex={i} base={value} key={`string-${i}`} />;
 	});
 
-	function onClick(
-		e:
-			| React.TouchEvent<HTMLDivElement>
-			| React.MouseEvent<HTMLDivElement, MouseEvent>
-	) {
-		dispatch({ type: "SET_FOCUS", payload: { fretboardIndex } });
-	}
-
 	function onKeyPress(this: Window, e: KeyboardEvent): any {
-		if (fretboardIndex === focusedIndexRef.current) {
-			const actionType = getPositionActionType(
-				invertRef.current,
-				leftHandRef.current,
-				e.key
-			);
-			if (actionType) {
-				e.preventDefault();
-				dispatch({
-					type: actionType,
-					payload: { fretboardIndex },
-				});
-			} else if (naturals.hasOwnProperty(e.key)) {
-				e.preventDefault();
-				dispatch({
-					type: "SET_NOTE",
-					payload: { fretboardIndex, note: naturals[e.key] },
-				});
-			}
+		const actionType = getPositionActionType(
+			invertRef.current,
+			leftHandRef.current,
+			e.key
+		);
+		if (actionType) {
+			e.preventDefault();
+			dispatch({
+				type: actionType,
+			});
+		} else if (naturals.hasOwnProperty(e.key)) {
+			e.preventDefault();
+			dispatch({
+				type: "SET_NOTE",
+				payload: {
+					note: naturals[e.key],
+				},
+			});
 		}
 	}
 
 	return (
 		<FretboardContainer width={FRETBOARD_WIDTH}>
-			<FretboardDiv
-				onClick={onClick}
-				onTouchStart={onClick}
-				onContextMenu={onClick}
-			>
-				<Legend fretboardIndex={fretboardIndex} top={true} />
+			<FretboardDiv>
+				<Legend top={true} />
 				{highEBottom ? strings : strings.reverse()}
-				<Legend fretboardIndex={fretboardIndex} />
+				<Legend />
 			</FretboardDiv>
 		</FretboardContainer>
 	);

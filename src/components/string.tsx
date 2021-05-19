@@ -15,14 +15,9 @@ const StringDiv = styled.div<CSSProps>`
 interface Props {
 	base: number;
 	stringIndex: number;
-	fretboardIndex: number;
 }
 
-export const String: React.FC<Props> = ({
-	base,
-	stringIndex,
-	fretboardIndex,
-}) => {
+export const String: React.FC<Props> = ({ base, stringIndex }) => {
 	const { state } = React.useContext(FretboardContext);
 
 	const frets = Array(state.stringSize)
@@ -35,7 +30,6 @@ export const String: React.FC<Props> = ({
 					openString={i === 0}
 					key={`fret-${value}`}
 					stringIndex={stringIndex}
-					fretboardIndex={fretboardIndex}
 				/>
 			);
 		});

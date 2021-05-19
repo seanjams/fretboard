@@ -31,6 +31,14 @@ const FlexRowCenter = styled.div<CSSProps>`
 	justify-content: center;
 `;
 
+const SelectInput = styled.select<CSSProps>`
+	height: 28px;
+	font-size: 14px;
+	white-space: nowrap;
+	min-width: 28px;
+	margin: 0 10px;
+`;
+
 const ButtonInput = styled.button<CSSProps>`
 	height: 28px;
 	font-size: 14px;
@@ -97,6 +105,15 @@ export const NavControls: React.FC<Props> = () => {
 		dispatch({ type: "LEFT_HAND" });
 	}
 
+	function onLockHighlight(
+		e:
+			| React.MouseEvent<HTMLButtonElement, MouseEvent>
+			| React.TouchEvent<HTMLButtonElement>
+	) {
+		e.preventDefault();
+		dispatch({ type: "LOCK_HIGHLIGHT" });
+	}
+
 	const setLabel = (label: LabelTypes) => () => {
 		dispatch({
 			type: "SET_LABEL",
@@ -114,9 +131,13 @@ export const NavControls: React.FC<Props> = () => {
 		if (actionType) {
 			dispatch({
 				type: actionType,
-				payload: { fretboardIndex: focusedIndexRef.current },
 			});
 		}
+	};
+
+	const onLabelChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+		const value = e.currentTarget.value as LabelTypes;
+		setLabel(value);
 	};
 
 	return (
@@ -135,23 +156,18 @@ export const NavControls: React.FC<Props> = () => {
 				<ButtonInput onClick={onLeftHand} onTouchStart={onLeftHand}>
 					{state.leftHand ? "Right" : "Left"} Hand
 				</ButtonInput>
+				<SelectInput onChange={onLabelChange}>
+					<option value="sharp">Sharp</option>
+					<option value="flat">Flat</option>
+					<option value="value">Value</option>
+				</SelectInput>
 				<ButtonInput
-					onClick={setLabel("sharp")}
-					onTouchStart={setLabel("sharp")}
+					onClick={onLockHighlight}
+					onTouchStart={onLeftHand}
 				>
-					Sharp
-				</ButtonInput>
-				<ButtonInput
-					onClick={setLabel("flat")}
-					onTouchStart={setLabel("flat")}
-				>
-					Flat
-				</ButtonInput>
-				<ButtonInput
-					onClick={setLabel("value")}
-					onTouchStart={setLabel("value")}
-				>
-					Value
+					{state.lockHighlight
+						? "Unlock Highlight"
+						: "Lock Highlight"}
 				</ButtonInput>
 			</FlexRowCenter>
 			<ArrowControlsContainer>
