@@ -13,6 +13,8 @@ export interface StateType {
 	focusedIndex: number;
 	rehydrateSuccess: boolean;
 	lockHighlight: boolean;
+	progress: number;
+	// setKey: (key: keyof StateType, value: any) => void;
 }
 
 export const rebuildDiffs = (
@@ -86,5 +88,6 @@ export function DEFAULT_STATE(): StateType {
 		focusedIndex: 0,
 		rehydrateSuccess: false,
 		lockHighlight: true,
+		progress: 0,
 	};
 }

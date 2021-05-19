@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { mod } from "../utils";
 import { FRETBOARD_WIDTH, STRING_SIZE } from "../consts";
-import { FretboardContext } from "../store";
+import { Store, StateType, useStore } from "../store";
 
 // CSS
 interface CSSProps {
@@ -34,10 +34,11 @@ const Dot = styled.div<CSSProps>`
 // Component
 interface Props {
 	top?: boolean;
+	store: Store<StateType>;
 }
 
-export const Legend: React.FC<Props> = ({ top }) => {
-	const { state } = React.useContext(FretboardContext);
+export const Legend: React.FC<Props> = ({ top, store }) => {
+	const [state, setState] = useStore(store);
 
 	const frets = Array(state.stringSize)
 		.fill(0)

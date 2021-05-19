@@ -9,7 +9,7 @@ import {
 	C,
 	F,
 } from "../consts";
-import { FretboardContext } from "../store";
+import { Store, StateType, useStore, reducer } from "../store";
 import { String } from "./string";
 import { Legend } from "./legend";
 import { getPositionActionType } from "../utils";
@@ -36,16 +36,13 @@ const FretboardDiv = styled.div<CSSProps>`
 `;
 
 // Component
-interface Props {}
+interface Props {
+	store: Store<StateType>;
+}
 
-export const Fretboard: React.FC<Props> = () => {
-	const { state, dispatch } = React.useContext(FretboardContext);
-	const invertRef = React.useRef(false);
-	const leftHandRef = React.useRef(false);
-	const focusedIndexRef = React.useRef(0);
-	invertRef.current = state.invert;
-	leftHandRef.current = state.leftHand;
-	focusedIndexRef.current = state.focusedIndex;
+export const Fretboard: React.FC<Props> = ({ store }) => {
+	const [state, setState] = useStore(store);
+	const stateRef = React.useRef(state);
 
 	// whether the high E string appears on the top or bottom of the fretboard,
 	// depending on invert/leftHand views
@@ -75,37 +72,48 @@ export const Fretboard: React.FC<Props> = () => {
 	});
 
 	const strings = STANDARD_TUNING.map((value, i) => {
-		return <String stringIndex={i} base={value} key={`string-${i}`} />;
+		return (
+			<String
+				stringIndex={i}
+				base={value}
+				key={`string-${i}`}
+				store={store}
+			/>
+		);
 	});
 
 	function onKeyPress(this: Window, e: KeyboardEvent): any {
 		const actionType = getPositionActionType(
-			invertRef.current,
-			leftHandRef.current,
+			stateRef.current.invert,
+			stateRef.current.leftHand,
 			e.key
 		);
 		if (actionType) {
 			e.preventDefault();
-			dispatch({
-				type: actionType,
-			});
+			setState(
+				reducer(state, {
+					type: actionType,
+				})
+			);
 		} else if (naturals.hasOwnProperty(e.key)) {
 			e.preventDefault();
-			dispatch({
-				type: "SET_NOTE",
-				payload: {
-					note: naturals[e.key],
-				},
-			});
+			setState(
+				reducer(state, {
+					type: "SET_NOTE",
+					payload: {
+						note: naturals[e.key],
+					},
+				})
+			);
 		}
 	}
 
 	return (
 		<FretboardContainer width={FRETBOARD_WIDTH}>
 			<FretboardDiv>
-				<Legend top={true} />
+				<Legend top={true} store={store} />
 				{highEBottom ? strings : strings.reverse()}
-				<Legend />
+				<Legend store={store} />
 			</FretboardDiv>
 		</FretboardContainer>
 	);

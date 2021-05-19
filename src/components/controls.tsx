@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FretboardContext } from "../store";
+import { Store, StateType, useStore, reducer } from "../store";
 import { LabelTypes, ArrowTypes } from "../types";
 import { getPositionActionType } from "../utils";
 
@@ -71,16 +71,13 @@ const ArrowControlsMiddleColumn = styled.div<CSSProps>`
 `;
 
 // Component
-interface Props {}
+interface Props {
+	store: Store<StateType>;
+}
 
-export const NavControls: React.FC<Props> = () => {
-	const { state, dispatch } = React.useContext(FretboardContext);
-	const leftHandRef = React.useRef(false);
-	const invertRef = React.useRef(false);
-	const focusedIndexRef = React.useRef(0);
-	leftHandRef.current = state.leftHand;
-	invertRef.current = state.invert;
-	focusedIndexRef.current = state.focusedIndex;
+export const NavControls: React.FC<Props> = ({ store }) => {
+	const [state, setState] = useStore(store);
+	const stateRef = React.useRef(state);
 
 	function onInvert(
 		e:
@@ -88,12 +85,12 @@ export const NavControls: React.FC<Props> = () => {
 			| React.TouchEvent<HTMLButtonElement>
 	) {
 		e.preventDefault();
-		if (invertRef.current) {
+		if (stateRef.current.invert) {
 			window.scroll(0, 0);
 		} else {
 			window.scroll(document.body.scrollWidth, 0);
 		}
-		dispatch({ type: "INVERT" });
+		store.setKey("invert", !state.invert);
 	}
 
 	function onLeftHand(
@@ -102,7 +99,7 @@ export const NavControls: React.FC<Props> = () => {
 			| React.TouchEvent<HTMLButtonElement>
 	) {
 		e.preventDefault();
-		dispatch({ type: "LEFT_HAND" });
+		store.setKey("leftHand", !state.leftHand);
 	}
 
 	function onLockHighlight(
@@ -111,27 +108,27 @@ export const NavControls: React.FC<Props> = () => {
 			| React.TouchEvent<HTMLButtonElement>
 	) {
 		e.preventDefault();
-		dispatch({ type: "LOCK_HIGHLIGHT" });
+		store.setKey("lockHighlight", !state.lockHighlight);
 	}
 
 	const setLabel = (label: LabelTypes) => () => {
-		dispatch({
-			type: "SET_LABEL",
-			payload: { label },
-		});
+		setState(
+			reducer(state, {
+				type: "SET_LABEL",
+				payload: { label },
+			})
+		);
 	};
 
 	const onArrowPress = (direction: ArrowTypes) => () => {
 		const actionType = getPositionActionType(
-			invertRef.current,
-			leftHandRef.current,
+			stateRef.current.invert,
+			stateRef.current.leftHand,
 			direction
 		);
 
 		if (actionType) {
-			dispatch({
-				type: actionType,
-			});
+			setState(reducer(state, { type: actionType }));
 		}
 	};
 
@@ -145,8 +142,10 @@ export const NavControls: React.FC<Props> = () => {
 			<FlexRowCenter>
 				<Spacer />
 				<ButtonInput
-					onClick={() => dispatch({ type: "CLEAR" })}
-					onTouchStart={() => dispatch({ type: "CLEAR" })}
+					onClick={() => setState(reducer(state, { type: "CLEAR" }))}
+					onTouchStart={() =>
+						setState(reducer(state, { type: "CLEAR" }))
+					}
 				>
 					Clear
 				</ButtonInput>

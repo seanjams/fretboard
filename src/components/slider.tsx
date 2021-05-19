@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { stopClick } from "../utils";
-import { FretboardContext, useStore } from "../store";
+import { Store, useStore, StateType, reducer, DEFAULT_STATE } from "../store";
 // import lodash from "lodash";
 
 // CSS
@@ -93,31 +93,29 @@ const ButtonInput = styled.button<CSSProps>`
 `;
 
 // Component
-interface SliderProps {}
+interface SliderProps {
+	store: Store<StateType>;
+}
 
-export const Slider: React.FC<SliderProps> = () => {
-	const { state, dispatch } = React.useContext(FretboardContext);
+export const Slider: React.FC<SliderProps> = ({ store }) => {
+	// const { state, dispatch } = React.useContext(FretboardContext);
+	const [state, setState] = useStore(store);
 	const [dragging, setDragging] = React.useState(false);
 	const [left, setLeft] = React.useState(0);
 	const [delta, setDelta] = React.useState(0);
-	const setProgress = useStore((store) => store.setProgress);
 	// const [ratio, setRatio] = React.useState(0);
 
 	// refs
-	const focusedIndexRef = React.useRef(0);
-	const fretboardsLengthRef = React.useRef(0);
-	const rehydrateSuccessRef = React.useRef(false);
 	const draggingRef = React.useRef(false);
 	const leftRef = React.useRef(0);
 	const deltaRef = React.useRef(0);
+	const stateRef = React.useRef(DEFAULT_STATE());
 	// const ratioRef = React.useRef<number>(ratio);
 
-	focusedIndexRef.current = state.focusedIndex;
-	fretboardsLengthRef.current = state.fretboards.length;
-	rehydrateSuccessRef.current = state.rehydrateSuccess;
 	draggingRef.current = dragging;
 	leftRef.current = left;
 	deltaRef.current = delta;
+	stateRef.current = state;
 
 	// DOM refs
 	const progressBarRef = React.useRef<HTMLDivElement>();
@@ -148,7 +146,10 @@ export const Slider: React.FC<SliderProps> = () => {
 	}, []);
 
 	function getProgressBarFragmentWidth() {
-		return progressBarRef.current.offsetWidth / fretboardsLengthRef.current;
+		return (
+			progressBarRef.current.offsetWidth /
+			stateRef.current.fretboards.length
+		);
 	}
 
 	React.useLayoutEffect(() => {
@@ -157,12 +158,13 @@ export const Slider: React.FC<SliderProps> = () => {
 			const progressBarFragmentWidth = getProgressBarFragmentWidth();
 			const origin = progressBarRef.current.offsetLeft;
 			const newLeft =
-				progressBarFragmentWidth * (focusedIndexRef.current + 0.5) -
+				progressBarFragmentWidth *
+					(stateRef.current.focusedIndex + 0.5) -
 				sliderBarRef.current.offsetWidth / 2 +
 				origin;
 			setLeft(newLeft);
 		}
-	}, [rehydrateSuccessRef.current]);
+	}, [stateRef.current.rehydrateSuccess]);
 
 	// Drag event listeners
 	// const onResize = lodash.debounce((event: UIEvent) => {
@@ -196,25 +198,21 @@ export const Slider: React.FC<SliderProps> = () => {
 				Math.floor(sliderProgressFragment / progressBarFragmentWidth),
 				0
 			),
-			fretboardsLengthRef.current - 1
+			stateRef.current.fretboards.length - 1
 		);
 
 		// make changes
 		setLeft(newLeft);
 
-		// uses zustand store for transient updates, progress is decimal value of focusedIndex.
+		// progress is decimal value of focusedIndex.
 		// If you treat the slider bar as a number line, where the fretboard divisions
 		// are the integers, progress is location on this number line.
-		setProgress(
+		store.setKey(
+			"progress",
 			Math.max(sliderProgressFragment / progressBarFragmentWidth, 0)
 		);
-
-		if (focusedIndex !== focusedIndexRef.current) {
-			dispatch({
-				type: "SET_FOCUS",
-				payload: { fretboardIndex: focusedIndex || 0 },
-			});
-		}
+		if (focusedIndex !== stateRef.current.focusedIndex)
+			store.setKey("focusedIndex", focusedIndex || 0);
 	}, []);
 
 	// slider drag release (set ratio for resize experiment)
@@ -330,17 +328,27 @@ export const Slider: React.FC<SliderProps> = () => {
 			<ControlsContainer width={20}>
 				<ButtonContainer>
 					<ButtonInput
-						onClick={() => dispatch({ type: "ADD_FRETBOARD" })} // maybe preventDefault
-						onTouchStart={() => dispatch({ type: "ADD_FRETBOARD" })}
+						onClick={() =>
+							setState(reducer(state, { type: "ADD_FRETBOARD" }))
+						} // maybe preventDefault
+						onTouchStart={() =>
+							setState(reducer(state, { type: "ADD_FRETBOARD" }))
+						}
 					>
 						&#43;
 					</ButtonInput>
 				</ButtonContainer>
 				<ButtonContainer>
 					<ButtonInput
-						onClick={() => dispatch({ type: "REMOVE_FRETBOARD" })}
+						onClick={() =>
+							setState(
+								reducer(state, { type: "REMOVE_FRETBOARD" })
+							)
+						}
 						onTouchStart={() =>
-							dispatch({ type: "REMOVE_FRETBOARD" })
+							setState(
+								reducer(state, { type: "REMOVE_FRETBOARD" })
+							)
 						}
 					>
 						&minus;

@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FretboardContext } from "../store";
+import { Store, StateType, useStore } from "../store";
 import { Fret } from "./fret";
 
 // CSS
@@ -15,10 +15,11 @@ const StringDiv = styled.div<CSSProps>`
 interface Props {
 	base: number;
 	stringIndex: number;
+	store: Store<StateType>;
 }
 
-export const String: React.FC<Props> = ({ base, stringIndex }) => {
-	const { state } = React.useContext(FretboardContext);
+export const String: React.FC<Props> = ({ base, stringIndex, store }) => {
+	const [state] = useStore(store);
 
 	const frets = Array(state.stringSize)
 		.fill(0)
@@ -30,6 +31,7 @@ export const String: React.FC<Props> = ({ base, stringIndex }) => {
 					openString={i === 0}
 					key={`fret-${value}`}
 					stringIndex={stringIndex}
+					store={store}
 				/>
 			);
 		});

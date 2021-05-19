@@ -7,7 +7,7 @@ import {
 	STRING_SIZE,
 	CIRCLE_SIZE,
 } from "../consts";
-import { FretboardContext, useStore } from "../store";
+import { useStore, Store, StateType, reducer } from "../store";
 import { DiffType } from "../types";
 import { mod, NoteUtil, COLORS, FretboardUtil } from "../utils";
 
@@ -86,21 +86,21 @@ interface Props {
 	value: number;
 	stringIndex: number;
 	openString?: boolean;
+	store: Store<StateType>;
 }
 
-export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
-	const { state, dispatch } = React.useContext(FretboardContext);
+export const Fret: React.FC<Props> = ({
+	value,
+	openString,
+	stringIndex,
+	store,
+}) => {
+	const [state, setState] = useStore(store);
 	const shadowRef = React.useRef<HTMLDivElement>();
-	const leftDiffRef = React.useRef<DiffType>();
-	const rightDiffRef = React.useRef<DiffType>();
 	const backgroundColorRef = React.useRef<string>();
-	const focusedIndexRef = React.useRef(0);
+	const stateRef = React.useRef(state);
 
-	const focusedIndex = state.focusedIndex;
-	const fretboard = state.fretboards[focusedIndex];
-	const leftDiff = state.leftDiffs[focusedIndex];
-	const rightDiff = state.rightDiffs[focusedIndex];
-
+	const fretboard = state.fretboards[state.focusedIndex];
 	const noteValue = mod(value, 12);
 	// const [secondaryColor, primaryColor] = COLORS[mod(fretboardIndex, COLORS.length)];
 	const [secondaryColor, primaryColor] = COLORS[0];
@@ -129,46 +129,46 @@ export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 	const border = openString ? "none" : "1px solid #333";
 
 	// initiate refs
-	leftDiffRef.current = leftDiff;
-	rightDiffRef.current = rightDiff;
+	stateRef.current = state;
 	backgroundColorRef.current = backgroundColor;
-	focusedIndexRef.current = focusedIndex;
 
 	const is = (
-		ref: React.RefObject<DiffType>,
+		diff: DiffType,
 		key: number,
 		val: any,
 		negate: boolean = false
-	) =>
-		ref.current &&
-		(negate ? ref.current[key] !== val : ref.current[key] === val);
-	const isNot = (ref: React.RefObject<DiffType>, key: number, val: any) =>
-		is(ref, key, val, true);
+	) => diff && (negate ? diff[key] !== val : diff[key] === val);
+	const isNot = (diff: DiffType, key: number, val: any) =>
+		is(diff, key, val, true);
 
 	React.useEffect(() => {
+		const fretboard =
+			stateRef.current.fretboards[stateRef.current.focusedIndex];
 		if (fretboard.notes[noteValue] && shadowRef.current) {
 			setCircleDiameter(CIRCLE_SIZE);
 			setBackgroundColor(backgroundColorRef.current);
 		}
 	}, [fretboard.notes]);
 
-	React.useEffect(() => {
-		return useStore.subscribe(
-			(progress: number) => {
+	React.useEffect(
+		() =>
+			store.addListener(({ progress }) => {
 				if (!shadowRef.current) return;
-
 				let newLeft;
 				let fillPercentage;
 				let background = backgroundColorRef.current || "transparent";
 
-				const leftExists = isNot(leftDiffRef, noteValue, undefined);
-				const rightExists = isNot(rightDiffRef, noteValue, undefined);
-				const leftEmpty = is(leftDiffRef, noteValue, -9999);
-				const rightEmpty = is(rightDiffRef, noteValue, -9999);
-				const leftFill = is(leftDiffRef, noteValue, 9999);
-				const rightFill = is(rightDiffRef, noteValue, 9999);
+				const i = stateRef.current.focusedIndex; // to battle verbosity
+				const leftDiff = stateRef.current.leftDiffs[i];
+				const rightDiff = stateRef.current.rightDiffs[i];
 
-				const i = focusedIndexRef.current; // to battle verbosity
+				const leftExists = isNot(leftDiff, noteValue, undefined);
+				const rightExists = isNot(rightDiff, noteValue, undefined);
+				const leftEmpty = is(leftDiff, noteValue, -9999);
+				const rightEmpty = is(rightDiff, noteValue, -9999);
+				const leftFill = is(leftDiff, noteValue, 9999);
+				const rightFill = is(rightDiff, noteValue, 9999);
+
 				let x: number;
 				let diffSteps: number;
 
@@ -186,8 +186,7 @@ export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 						} else if (leftFill) {
 							fillPercentage = 0;
 						} else {
-							newLeft =
-								leftDiffRef.current[noteValue] * 50 + origin;
+							newLeft = leftDiff[noteValue] * 50 + origin;
 						}
 					// all altered notes should be x% to the left
 					case leftExists &&
@@ -201,7 +200,7 @@ export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 							fillPercentage = x;
 							background = secondaryColor;
 						} else {
-							diffSteps = leftDiffRef.current[noteValue];
+							diffSteps = leftDiff[noteValue];
 							newLeft = diffSteps * x + origin;
 						}
 						break;
@@ -229,7 +228,7 @@ export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 							fillPercentage = x;
 							background = secondaryColor;
 						} else {
-							diffSteps = rightDiffRef.current[noteValue];
+							diffSteps = rightDiff[noteValue];
 							newLeft = diffSteps * x + origin;
 						}
 						break;
@@ -240,7 +239,7 @@ export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 						} else if (rightFill) {
 							fillPercentage = 0;
 						} else {
-							diffSteps = rightDiffRef.current[noteValue];
+							diffSteps = rightDiff[noteValue];
 							newLeft = diffSteps * 50 + origin;
 						}
 						break;
@@ -255,20 +254,21 @@ export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 				}
 
 				setBackgroundColor(background);
-			},
-			(state) => state.progress
-		);
-	}, []);
+			}),
+		[]
+	);
 
 	function onContextMenu(e?: React.MouseEvent<HTMLDivElement, MouseEvent>) {
 		e && e.preventDefault();
-		dispatch({
-			type: "SET_HIGHLIGHTED_NOTE",
-			payload: {
-				stringIndex,
-				value,
-			},
-		});
+		setState(
+			reducer(state, {
+				type: "SET_HIGHLIGHTED_NOTE",
+				payload: {
+					stringIndex,
+					value,
+				},
+			})
+		);
 	}
 
 	const setCircleDiameter = (diameter: number) => {
@@ -305,12 +305,14 @@ export const Fret: React.FC<Props> = ({ value, openString, stringIndex }) => {
 		if (conditions.some((condition) => condition)) {
 			onContextMenu();
 		} else {
-			dispatch({
-				type: "SET_NOTE",
-				payload: {
-					note: value,
-				},
-			});
+			setState(
+				reducer(state, {
+					type: "SET_NOTE",
+					payload: {
+						note: value,
+					},
+				})
+			);
 		}
 	}
 
