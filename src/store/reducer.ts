@@ -40,64 +40,156 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
     }
 
     if (action.type === "INCREMENT_POSITION_X") {
-        for (let index in fretboards) {
-            if (+index !== focusedIndex) continue;
-            const fretboard = fretboards[index].copy();
-            fretboard.incrementPosition(1, false);
-            fretboards[index] = fretboard;
+        const fretboard = fretboards[focusedIndex].copy();
+        fretboard.incrementPosition(1, false);
+        fretboards[focusedIndex] = fretboard;
+
+        const diffs = rebuildDiffs(fretboards);
+
+        // left
+        for (let i = focusedIndex; i >= 0; i--) {
+            let diff = diffs.leftDiffs[i];
+            let fretboardA = fretboards[i];
+            let fretboardB = fretboards[i - 1];
+            if (!fretboardB) break;
+            fretboardB = fretboardB.copy();
+            cascadeHighlight(fretboardA, fretboardB, diff);
+            fretboards[i - 1] = fretboardB;
         }
+
+        // right
+        for (let i = focusedIndex; i < fretboards.length; i++) {
+            let diff = diffs.rightDiffs[i];
+            let fretboardA = fretboards[i];
+            let fretboardB = fretboards[i + 1];
+            if (!fretboardB) break;
+            fretboardB = fretboardB.copy();
+            cascadeHighlight(fretboardA, fretboardB, diff);
+            fretboards[i + 1] = fretboardB;
+        }
+
         return {
             ...state,
-            ...rebuildDiffs(fretboards),
+            ...diffs,
+            fretboards,
         };
     }
 
     if (action.type === "DECREMENT_POSITION_X") {
-        for (let index in fretboards) {
-            if (+index !== focusedIndex) continue;
-            const fretboard = fretboards[index].copy();
-            fretboard.incrementPosition(-1, false);
-            fretboards[index] = fretboard;
+        const fretboard = fretboards[focusedIndex].copy();
+        fretboard.incrementPosition(-1, false);
+        fretboards[focusedIndex] = fretboard;
+
+        const diffs = rebuildDiffs(fretboards);
+
+        // left
+        for (let i = focusedIndex; i >= 0; i--) {
+            let diff = diffs.leftDiffs[i];
+            let fretboardA = fretboards[i];
+            let fretboardB = fretboards[i - 1];
+            if (!fretboardB) break;
+            fretboardB = fretboardB.copy();
+            cascadeHighlight(fretboardA, fretboardB, diff);
+            fretboards[i - 1] = fretboardB;
         }
+
+        // right
+        for (let i = focusedIndex; i < fretboards.length; i++) {
+            let diff = diffs.rightDiffs[i];
+            let fretboardA = fretboards[i];
+            let fretboardB = fretboards[i + 1];
+            if (!fretboardB) break;
+            fretboardB = fretboardB.copy();
+            cascadeHighlight(fretboardA, fretboardB, diff);
+            fretboards[i + 1] = fretboardB;
+        }
+
         return {
             ...state,
-            ...rebuildDiffs(fretboards),
+            ...diffs,
+            fretboards,
         };
     }
 
     if (action.type === "INCREMENT_POSITION_Y") {
-        for (let index in fretboards) {
-            if (+index !== focusedIndex) continue;
-            const fretboard = fretboards[index].copy();
-            fretboard.incrementPosition(1, true);
-            fretboards[index] = fretboard;
+        const fretboard = fretboards[focusedIndex].copy();
+        fretboard.incrementPosition(1, true);
+        fretboards[focusedIndex] = fretboard;
+
+        const diffs = rebuildDiffs(fretboards);
+
+        // left
+        for (let i = focusedIndex; i >= 0; i--) {
+            let diff = diffs.leftDiffs[i];
+            let fretboardA = fretboards[i];
+            let fretboardB = fretboards[i - 1];
+            if (!fretboardB) break;
+            fretboardB = fretboardB.copy();
+            cascadeHighlight(fretboardA, fretboardB, diff);
+            fretboards[i - 1] = fretboardB;
         }
+
+        // right
+        for (let i = focusedIndex; i < fretboards.length; i++) {
+            let diff = diffs.rightDiffs[i];
+            let fretboardA = fretboards[i];
+            let fretboardB = fretboards[i + 1];
+            if (!fretboardB) break;
+            fretboardB = fretboardB.copy();
+            cascadeHighlight(fretboardA, fretboardB, diff);
+            fretboards[i + 1] = fretboardB;
+        }
+
         return {
             ...state,
-            ...rebuildDiffs(fretboards),
+            ...diffs,
+            fretboards,
         };
     }
 
     if (action.type === "DECREMENT_POSITION_Y") {
-        for (let index in fretboards) {
-            if (+index !== focusedIndex) continue;
-            const fretboard = fretboards[index].copy();
-            fretboard.incrementPosition(-1, true);
-            fretboards[index] = fretboard;
+        const fretboard = fretboards[focusedIndex].copy();
+        fretboard.incrementPosition(-1, true);
+        fretboards[focusedIndex] = fretboard;
+
+        const diffs = rebuildDiffs(fretboards);
+
+        // left
+        for (let i = focusedIndex; i >= 0; i--) {
+            let diff = diffs.leftDiffs[i];
+            let fretboardA = fretboards[i];
+            let fretboardB = fretboards[i - 1];
+            if (!fretboardB) break;
+            fretboardB = fretboardB.copy();
+            cascadeHighlight(fretboardA, fretboardB, diff);
+            fretboards[i - 1] = fretboardB;
         }
+
+        // right
+        for (let i = focusedIndex; i < fretboards.length; i++) {
+            let diff = diffs.rightDiffs[i];
+            let fretboardA = fretboards[i];
+            let fretboardB = fretboards[i + 1];
+            if (!fretboardB) break;
+            fretboardB = fretboardB.copy();
+            cascadeHighlight(fretboardA, fretboardB, diff);
+            fretboards[i + 1] = fretboardB;
+        }
+
         return {
             ...state,
-            ...rebuildDiffs(fretboards),
+            ...diffs,
+            fretboards,
         };
     }
 
     if (action.type === "SET_HIGHLIGHTED_NOTE") {
         const { stringIndex, value } = action.payload;
-        const diffs = rebuildDiffs(fretboards);
-
         const fretboard = fretboards[focusedIndex].copy();
         fretboard.toggleFret(stringIndex, value);
         fretboards[focusedIndex] = fretboard;
+
+        const diffs = rebuildDiffs(fretboards);
 
         // left
         for (let i = focusedIndex; i >= 0; i--) {
