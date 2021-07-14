@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 import {
     STANDARD_TUNING,
@@ -8,7 +8,7 @@ import {
 } from "../consts";
 import { useStore, Store, StateType, ActionTypes } from "../store";
 import { DiffType } from "../types";
-import { mod, NoteUtil, COLORS, FretboardUtil } from "../utils";
+import { mod, NoteUtil, COLORS } from "../utils";
 
 // CSS
 interface CSSProps {
