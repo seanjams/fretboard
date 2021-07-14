@@ -1,16 +1,20 @@
 import { ActionTypes } from "./actions";
-import { StateType } from "./state";
+import { StateType, rebuildDiffs } from "./state";
 import { FretboardUtil } from "../utils";
 
 function NeverCalled(never: never): void {}
 
 export function reducer(state: StateType, action: ActionTypes): StateType {
-	const fretboards = state.fretboards;
+	let { fretboards, focusedIndex } = state;
+
 	if (action.type === "CLEAR") {
-		const fretboards = Array(state.fretboards.length)
+		const newFretboards = Array(fretboards.length)
 			.fill(0)
 			.map(() => new FretboardUtil());
-		return { ...state, fretboards };
+		return {
+			...state,
+			...rebuildDiffs(newFretboards, state.lockHighlight),
+		};
 	}
 
 	if (action.type === "INVERT") {
@@ -21,12 +25,17 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 		return { ...state, leftHand: !state.leftHand };
 	}
 
+	if (action.type === "LOCK_HIGHLIGHT") {
+		return { ...state, lockHighlight: !state.lockHighlight };
+	}
+
 	if (action.type === "SET_NOTE") {
-		const { fretboardIndex, note } = action.payload;
-		const fretboard = fretboards[fretboardIndex].copy();
+		const { note } = action.payload;
+		const fretboard = fretboards[focusedIndex].copy();
 		fretboard.toggle(note);
-		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards };
+		fretboards[focusedIndex] = fretboard;
+
+		return { ...state, ...rebuildDiffs(fretboards, state.lockHighlight) };
 	}
 
 	if (action.type === "SET_LABEL") {
@@ -35,72 +44,82 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 	}
 
 	if (action.type === "INCREMENT_POSITION_X") {
-		const { fretboardIndex } = action.payload;
-		const fretboard = fretboards[fretboardIndex].copy();
-		fretboard.incrementPosition(1, false);
-		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards };
+		for (let index in fretboards) {
+			if (!state.lockHighlight && +index !== focusedIndex) continue;
+			const fretboard = fretboards[index].copy();
+			fretboard.incrementPosition(1, false);
+			fretboards[index] = fretboard;
+		}
+		return {
+			...state,
+			...rebuildDiffs(fretboards, state.lockHighlight),
+		};
 	}
 
 	if (action.type === "DECREMENT_POSITION_X") {
-		const { fretboardIndex } = action.payload;
-		const fretboard = fretboards[fretboardIndex].copy();
-		fretboard.incrementPosition(-1, false);
-		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards };
+		for (let index in fretboards) {
+			if (!state.lockHighlight && +index !== focusedIndex) continue;
+			const fretboard = fretboards[index].copy();
+			fretboard.incrementPosition(-1, false);
+			fretboards[index] = fretboard;
+		}
+		return {
+			...state,
+			...rebuildDiffs(fretboards, state.lockHighlight),
+		};
 	}
 
 	if (action.type === "INCREMENT_POSITION_Y") {
-		let { focusedIndex } = state;
-		const { fretboardIndex } = action.payload;
-		const fretboard = fretboards[fretboardIndex].copy();
-		const valid = fretboard.incrementPosition(1, true);
-		if (!valid) {
-			if (state.invert !== state.leftHand) {
-				if (focusedIndex < fretboards.length - 1) focusedIndex++;
-			} else {
-				if (0 < focusedIndex) focusedIndex--;
-			}
+		for (let index in fretboards) {
+			if (!state.lockHighlight && +index !== focusedIndex) continue;
+			const fretboard = fretboards[index].copy();
+			fretboard.incrementPosition(1, true);
+			fretboards[index] = fretboard;
 		}
-		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards, focusedIndex };
+		return {
+			...state,
+			...rebuildDiffs(fretboards, state.lockHighlight),
+		};
 	}
 
 	if (action.type === "DECREMENT_POSITION_Y") {
-		let { focusedIndex, fretboards } = state;
-		const { fretboardIndex } = action.payload;
-		const fretboard = fretboards[fretboardIndex].copy();
-		const valid = fretboard.incrementPosition(-1, true);
-		if (!valid) {
-			if (state.invert !== state.leftHand) {
-				if (0 < focusedIndex) focusedIndex--;
-			} else {
-				if (focusedIndex < fretboards.length - 1) focusedIndex++;
-			}
+		for (let index in fretboards) {
+			if (!state.lockHighlight && +index !== focusedIndex) continue;
+			const fretboard = fretboards[index].copy();
+			fretboard.incrementPosition(-1, true);
+			fretboards[index] = fretboard;
 		}
-		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards, focusedIndex };
+		return {
+			...state,
+			...rebuildDiffs(fretboards, state.lockHighlight),
+		};
 	}
 
 	if (action.type === "SET_HIGHLIGHTED_NOTE") {
-		const { fretboardIndex, stringIndex, value } = action.payload;
-		const fretboard = fretboards[fretboardIndex].copy();
+		const { stringIndex, value } = action.payload;
+		const fretboard = fretboards[focusedIndex].copy();
 		fretboard.toggleFret(stringIndex, value);
-		fretboards[fretboardIndex] = fretboard;
-		return { ...state, fretboards };
+		fretboards[focusedIndex] = fretboard;
+		return { ...state, ...rebuildDiffs(fretboards, state.lockHighlight) };
 	}
 
 	if (action.type === "ADD_FRETBOARD") {
-		fretboards.push(new FretboardUtil());
-		return { ...state, fretboards };
+		const lastFretboard = fretboards[fretboards.length - 1].copy();
+		fretboards.push(lastFretboard);
+		return { ...state, ...rebuildDiffs(fretboards, state.lockHighlight) };
 	}
 
 	if (action.type === "REMOVE_FRETBOARD") {
-		let { focusedIndex } = state;
+		let { focusedIndex, lockHighlight } = state;
 		if (fretboards.length > 1) fretboards.pop();
 		if (focusedIndex >= fretboards.length)
 			focusedIndex = fretboards.length - 1;
-		return { ...state, fretboards, focusedIndex };
+
+		return {
+			...state,
+			focusedIndex,
+			...rebuildDiffs(fretboards, lockHighlight),
+		};
 	}
 
 	if (action.type === "SET_FOCUS") {
@@ -115,13 +134,21 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
 	}
 
 	if (action.type === "SAVE_TO_LOCAL_STORAGE") {
+		// ignore keys we dont want to pull from localStorage
+		const IGNORE = ["rehydrateSuccess"];
+		// add in special formatters for keys that were serialized to localStorage
+		const HANDLERS: {
+			[key in string]: (state: StateType) => any;
+		} = {
+			fretboards: ({ fretboards }) =>
+				fretboards.map((fretboard) => fretboard.toJSON()),
+		};
+
 		let key: keyof StateType;
-		let value: any;
 		for (key in state) {
-			value = JSON.stringify(
-				key === "fretboards"
-					? state[key].map((fretboard) => fretboard.toJSON())
-					: state[key]
+			if (IGNORE.includes(key)) continue;
+			let value = JSON.stringify(
+				HANDLERS.hasOwnProperty(key) ? HANDLERS[key](state) : state[key]
 			);
 			localStorage.setItem(key, value);
 		}

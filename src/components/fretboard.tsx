@@ -1,106 +1,115 @@
-import * as React from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
-import { STANDARD_TUNING, NATURAL_NOTE_NAMES, E, B, C, F } from "../consts";
-import { FretboardContext } from "../store";
+import {
+    STANDARD_TUNING,
+    NATURAL_NOTE_NAMES,
+    FRETBOARD_WIDTH,
+    E,
+    B,
+    C,
+    F,
+} from "../consts";
+import { Store, StateType, useStore, ActionTypes } from "../store";
 import { String } from "./string";
 import { Legend } from "./legend";
-import { KeyControlTypes } from "../types";
+import { getPositionActionType } from "../utils";
 
 // CSS
 interface CSSProps {
-	color?: string;
+    width?: number;
+    color?: string;
 }
 
-const FretboardContainer = styled.div<CSSProps>`
-	margin-top: 30px;
-	display: flex;
-	align-items: stretch;
+const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        width: `${props.width}px`,
+    },
+}))<CSSProps>`
+    display: flex;
+    align-items: stretch;
 `;
 
 const FretboardDiv = styled.div<CSSProps>`
-	display: flex;
-	flex-direction: column;
-	width: 2000px;
-`;
-
-const FocusBar = styled.div<CSSProps>`
-	width: 10px;
-	border-radius: 3px;
-	background-color: ${({ color }) => color};
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 `;
 
 // Component
 interface Props {
-	fretboardIndex: number;
+    store: Store<StateType, ActionTypes>;
 }
 
-export const Fretboard: React.FC<Props> = ({ fretboardIndex }) => {
-	const { state, dispatch } = React.useContext(FretboardContext);
-	const { focusedIndex } = state;
+export const Fretboard: React.FC<Props> = ({ store }) => {
+    const [state, setState] = useStore(store);
+    const stateRef = useRef(state);
+    // whether the high E string appears on the top or bottom of the fretboard,
+    // depending on invert/leftHand views
+    const highEBottom = state.invert !== state.leftHand;
 
-	// whether the high E string appears on the top or bottom of the fretboard,
-	// depending on invert/leftHand views
-	const highEBottom: boolean = state.invert !== state.leftHand;
+    let naturals: { [key in string]: number } = {};
+    let i = 0;
+    for (let name of NATURAL_NOTE_NAMES) {
+        if (state.label === "flat") {
+            naturals[name] = i;
+            if (name !== F && name !== C) i++;
+            naturals[name.toLowerCase()] = i;
+            i++;
+        } else if (state.label === "sharp") {
+            naturals[name.toLowerCase()] = i;
+            if (name !== E && name !== B) i++;
+            naturals[name] = i;
+            i++;
+        }
+    }
 
-	let naturals: { [key in string]: number } = {};
-	let i = 0;
-	for (let name of NATURAL_NOTE_NAMES) {
-		if (state.label === "flat") {
-			naturals[name] = i;
-			if (name !== F && name !== C) i++;
-			naturals[name.toLowerCase()] = i;
-			i++;
-		} else if (state.label === "sharp") {
-			naturals[name.toLowerCase()] = i;
-			if (name !== E && name !== B) i++;
-			naturals[name] = i;
-			i++;
-		}
-	}
+    useEffect(() => {
+        window.addEventListener("keydown", onKeyPress);
+        return () => {
+            window.removeEventListener("keydown", onKeyPress);
+        };
+    });
 
-	React.useEffect(() => {
-		window.addEventListener("keydown", onKeyPress);
-		return () => {
-			window.removeEventListener("keydown", onKeyPress);
-		};
-	});
+    const strings = STANDARD_TUNING.map((value, i) => {
+        return (
+            <String
+                stringIndex={i}
+                base={value}
+                key={`string-${i}`}
+                store={store}
+            />
+        );
+    });
 
-	const strings = STANDARD_TUNING.map((value, i) => {
-		return <String fretboardIndex={fretboardIndex} stringIndex={i} base={value} key={`string-${fretboardIndex}-${i}`} />;
-	});
+    function onKeyPress(this: Window, e: KeyboardEvent): any {
+        const actionType = getPositionActionType(
+            stateRef.current.invert,
+            stateRef.current.leftHand,
+            e.key
+        );
+        if (actionType) {
+            e.preventDefault();
+            store.dispatch({
+                type: actionType,
+            });
+        } else if (naturals.hasOwnProperty(e.key)) {
+            e.preventDefault();
+            store.dispatch({
+                type: "SET_NOTE",
+                payload: {
+                    note: naturals[e.key],
+                },
+            });
+        }
+    }
 
-	function onClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>): void {
-		dispatch({ type: "SET_FOCUS", payload: { fretboardIndex }});
-	}
-
-	function onKeyPress(this: Window, e: KeyboardEvent): any {
-		const keyMap: {[key: string]: KeyControlTypes} = {
-			"ArrowUp": highEBottom ? "DECREMENT_POSITION_Y" : "INCREMENT_POSITION_Y",
-			"ArrowDown": highEBottom ? "INCREMENT_POSITION_Y" : "DECREMENT_POSITION_Y",
-			"ArrowRight": state.invert ? "DECREMENT_POSITION_X" : "INCREMENT_POSITION_X",
-			"ArrowLeft": state.invert ? "INCREMENT_POSITION_X" : "DECREMENT_POSITION_X",
-		};
-
-		if (fretboardIndex === focusedIndex) {
-			if (keyMap.hasOwnProperty(e.key)) {
-				e.preventDefault();
-				dispatch({ type: keyMap[e.key], payload: { fretboardIndex } });
-			} else if (naturals.hasOwnProperty(e.key)) {
-				e.preventDefault();
-				dispatch({ type: "SET_NOTE", payload: { fretboardIndex, note: naturals[e.key] } })
-			}
-		}
-	}
-
-	return (
-		<FretboardContainer>
-			{!state.invert && <FocusBar color={fretboardIndex === state.focusedIndex ? "#933" : "transparent"} />}
-			<FretboardDiv onClick={onClick} onContextMenu={onClick}>
-				<Legend fretboardIndex={fretboardIndex} top={true} />
-					{highEBottom ? strings : strings.reverse()}
-				<Legend fretboardIndex={fretboardIndex} />
-			</FretboardDiv>
-			{state.invert && <FocusBar color={fretboardIndex === state.focusedIndex ? "#933" : "transparent"} />}
-		</FretboardContainer>
-	);
+    return (
+        <FretboardContainer width={FRETBOARD_WIDTH}>
+            <FretboardDiv>
+                <Legend top={true} store={store} />
+                {highEBottom ? strings : strings.reverse()}
+                <Legend store={store} />
+            </FretboardDiv>
+        </FretboardContainer>
+    );
 };

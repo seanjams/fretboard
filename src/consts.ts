@@ -53,7 +53,7 @@ export const C_PENTATONIC: NoteSwitchType = {
 	9: true,
 	10: false,
 	11: false,
-}
+};
 
 export const DEFAULT_STRINGSWITCH: StringSwitchType = [{}, {}, {}, {}, {}, {}];
 
@@ -72,8 +72,8 @@ export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
 	[B, B],
 ];
 
-export const SHARP_NAMES: SharpTypes[] = NOTE_NAMES.map(names => names[0]);
-export const FLAT_NAMES: FlatTypes[] = NOTE_NAMES.map(names => names[1]);
+export const SHARP_NAMES: SharpTypes[] = NOTE_NAMES.map((names) => names[0]);
+export const FLAT_NAMES: FlatTypes[] = NOTE_NAMES.map((names) => names[1]);
 export const NOTE_VALUES: { [key in NoteTypes]?: number } = {};
 NOTE_NAMES.forEach((names, i) => {
 	NOTE_VALUES[names[0]] = i;
@@ -83,6 +83,10 @@ NOTE_NAMES.forEach((names, i) => {
 // C0 = 0 in this system. Lowest string on guitar is E2 = 28
 export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
 
+export const FRETBOARD_WIDTH = 1700;
+
 export const STRING_SIZE = 22;
+
+export const CIRCLE_SIZE = 26;
 
 export const NATURAL_NOTE_NAMES: NaturalTypes[] = [C, D, E, F, G, A, B];

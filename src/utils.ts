@@ -12,6 +12,9 @@ import {
 	NoteSwitchType,
 	StringSwitchType,
 	numString,
+	KeyControlTypes,
+	DiffType,
+	FretboardUtilType,
 } from "./types";
 
 export function copy(obj: any): any {
@@ -20,6 +23,39 @@ export function copy(obj: any): any {
 
 export function mod(a: numString, m: number): number {
 	return ((+a % m) + m) % m;
+}
+
+export function stopClick() {
+	// can be placed within a mouseup event to prevent
+	// the subsequent click event
+	window.addEventListener("click", captureClick, true);
+	function captureClick(e: MouseEvent | TouchEvent) {
+		e.stopPropagation();
+		window.removeEventListener("click", captureClick, true);
+	}
+}
+
+export function getPositionActionType(
+	invert: boolean,
+	leftHand: boolean,
+	direction: string
+): KeyControlTypes | null {
+	// Get the action direction based on orientation of fretboard
+	// could maybe move this to reducer.
+	// highEBottom
+	// 	- whether the high E string appears on the top or bottom of the fretboard,
+	// 	- depending on invert/leftHand views
+	const highEBottom = invert !== leftHand;
+	const keyMap: { [key: string]: KeyControlTypes } = {
+		ArrowUp: highEBottom ? "DECREMENT_POSITION_Y" : "INCREMENT_POSITION_Y",
+		ArrowDown: highEBottom
+			? "INCREMENT_POSITION_Y"
+			: "DECREMENT_POSITION_Y",
+		ArrowRight: invert ? "DECREMENT_POSITION_X" : "INCREMENT_POSITION_X",
+		ArrowLeft: invert ? "INCREMENT_POSITION_X" : "DECREMENT_POSITION_X",
+	};
+
+	return keyMap[direction];
 }
 
 // export function shuffleArray(array: any[]): void {
@@ -41,6 +77,120 @@ export const COLORS = [
 ];
 // shuffleArray(COLORS);
 
+function _rotatedDistance(a: number, b: number, m: number = 12) {
+	let min = a - b;
+	if (Math.abs(a - b + m) < Math.abs(min)) min = a - b + m;
+	if (Math.abs(a - b - m) < Math.abs(min)) min = a - b - m;
+	return min;
+}
+
+function _getMinDiff(
+	longerList: number[],
+	shorterList: number[]
+): [number, DiffType] {
+	let minSum;
+	let minDiff = {};
+	let minDiffScore;
+	if (longerList.length === shorterList.length) {
+		// return min sum and Diff for best rotation
+		const rotatedIndexes = longerList.map((_, i) => (j: number) =>
+			(j + i) % longerList.length
+		);
+
+		for (let rotation of rotatedIndexes) {
+			let diff: DiffType = {};
+			let diffScore;
+			let absSum;
+
+			for (let i = 0; i < longerList.length; i++) {
+				const j = rotation(i);
+				const distance = _rotatedDistance(
+					shorterList[j],
+					longerList[i]
+				);
+				if (diffScore === undefined) diffScore = 0;
+				if (absSum === undefined) absSum = 0;
+				diffScore += distance * distance;
+				absSum += Math.abs(distance);
+				diff[longerList[i]] = distance;
+			}
+
+			const overallMovementIsLess =
+				minSum === undefined || absSum < minSum;
+			const lateralMovementIsLess =
+				minSum !== undefined &&
+				absSum === minSum &&
+				diffScore < minDiffScore;
+
+			if (overallMovementIsLess || lateralMovementIsLess) {
+				minSum = absSum;
+				minDiff = diff;
+				minDiffScore = diffScore;
+			}
+		}
+	} else {
+		// remove each element of longerList and call compare on this reduced version (dynamic programming solution)
+		// return min result from each of these
+		for (let i = 0; i < longerList.length; i++) {
+			const reducedList = longerList
+				.slice(0, i)
+				.concat(longerList.slice(i + 1));
+			const [sum, diff] = _getMinDiff(reducedList, shorterList);
+			if (minSum === undefined || sum < minSum) {
+				minSum = sum;
+				minDiff = diff;
+			}
+		}
+	}
+
+	return [minSum, minDiff];
+}
+
+export function compare(fretboardA: FretboardUtil, fretboardB: FretboardUtil) {
+	// for generating diffs between fretboardA and fretboardB in both directions
+	let listA = fretboardA.list();
+	let listB = fretboardB.list();
+	const listBLonger = listA.length < listB.length;
+	let longer = listBLonger ? listB : listA;
+	let shorter = listBLonger ? listA : listB;
+
+	const [_, diff] = _getMinDiff(longer, shorter);
+
+	// build both directions
+	const longToShort = diff;
+	const shortToLong: DiffType = {};
+	const toIndexes: Set<number> = new Set();
+
+	Object.keys(longToShort).forEach((fromIndex) => {
+		const distance = longToShort[+fromIndex];
+		const toIndex = mod(+fromIndex + distance, 12);
+		toIndexes.add(toIndex);
+		shortToLong[toIndex] = -distance;
+	});
+
+	// 9999 = fill
+	// -9999 = empty
+	for (let index of longer) {
+		if (longToShort[+index] === undefined) {
+			longToShort[+index] = -9999;
+			shortToLong[+index] = 9999;
+		}
+	}
+
+	for (let index of shorter) {
+		if (!toIndexes.has(+index)) {
+			longToShort[+index] = 9999;
+			shortToLong[+index] = -9999;
+		}
+	}
+
+	// leftDiff is for the "fretboard on the right" which needs a diff against its left neighor
+	// rightDiff is for the "fretboard on the left" which needs a diff against its right neighor
+	let leftDiff = listBLonger ? longToShort : shortToLong;
+	let rightDiff = listBLonger ? shortToLong : longToShort;
+	return [leftDiff, rightDiff];
+}
+
 export class NoteUtil {
 	base: number;
 	constructor(base: number) {
@@ -56,11 +206,6 @@ export class NoteUtil {
 	}
 }
 
-export interface FretboardUtilType {
-	notes: NoteSwitchType;
-	strings: StringSwitchType;
-}
-
 export class FretboardUtil implements FretboardUtilType {
 	notes: NoteSwitchType;
 	strings: StringSwitchType;
@@ -73,10 +218,12 @@ export class FretboardUtil implements FretboardUtilType {
 		this.strings = strings;
 	}
 
+	// gets whether index of note is "on" or "off" in this fretboard
 	get(index: numString): boolean {
 		return !!this.notes[mod(+index, 12)];
 	}
 
+	// sets whether index of note is "on" or "off" in this fretboard
 	set(index: numString, active: boolean): boolean {
 		if (!active) {
 			this.clearFrets(mod(+index, 12));
@@ -84,14 +231,17 @@ export class FretboardUtil implements FretboardUtilType {
 		return (this.notes[mod(+index, 12)] = active);
 	}
 
+	// toggles whether index of note is "on" or "off" in this fretboard
 	toggle(index: number): boolean {
 		return this.set(index, !this.get(index));
 	}
 
+	// gets whether stringIndex at fretValue is highlighted or not for this fretboard
 	getFret(stringIndex: numString, fretValue: numString): boolean {
 		return !!this.strings[mod(+stringIndex, 6)][+fretValue];
 	}
 
+	// sets whether stringIndex at fretValue is highlighted or not for this fretboard
 	setFret(
 		stringIndex: numString,
 		fretValue: numString,
@@ -103,6 +253,7 @@ export class FretboardUtil implements FretboardUtilType {
 		return (this.strings[mod(+stringIndex, 6)][+fretValue] = active);
 	}
 
+	// toggles whether stringIndex at fretValue is highlighted or not for this fretboard
 	toggleFret(stringIndex: number, fretValue: number): boolean {
 		return this.setFret(
 			stringIndex,
@@ -124,7 +275,7 @@ export class FretboardUtil implements FretboardUtilType {
 	list(): number[] {
 		const result: number[] = [];
 		Object.keys(this.notes).forEach((note, i) => {
-			if (note) {
+			if (this.notes[+note]) {
 				result.push(i);
 			}
 		});
@@ -188,50 +339,46 @@ export class FretboardUtil implements FretboardUtilType {
 			: 0;
 
 		let valid = true;
-		for (let stringIndex in this.strings) {
+
+		loop1: for (let stringIndex in this.strings) {
 			const newStringIndex: number = vertical
 				? +stringIndex + inc
 				: +stringIndex;
 			for (let fretValue in this.strings[stringIndex]) {
-				if (this.getFret(stringIndex, fretValue)) {
-					let newValue: number;
-					let conditions: boolean[];
-					if (vertical) {
-						// get most vertical interval step, find new note value, and apply to next string
-						newValue = this._getIncrement(
-							+fretValue,
-							verticalIntervalIncrement,
-							scale
-						);
-						conditions = [
-							newStringIndex < 0,
-							newStringIndex >= this.strings.length,
-							newValue < STANDARD_TUNING[newStringIndex],
-							newValue >=
-								STANDARD_TUNING[newStringIndex] + STRING_SIZE,
-						];
-					} else {
-						// find new note value, and apply to same string
-						newValue = this._getIncrement(+fretValue, inc, scale);
-						conditions = [
-							newValue === +fretValue,
-							newValue < STANDARD_TUNING[stringIndex],
-							newValue >=
-								STANDARD_TUNING[stringIndex] + STRING_SIZE,
-						];
-					}
-
-					if (conditions.some((_) => _)) {
-						valid = false;
-						break;
-					}
-
-					turnOff.push([stringIndex, fretValue]);
-					turnOn.push([newStringIndex, newValue]);
+				if (!this.getFret(stringIndex, fretValue)) continue;
+				let newValue: number;
+				let conditions: boolean[];
+				if (vertical) {
+					// get most vertical interval step, find new note value, and apply to next string
+					newValue = this._getIncrement(
+						+fretValue,
+						verticalIntervalIncrement,
+						scale
+					);
+					conditions = [
+						newStringIndex < 0,
+						newStringIndex >= this.strings.length,
+						newValue < STANDARD_TUNING[newStringIndex],
+						newValue >=
+							STANDARD_TUNING[newStringIndex] + STRING_SIZE,
+					];
+				} else {
+					// find new note value, and apply to same string
+					newValue = this._getIncrement(+fretValue, inc, scale);
+					conditions = [
+						newValue === +fretValue,
+						newValue < STANDARD_TUNING[stringIndex],
+						newValue >= STANDARD_TUNING[stringIndex] + STRING_SIZE,
+					];
 				}
-			}
-			if (!valid) {
-				break;
+
+				if (conditions.some((_) => _)) {
+					valid = false;
+					break loop1;
+				}
+
+				turnOff.push([stringIndex, fretValue]);
+				turnOn.push([newStringIndex, newValue]);
 			}
 		}
 

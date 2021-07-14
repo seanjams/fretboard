@@ -1,67 +1,34 @@
 import * as React from "react";
 import styled from "styled-components";
-import { StateType, FretboardContext, StateModel } from "../store";
+import { StateType, Store, ActionTypes } from "../store";
 import { Fretboard } from "./fretboard";
-import { NavControls, AddFretboardControls } from "./controls";
+import { NavControls } from "./controls";
+import { Slider } from "./slider";
 
 // CSS
 interface CSSProps {}
 
 const ContainerDiv = styled.div<CSSProps>`
-	font-family: Arial;
-	position: absolute;
-	top: 40px;
-`;
-
-const FretboardControlsContainerDiv = styled.div<CSSProps>`
-	width: 100vw;
-	display: flex;
-	justify-content: flex-end;
+    width: 100vw;
+    overflow-x: auto;
+    font-family: Arial;
 `;
 
 // Component
 interface Props {
-	oldState?: StateType;
+    store: Store<StateType, ActionTypes>;
 }
 
-export const Dashboard: React.FC<Props> = ({ oldState }) => {
-	const { state, dispatch } = React.useContext(FretboardContext);
-
-	React.useEffect(() => {
-		rehydrateState();
-		window.addEventListener("beforeunload", saveToLocalStorage);
-		return () => {
-			saveToLocalStorage();
-			window.removeEventListener("beforeunload", saveToLocalStorage);
-		};
-	}, []);
-
-	const saveToLocalStorage = () => {
-		dispatch({ type: "SAVE_TO_LOCAL_STORAGE" });
-	};
-
-	const rehydrateState = () => {
-		let newState: StateType = StateModel.default();
-		if (oldState) {
-			newState = { ...newState, ...oldState };
-		} else {
-			newState = { ...newState, ...StateModel.fromLocalStorage() };
-		}
-
-		dispatch({ type: "REHYDRATE", payload: newState });
-	};
-
-	return (
-		<div>
-			<NavControls />
-			<ContainerDiv>
-				{state.fretboards.map((_, i) => (
-					<Fretboard key={`fretboard-${i}`} fretboardIndex={i} />
-				))}
-				<FretboardControlsContainerDiv>
-					<AddFretboardControls />
-				</FretboardControlsContainerDiv>
-			</ContainerDiv>
-		</div>
-	);
-};
+export const Dashboard: React.FC<Props> = ({ store }) => (
+    <div>
+        <ContainerDiv>
+            <NavControls store={store} />
+        </ContainerDiv>
+        <ContainerDiv>
+            <Fretboard store={store} />
+        </ContainerDiv>
+        <ContainerDiv>
+            <Slider store={store} />
+        </ContainerDiv>
+    </div>
+);
