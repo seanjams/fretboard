@@ -1,11 +1,12 @@
 import {
-	SharpTypes,
-	FlatTypes,
-	NoteTypes,
-	NoteSwitchType,
-	StringSwitchType,
-	NaturalTypes,
+    SharpTypes,
+    FlatTypes,
+    NoteTypes,
+    NoteSwitchType,
+    StringSwitchType,
+    NaturalTypes,
 } from "./types";
+import { mod } from "./utils";
 
 export const C = "C";
 export const Cs = "C#";
@@ -26,58 +27,51 @@ export const Bb = "Bb";
 export const B = "B";
 
 export const DEFAULT_NOTESWITCH: NoteSwitchType = {
-	0: false,
-	1: false,
-	2: false,
-	3: false,
-	4: false,
-	5: false,
-	6: false,
-	7: false,
-	8: false,
-	9: false,
-	10: false,
-	11: false,
+    0: false,
+    1: false,
+    2: false,
+    3: false,
+    4: false,
+    5: false,
+    6: false,
+    7: false,
+    8: false,
+    9: false,
+    10: false,
+    11: false,
 };
 
-export const C_PENTATONIC: NoteSwitchType = {
-	0: true,
-	1: false,
-	2: true,
-	3: false,
-	4: true,
-	5: false,
-	6: false,
-	7: true,
-	8: false,
-	9: true,
-	10: false,
-	11: false,
-};
+export function SCALE_BUILDER(arr: number[]): NoteSwitchType {
+    const noteswitch = { ...DEFAULT_NOTESWITCH };
+    for (let i of arr) {
+        noteswitch[mod(i, 12)] = true;
+    }
+    return noteswitch;
+}
 
 export const DEFAULT_STRINGSWITCH: StringSwitchType = [{}, {}, {}, {}, {}, {}];
 
 export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
-	[C, C],
-	[Cs, Db],
-	[D, D],
-	[Ds, Eb],
-	[E, E],
-	[F, F],
-	[Fs, Gb],
-	[G, G],
-	[Gs, Ab],
-	[A, A],
-	[As, Bb],
-	[B, B],
+    [C, C],
+    [Cs, Db],
+    [D, D],
+    [Ds, Eb],
+    [E, E],
+    [F, F],
+    [Fs, Gb],
+    [G, G],
+    [Gs, Ab],
+    [A, A],
+    [As, Bb],
+    [B, B],
 ];
 
 export const SHARP_NAMES: SharpTypes[] = NOTE_NAMES.map((names) => names[0]);
 export const FLAT_NAMES: FlatTypes[] = NOTE_NAMES.map((names) => names[1]);
 export const NOTE_VALUES: { [key in NoteTypes]?: number } = {};
 NOTE_NAMES.forEach((names, i) => {
-	NOTE_VALUES[names[0]] = i;
-	NOTE_VALUES[names[1]] = i;
+    NOTE_VALUES[names[0]] = i;
+    NOTE_VALUES[names[1]] = i;
 });
 
 // C0 = 0 in this system. Lowest string on guitar is E2 = 28

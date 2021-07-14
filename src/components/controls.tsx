@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Store, StateType, useStore, ActionTypes } from "../store";
 import { LabelTypes, ArrowTypes } from "../types";
@@ -77,7 +77,26 @@ interface Props {
 
 export const NavControls: React.FC<Props> = ({ store }) => {
     const [state, setState] = useStore(store);
-    const stateRef = useRef(state);
+    const [invert, setInvert] = useState(state.invert);
+    const [leftHand, setLeftHand] = useState(state.leftHand);
+
+    const invertRef = useRef(invert);
+    const leftHandRef = useRef(leftHand);
+
+    useEffect(
+        () =>
+            store.addListener((newState) => {
+                if (newState.invert !== invertRef.current) {
+                    setInvert(newState.invert);
+                    invertRef.current = newState.invert;
+                }
+                if (newState.leftHand !== leftHandRef.current) {
+                    setLeftHand(newState.leftHand);
+                    leftHandRef.current = newState.leftHand;
+                }
+            }),
+        []
+    );
 
     function onInvert(
         e:
@@ -85,12 +104,12 @@ export const NavControls: React.FC<Props> = ({ store }) => {
             | React.TouchEvent<HTMLButtonElement>
     ) {
         e.preventDefault();
-        if (stateRef.current.invert) {
+        if (invertRef.current) {
             window.scroll(0, 0);
         } else {
             window.scroll(document.body.scrollWidth, 0);
         }
-        store.setKey("invert", !state.invert);
+        store.setKey("invert", !invertRef.current);
     }
 
     function onLeftHand(
@@ -99,16 +118,7 @@ export const NavControls: React.FC<Props> = ({ store }) => {
             | React.TouchEvent<HTMLButtonElement>
     ) {
         e.preventDefault();
-        store.setKey("leftHand", !state.leftHand);
-    }
-
-    function onLockHighlight(
-        e:
-            | React.MouseEvent<HTMLButtonElement, MouseEvent>
-            | React.TouchEvent<HTMLButtonElement>
-    ) {
-        e.preventDefault();
-        store.setKey("lockHighlight", !state.lockHighlight);
+        store.setKey("leftHand", !leftHandRef.current);
     }
 
     const setLabel = (label: LabelTypes) => () => {
@@ -120,8 +130,8 @@ export const NavControls: React.FC<Props> = ({ store }) => {
 
     const onArrowPress = (direction: ArrowTypes) => () => {
         const actionType = getPositionActionType(
-            stateRef.current.invert,
-            stateRef.current.leftHand,
+            invertRef.current,
+            leftHandRef.current,
             direction
         );
 
@@ -149,21 +159,13 @@ export const NavControls: React.FC<Props> = ({ store }) => {
                     Invert
                 </ButtonInput>
                 <ButtonInput onClick={onLeftHand} onTouchStart={onLeftHand}>
-                    {state.leftHand ? "Right" : "Left"} Hand
+                    {leftHand ? "Right" : "Left"} Hand
                 </ButtonInput>
                 <SelectInput onChange={onLabelChange}>
                     <option value="sharp">Sharp</option>
                     <option value="flat">Flat</option>
                     <option value="value">Value</option>
                 </SelectInput>
-                <ButtonInput
-                    onClick={onLockHighlight}
-                    onTouchStart={onLeftHand}
-                >
-                    {state.lockHighlight
-                        ? "Unlock Highlight"
-                        : "Lock Highlight"}
-                </ButtonInput>
             </FlexRowCenter>
             <ArrowControlsContainer>
                 <FlexRowCenter>

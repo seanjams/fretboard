@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import {
     STANDARD_TUNING,
@@ -42,10 +42,13 @@ interface Props {
 
 export const Fretboard: React.FC<Props> = ({ store }) => {
     const [state, setState] = useStore(store);
-    const stateRef = useRef(state);
+    const invertRef = useRef(state.invert);
+    const leftHandRef = useRef(state.leftHand);
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
-    const highEBottom = state.invert !== state.leftHand;
+    const [highEBottom, setHighEBottom] = useState(
+        state.invert !== state.leftHand
+    );
 
     let naturals: { [key in string]: number } = {};
     let i = 0;
@@ -68,7 +71,17 @@ export const Fretboard: React.FC<Props> = ({ store }) => {
         return () => {
             window.removeEventListener("keydown", onKeyPress);
         };
-    });
+    }, []);
+
+    useEffect(
+        () =>
+            store.addListener((newState) => {
+                invertRef.current = newState.invert;
+                leftHandRef.current = newState.leftHand;
+                setHighEBottom(invertRef.current !== leftHandRef.current);
+            }),
+        []
+    );
 
     const strings = STANDARD_TUNING.map((value, i) => {
         return (
@@ -83,8 +96,8 @@ export const Fretboard: React.FC<Props> = ({ store }) => {
 
     function onKeyPress(this: Window, e: KeyboardEvent): any {
         const actionType = getPositionActionType(
-            stateRef.current.invert,
-            stateRef.current.leftHand,
+            invertRef.current,
+            leftHandRef.current,
             e.key
         );
         if (actionType) {
