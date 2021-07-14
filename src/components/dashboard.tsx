@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { StateType, Store } from "../store";
+import { StateType, Store, ActionTypes } from "../store";
 import { Fretboard } from "./fretboard";
 import { NavControls } from "./controls";
 import { Slider } from "./slider";
@@ -9,26 +9,26 @@ import { Slider } from "./slider";
 interface CSSProps {}
 
 const ContainerDiv = styled.div<CSSProps>`
-	width: 100vw;
-	overflow-x: auto;
-	font-family: Arial;
+    width: 100vw;
+    overflow-x: auto;
+    font-family: Arial;
 `;
 
 // Component
 interface Props {
-	store: Store<StateType>;
+    store: Store<StateType, ActionTypes>;
 }
 
 export const Dashboard: React.FC<Props> = ({ store }) => (
-	<div>
-		<ContainerDiv>
-			<NavControls store={store} />
-		</ContainerDiv>
-		<ContainerDiv>
-			<Fretboard store={store} />
-		</ContainerDiv>
-		<ContainerDiv>
-			<Slider store={store} />
-		</ContainerDiv>
-	</div>
+    <div>
+        <ContainerDiv>
+            <NavControls store={store} />
+        </ContainerDiv>
+        <ContainerDiv>
+            <Fretboard store={store} />
+        </ContainerDiv>
+        <ContainerDiv>
+            <Slider store={store} />
+        </ContainerDiv>
+    </div>
 );
