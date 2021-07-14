@@ -89,8 +89,6 @@ export const App: React.FC<Props> = ({ oldState }) => {
                 stringSize: parseItem("stringSize") || defaultState.stringSize,
                 focusedIndex:
                     parseItem("focusedIndex") || defaultState.focusedIndex,
-                lockHighlight:
-                    parseItem("lockHighlight") || defaultState.lockHighlight,
                 progress: parseItem("progress") || defaultState.progress,
                 rehydrateSuccess: true,
             };
