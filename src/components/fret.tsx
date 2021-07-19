@@ -412,6 +412,7 @@ export const Fret: React.FC<Props> = ({
             }
         } else if (
             brushModeRef.current === "highlight" &&
+            isSelectedRef.current &&
             !isHighlightedRef.current
         ) {
             // turn highlighted note on if not already highlighted
