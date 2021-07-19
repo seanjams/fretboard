@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
+import { Store, StateType, useStore, ActionTypes } from "../store";
+import { String } from "./string";
+import { Legend } from "./legend";
 import {
+    getPositionActionType,
     STANDARD_TUNING,
     NATURAL_NOTE_NAMES,
     FRETBOARD_WIDTH,
@@ -8,11 +12,7 @@ import {
     B,
     C,
     F,
-} from "../consts";
-import { Store, StateType, useStore, ActionTypes } from "../store";
-import { String } from "./string";
-import { Legend } from "./legend";
-import { getPositionActionType } from "../utils";
+} from "../utils";
 
 // CSS
 interface CSSProps {

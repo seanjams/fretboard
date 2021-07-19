@@ -1,6 +1,10 @@
-import { FretboardUtil, rebuildDiffs } from "../utils";
-import { LabelTypes, DiffType } from "../types";
-import { SCALE_BUILDER, STRING_SIZE } from "../consts";
+import {
+    FretboardUtil,
+    rebuildDiffs,
+    SCALE_BUILDER,
+    STRING_SIZE,
+} from "../utils";
+import { LabelTypes, DiffType, BrushTypes } from "../types";
 
 export interface StateType {
     fretboards: FretboardUtil[];
@@ -13,6 +17,8 @@ export interface StateType {
     focusedIndex: number;
     rehydrateSuccess: boolean;
     progress: number;
+    brushMode: BrushTypes;
+    isDragging: boolean;
 }
 
 const fretboards = [
@@ -30,5 +36,7 @@ export function DEFAULT_STATE(): StateType {
         focusedIndex: 0,
         rehydrateSuccess: false,
         progress: 0,
+        brushMode: "select",
+        isDragging: false,
     };
 }

@@ -1,11 +1,17 @@
 import { ActionTypes } from "./actions";
 import { StateType } from "./state";
-import { FretboardUtil, rebuildDiffs, cascadeHighlight } from "../utils";
+import {
+    FretboardUtil,
+    rebuildDiffs,
+    cascadeDiffs,
+    DEFAULT_STRINGSWITCH,
+} from "../utils";
 
 function NeverCalled(never: never): void {}
 
 export function reducer(state: StateType, action: ActionTypes): StateType {
     let { fretboards, focusedIndex } = state;
+    fretboards = fretboards.map((fretboard) => fretboard.copy());
 
     if (action.type === "CLEAR") {
         const newFretboards = Array(fretboards.length)
@@ -26,10 +32,14 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
     }
 
     if (action.type === "SET_NOTE") {
-        const { note } = action.payload;
-        const fretboard = fretboards[focusedIndex].copy();
-        fretboard.toggle(note);
-        fretboards[focusedIndex] = fretboard;
+        const { note, turnOn } = action.payload;
+        const fretboard = fretboards[focusedIndex];
+
+        if (turnOn !== undefined) {
+            fretboard.set(note, turnOn);
+        } else {
+            fretboard.toggle(note);
+        }
 
         return { ...state, ...rebuildDiffs(fretboards) };
     }
@@ -40,186 +50,76 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
     }
 
     if (action.type === "INCREMENT_POSITION_X") {
-        const fretboard = fretboards[focusedIndex].copy();
-        fretboard.incrementPosition(1, false);
-        fretboards[focusedIndex] = fretboard;
-
-        const diffs = rebuildDiffs(fretboards);
-
-        // left
-        for (let i = focusedIndex; i >= 0; i--) {
-            let diff = diffs.leftDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i - 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i - 1] = fretboardB;
+        for (let i = 0; i < fretboards.length; i++) {
+            if (i === focusedIndex) {
+                fretboards[i].incrementPosition(1, false);
+            } else {
+                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+            }
         }
 
-        // right
-        for (let i = focusedIndex; i < fretboards.length; i++) {
-            let diff = diffs.rightDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i + 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i + 1] = fretboardB;
-        }
-
-        return {
-            ...state,
-            ...diffs,
-            fretboards,
-        };
+        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
     }
 
     if (action.type === "DECREMENT_POSITION_X") {
-        const fretboard = fretboards[focusedIndex].copy();
-        fretboard.incrementPosition(-1, false);
-        fretboards[focusedIndex] = fretboard;
-
-        const diffs = rebuildDiffs(fretboards);
-
-        // left
-        for (let i = focusedIndex; i >= 0; i--) {
-            let diff = diffs.leftDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i - 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i - 1] = fretboardB;
+        for (let i = 0; i < fretboards.length; i++) {
+            if (i === focusedIndex) {
+                fretboards[i].incrementPosition(-1, false);
+            } else {
+                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+            }
         }
 
-        // right
-        for (let i = focusedIndex; i < fretboards.length; i++) {
-            let diff = diffs.rightDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i + 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i + 1] = fretboardB;
-        }
-
-        return {
-            ...state,
-            ...diffs,
-            fretboards,
-        };
+        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
     }
 
     if (action.type === "INCREMENT_POSITION_Y") {
-        const fretboard = fretboards[focusedIndex].copy();
-        fretboard.incrementPosition(1, true);
-        fretboards[focusedIndex] = fretboard;
-
-        const diffs = rebuildDiffs(fretboards);
-
-        // left
-        for (let i = focusedIndex; i >= 0; i--) {
-            let diff = diffs.leftDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i - 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i - 1] = fretboardB;
+        for (let i = 0; i < fretboards.length; i++) {
+            if (i === focusedIndex) {
+                fretboards[i].incrementPosition(1, true);
+            } else {
+                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+            }
         }
 
-        // right
-        for (let i = focusedIndex; i < fretboards.length; i++) {
-            let diff = diffs.rightDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i + 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i + 1] = fretboardB;
-        }
-
-        return {
-            ...state,
-            ...diffs,
-            fretboards,
-        };
+        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
     }
 
     if (action.type === "DECREMENT_POSITION_Y") {
-        const fretboard = fretboards[focusedIndex].copy();
-        fretboard.incrementPosition(-1, true);
-        fretboards[focusedIndex] = fretboard;
-
-        const diffs = rebuildDiffs(fretboards);
-
-        // left
-        for (let i = focusedIndex; i >= 0; i--) {
-            let diff = diffs.leftDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i - 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i - 1] = fretboardB;
+        for (let i = 0; i < fretboards.length; i++) {
+            if (i === focusedIndex) {
+                fretboards[i].incrementPosition(-1, true);
+            } else {
+                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+            }
         }
 
-        // right
-        for (let i = focusedIndex; i < fretboards.length; i++) {
-            let diff = diffs.rightDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i + 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i + 1] = fretboardB;
-        }
-
-        return {
-            ...state,
-            ...diffs,
-            fretboards,
-        };
+        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
     }
 
     if (action.type === "SET_HIGHLIGHTED_NOTE") {
-        const { stringIndex, value } = action.payload;
-        const fretboard = fretboards[focusedIndex].copy();
-        fretboard.toggleFret(stringIndex, value);
-        fretboards[focusedIndex] = fretboard;
+        const { stringIndex, value, turnOn } = action.payload;
 
-        const diffs = rebuildDiffs(fretboards);
-
-        // left
-        for (let i = focusedIndex; i >= 0; i--) {
-            let diff = diffs.leftDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i - 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i - 1] = fretboardB;
+        for (let i = 0; i < fretboards.length; i++) {
+            if (i === focusedIndex) {
+                if (turnOn !== undefined) {
+                    fretboards[i].setFret(stringIndex, value, turnOn);
+                } else {
+                    fretboards[i].toggleFret(stringIndex, value);
+                }
+            } else {
+                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+            }
         }
 
-        // right
-        for (let i = focusedIndex; i < fretboards.length; i++) {
-            let diff = diffs.rightDiffs[i];
-            let fretboardA = fretboards[i];
-            let fretboardB = fretboards[i + 1];
-            if (!fretboardB) break;
-            fretboardB = fretboardB.copy();
-            cascadeHighlight(fretboardA, fretboardB, diff);
-            fretboards[i + 1] = fretboardB;
-        }
-
-        return { ...state, ...diffs, fretboards };
+        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
     }
 
     if (action.type === "ADD_FRETBOARD") {
-        const lastFretboard = fretboards[fretboards.length - 1].copy();
+        const lastIndex = fretboards.length - 1;
+        const lastFretboard = fretboards[lastIndex].copy();
         fretboards.push(lastFretboard);
-        return { ...state, ...rebuildDiffs(fretboards) };
+        return { ...state, ...cascadeDiffs(fretboards, lastIndex) };
     }
 
     if (action.type === "REMOVE_FRETBOARD") {
@@ -244,28 +144,6 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         return {
             ...action.payload,
         };
-    }
-
-    if (action.type === "SAVE_TO_LOCAL_STORAGE") {
-        // ignore keys we dont want to pull from localStorage
-        const IGNORE = ["rehydrateSuccess"];
-        // add in special formatters for keys that were serialized to localStorage
-        const HANDLERS: {
-            [key in string]: (state: StateType) => any;
-        } = {
-            fretboards: ({ fretboards }) =>
-                fretboards.map((fretboard) => fretboard.toJSON()),
-        };
-
-        let key: keyof StateType;
-        for (key in state) {
-            if (IGNORE.includes(key)) continue;
-            let value = JSON.stringify(
-                HANDLERS.hasOwnProperty(key) ? HANDLERS[key](state) : state[key]
-            );
-            localStorage.setItem(key, value);
-        }
-        return state;
     }
 
     NeverCalled(action);

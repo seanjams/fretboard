@@ -15,7 +15,8 @@ import {
     KeyControlTypes,
     DiffType,
     FretboardUtilType,
-} from "./types";
+} from "../types";
+import { kCombinations } from "./combinations";
 
 export function copy(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -77,6 +78,14 @@ export const COLORS = [
 ];
 // shuffleArray(COLORS);
 
+export function SCALE_BUILDER(arr: number[]): NoteSwitchType {
+    const noteswitch = { ...DEFAULT_NOTESWITCH };
+    for (let i of arr) {
+        noteswitch[mod(i, 12)] = true;
+    }
+    return noteswitch;
+}
+
 function _rotatedDistance(a: number, b: number, m: number = 12) {
     let min = a - b;
     if (Math.abs(a - b + m) < Math.abs(min)) min = a - b + m;
@@ -129,12 +138,11 @@ function _getMinDiff(
             }
         }
     } else {
-        // remove each element of longerList and call compare on this reduced version (dynamic programming solution)
-        // return min result from each of these
-        for (let i = 0; i < longerList.length; i++) {
-            const reducedList = longerList
-                .slice(0, i)
-                .concat(longerList.slice(i + 1));
+        // get all combinations of longer list with length of shorter list,
+        // and pass back to function to compare in base case above
+        const reducedLists = kCombinations(longerList, shorterList.length);
+        for (let i = 0; i < reducedLists.length; i++) {
+            const reducedList = reducedLists[i];
             const [sum, diff] = _getMinDiff(reducedList, shorterList);
             if (minSum === undefined || sum < minSum) {
                 minSum = sum;
@@ -148,6 +156,7 @@ function _getMinDiff(
 
 export function compare(fretboardA: FretboardUtil, fretboardB: FretboardUtil) {
     // for generating diffs between fretboardA and fretboardB in both directions
+
     let listA = fretboardA.list();
     let listB = fretboardB.list();
     const listBLonger = listA.length < listB.length;
@@ -431,6 +440,34 @@ export const rebuildDiffs = (fretboards: FretboardUtil[]) => {
         rightDiffs,
     };
 };
+
+export function cascadeDiffs(
+    fretboards: FretboardUtil[],
+    focusedIndex: number
+) {
+    fretboards = fretboards.map((fretboard) => fretboard.copy());
+    const diffs = rebuildDiffs(fretboards);
+
+    // left
+    for (let i = focusedIndex; i >= 0; i--) {
+        let diff = diffs.leftDiffs[i];
+        let fretboardA = fretboards[i];
+        let fretboardB = fretboards[i - 1];
+        if (!fretboardB) break;
+        cascadeHighlight(fretboardA, fretboardB, diff);
+    }
+
+    // right
+    for (let i = focusedIndex; i < fretboards.length; i++) {
+        let diff = diffs.rightDiffs[i];
+        let fretboardA = fretboards[i];
+        let fretboardB = fretboards[i + 1];
+        if (!fretboardB) break;
+        cascadeHighlight(fretboardA, fretboardB, diff);
+    }
+
+    return { ...diffs, fretboards };
+}
 
 // starting at fretboardA, check all strings for any highlighted notes,
 // and copy them to corresponding notes on fretboardB via diff

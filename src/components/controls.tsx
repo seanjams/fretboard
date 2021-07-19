@@ -1,12 +1,17 @@
 import React, { useRef, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Store, StateType, useStore, ActionTypes } from "../store";
-import { LabelTypes, ArrowTypes } from "../types";
-import { getPositionActionType } from "../utils";
+import { LabelTypes, ArrowTypes, BrushTypes } from "../types";
+import { getPositionActionType, COLORS } from "../utils";
+
+const [secondaryColor, primaryColor] = COLORS[0];
 
 // CSS
 interface CSSProps {
     width?: number;
+    brushMode?: BrushTypes;
+    backgroundColor?: string;
+    active?: boolean;
 }
 
 // const TextContainer = styled.div<CSSProps>`
@@ -70,6 +75,44 @@ const ArrowControlsMiddleColumn = styled.div<CSSProps>`
     justify-content: space-between;
 `;
 
+const BrushContainer = styled.div<CSSProps>`
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    width: 100vw;
+    padding-left: 18px;
+`;
+
+const Brush = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        backgroundColor:
+            props.brushMode === "highlight"
+                ? primaryColor
+                : props.brushMode === "select"
+                ? secondaryColor
+                : "transparent",
+        border: props.active
+            ? "2px solid #333"
+            : `1px solid ${
+                  props.brushMode === "erase" ? "#999" : "transparent"
+              }`,
+    },
+}))<CSSProps>`
+    width: 26px;
+    height: 26px;
+    border-radius: 100%;
+    margin-left: 5px;
+    margin-right: 5px;
+`;
+
+const Label = styled.div<CSSProps>`
+    width: 30px;
+    height: 8px;
+    margin: 3px 5px;
+    font-size: 9px;
+    text-align: center;
+`;
+
 // Component
 interface Props {
     store: Store<StateType, ActionTypes>;
@@ -121,13 +164,6 @@ export const NavControls: React.FC<Props> = ({ store }) => {
         store.setKey("leftHand", !leftHandRef.current);
     }
 
-    const setLabel = (label: LabelTypes) => () => {
-        store.dispatch({
-            type: "SET_LABEL",
-            payload: { label },
-        });
-    };
-
     const onArrowPress = (direction: ArrowTypes) => () => {
         const actionType = getPositionActionType(
             invertRef.current,
@@ -142,7 +178,10 @@ export const NavControls: React.FC<Props> = ({ store }) => {
 
     const onLabelChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
         const value = e.currentTarget.value as LabelTypes;
-        setLabel(value);
+        store.dispatch({
+            type: "SET_LABEL",
+            payload: { label: value },
+        });
     };
 
     return (
@@ -161,7 +200,10 @@ export const NavControls: React.FC<Props> = ({ store }) => {
                 <ButtonInput onClick={onLeftHand} onTouchStart={onLeftHand}>
                     {leftHand ? "Right" : "Left"} Hand
                 </ButtonInput>
-                <SelectInput onChange={onLabelChange}>
+                <SelectInput
+                    onChange={onLabelChange}
+                    defaultValue={state.label}
+                >
                     <option value="sharp">Sharp</option>
                     <option value="flat">Flat</option>
                     <option value="value">Value</option>
@@ -204,5 +246,58 @@ export const NavControls: React.FC<Props> = ({ store }) => {
 				pattern. Arrow keys Up/Down/Left/Right to move pattern.
 			</TextContainer> */}
         </ButtonBank>
+    );
+};
+
+export const BrushControls: React.FC<Props> = ({ store }) => {
+    const [state, setState] = useStore(store);
+    const [brushMode, setBrushMode] = useState(state.brushMode);
+    const brushModeRef = useRef(state.brushMode);
+
+    useEffect(
+        () =>
+            store.addListener((newState) => {
+                if (newState.brushMode !== brushModeRef.current) {
+                    setBrushMode(newState.brushMode);
+                    brushModeRef.current = newState.brushMode;
+                }
+            }),
+        []
+    );
+
+    const onClick = (brushMode: BrushTypes) => () => {
+        store.setKey("brushMode", brushMode);
+    };
+
+    return (
+        <BrushContainer>
+            <div>
+                <Brush
+                    brushMode="erase"
+                    active={brushMode === "erase"}
+                    onClick={onClick("erase")}
+                    onTouchStart={onClick("erase")}
+                />
+                <Label>{brushMode === "erase" && "erase"}</Label>
+            </div>
+            <div>
+                <Brush
+                    brushMode="select"
+                    active={brushMode === "select"}
+                    onClick={onClick("select")}
+                    onTouchStart={onClick("select")}
+                />
+                <Label>{brushMode === "select" && "select"}</Label>
+            </div>
+            <div>
+                <Brush
+                    brushMode="highlight"
+                    active={brushMode === "highlight"}
+                    onClick={onClick("highlight")}
+                    onTouchStart={onClick("highlight")}
+                />
+                <Label>{brushMode === "highlight" && "highlight"}</Label>
+            </div>
+        </BrushContainer>
     );
 };

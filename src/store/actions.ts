@@ -5,6 +5,7 @@ export type SetNote = {
     readonly type: "SET_NOTE";
     readonly payload: {
         note: number;
+        turnOn?: boolean;
     };
 };
 
@@ -48,6 +49,7 @@ export type SetHighlightedNote = {
     readonly payload: {
         stringIndex: number;
         value: number;
+        turnOn?: boolean;
     };
 };
 
@@ -64,10 +66,6 @@ export type SetFocus = {
     readonly payload: {
         fretboardIndex: number;
     };
-};
-
-export type SaveToLocalStorage = {
-    readonly type: "SAVE_TO_LOCAL_STORAGE";
 };
 
 export type RehydrateState = {
@@ -89,5 +87,4 @@ export type ActionTypes =
     | AddFretboard
     | RemoveFretboard
     | SetFocus
-    | SaveToLocalStorage
     | RehydrateState;

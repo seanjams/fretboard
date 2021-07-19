@@ -5,8 +5,7 @@ import {
     NoteSwitchType,
     StringSwitchType,
     NaturalTypes,
-} from "./types";
-import { mod } from "./utils";
+} from "../types";
 
 export const C = "C";
 export const Cs = "C#";
@@ -40,14 +39,6 @@ export const DEFAULT_NOTESWITCH: NoteSwitchType = {
     10: false,
     11: false,
 };
-
-export function SCALE_BUILDER(arr: number[]): NoteSwitchType {
-    const noteswitch = { ...DEFAULT_NOTESWITCH };
-    for (let i of arr) {
-        noteswitch[mod(i, 12)] = true;
-    }
-    return noteswitch;
-}
 
 export const DEFAULT_STRINGSWITCH: StringSwitchType = [{}, {}, {}, {}, {}, {}];
 

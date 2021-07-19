@@ -1,7 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { mod } from "../utils";
-import { FRETBOARD_WIDTH, STRING_SIZE } from "../consts";
+import { mod, FRETBOARD_WIDTH, STRING_SIZE } from "../utils";
 import { Store, StateType, useStore, ActionTypes } from "../store";
 
 // CSS
