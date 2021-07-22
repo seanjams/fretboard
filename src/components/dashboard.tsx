@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import { StateType, Store, ActionTypes } from "../store";
 import { Fretboard } from "./fretboard";
@@ -22,6 +22,15 @@ interface Props {
 export const Dashboard: React.FC<Props> = ({ store }) => {
     const isDraggingRef = useRef(false);
 
+    useEffect(() => {
+        window.addEventListener("mouseup", onMouseUp);
+        window.addEventListener("touchend", onMouseUp);
+        return () => {
+            window.removeEventListener("mouseup", onMouseUp);
+            window.removeEventListener("touchend", onMouseUp);
+        };
+    }, []);
+
     useEffect(
         () =>
             store.addListener(({ isDragging }) => {
@@ -30,19 +39,26 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
         []
     );
 
-    function onMouseOver(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-        e.preventDefault();
-        e.stopPropagation();
+    const onMouseUp = useCallback((
+        event:
+            | MouseEvent
+            | TouchEvent
+    ) => {
+        event.preventDefault();
+        store.setKey("isDragging", false);
+    }, []);
 
-        if (isDraggingRef.current && !e.buttons) {
-            store.setKey("isDragging", false);
-        } else if (!isDraggingRef.current && e.buttons) {
-            store.setKey("isDragging", true);
-        }
-    }
+    const onMouseDown = (
+        event:
+            | React.MouseEvent<HTMLDivElement, MouseEvent>
+            | React.TouchEvent<HTMLDivElement>
+    ) => {
+        event.preventDefault();
+        store.setKey("isDragging", true);
+    };
 
     return (
-        <div onMouseOver={onMouseOver}>
+        <div onMouseDown={onMouseDown} onTouchStart={onMouseDown}>
             <ContainerDiv>
                 <NavControls store={store} />
             </ContainerDiv>

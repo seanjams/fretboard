@@ -229,6 +229,8 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
     // slider drag release (set ratio for resize experiment)
     const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
         event.preventDefault();
+        event.stopPropagation();
+
         if (draggingRef.current) {
             setDragging(false);
             stopClick();
@@ -247,6 +249,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
             | React.TouchEvent<HTMLDivElement>
     ) => {
         event.preventDefault();
+        event.stopPropagation();
 
         let clientX;
         if (event.nativeEvent instanceof MouseEvent) {
