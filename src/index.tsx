@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { App } from "./components/app";
+var logger = require('cordova/plugin/ios/logger');
 
 document.addEventListener("DOMContentLoaded", () => {
 	const root = document.createElement("div");
@@ -8,9 +9,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.body.appendChild(root);
 	document.body.style.backgroundColor = "#FF0000";
 
+	
 	document.addEventListener("deviceready", () => {
+		logger.level('DEBUG');
 		screen.orientation.lock("landscape");
-		console.log("YELLO", screen.orientation.type);
+		// console.log("YELLO", screen.orientation.type);
 	}, false);
 
 	try {
