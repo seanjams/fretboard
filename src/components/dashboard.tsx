@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import { StateType, Store, ActionTypes } from "../store";
 import { Fretboard } from "./fretboard";
@@ -22,16 +22,16 @@ interface Props {
 export const Dashboard: React.FC<Props> = ({ store }) => {
     const isDraggingRef = useRef(false);
 
+    const [orientation, setOrientation] = useState("");
+
     useEffect(() => {
-        screen.orientation.lock('landscape');
+        screen.orientation.addEventListener('change', function(e){
+            setOrientation(screen.orientation.type)
+        });
 
-        console.log('Orientation is ' + screen.orientation.type);
-
-        
         window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("touchend", onMouseUp);
         return () => {
-            screen.orientation.unlock();
             window.removeEventListener("mouseup", onMouseUp);
             window.removeEventListener("touchend", onMouseUp);
         };
@@ -65,6 +65,7 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
 
     return (
         <div onMouseDown={onMouseDown} onTouchStart={onMouseDown}>
+            <h1>{orientation}</h1>
             <ContainerDiv>
                 <NavControls store={store} />
             </ContainerDiv>
