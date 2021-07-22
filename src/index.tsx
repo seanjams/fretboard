@@ -8,6 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.body.appendChild(root);
 	document.body.style.backgroundColor = "#FF0000";
 
+	document.addEventListener("deviceready", () => {
+		screen.orientation.lock("landscape");
+		console.log("YELLO", screen.orientation.type);
+	}, false);
+
 	try {
 		let oldState = JSON.parse(
 			decodeURIComponent(window.location.search.slice(3))
@@ -18,8 +23,3 @@ document.addEventListener("DOMContentLoaded", () => {
 		ReactDOM.render(<App />, root);
 	}
 });
-
-document.addEventListener("deviceready", () => {
-	screen.orientation.lock("landscape");
-	console.log("YELLO", screen.orientation.type);
-}, false);
