@@ -17,3 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		ReactDOM.render(<App />, root);
 	}
 });
+
+document.addEventListener('deviceready', () => {
+	screen.orientation.lock("landscape-primary");
+});
