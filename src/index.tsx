@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const root = document.createElement("div");
 	root.setAttribute("id", "root");
 	document.body.appendChild(root);
+	document.body.style.backgroundColor = "#FF0000";
 
 	try {
 		let oldState = JSON.parse(
@@ -20,4 +21,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("deviceready", () => {
 	screen.orientation.lock("landscape");
+	console.log("YELLO", screen.orientation.type);
 }, false);
