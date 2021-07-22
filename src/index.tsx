@@ -18,6 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 });
 
-document.addEventListener('deviceready', () => {
-	screen.orientation.lock("landscape-primary");
-});
+document.addEventListener("deviceready", () => {
+	screen.orientation.lock("landscape");
+}, false);

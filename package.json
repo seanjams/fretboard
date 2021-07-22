@@ -9,6 +9,7 @@
 		"build": "webpack --mode=production --progress --display-modules",
 		"deps": "rm -rf node_modules && yarn install",
 		"clean": "rm -rf dist",
+		"tag-mobile": "git fetch --tags && git tag -d mobile && git tag mobile && git push --tags --force",
 		"deploy": "yarn run clean && yarn run deps && yarn run build && git add . && git commit -m 'Deployment Commit' && git push origin `git subtree split --prefix dist master`:gh-pages --force && git reset HEAD~ && echo DEPLOYMENT SUCCESSFULL"
 	},
 	"devDependencies": {
