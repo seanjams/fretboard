@@ -156,173 +156,159 @@ export const Fret: React.FC<Props> = ({
             : "transparent";
     };
 
-    useEffect(
-        () =>
-            store.addListener(
-                ({
-                    progress,
-                    focusedIndex,
-                    leftDiffs,
-                    rightDiffs,
-                    fretboards,
-                    invert,
-                    brushMode,
-                    isDragging,
-                    label,
-                }) => {
-                    if (!shadowRef.current) return;
+    useEffect(() => {
+        store.addListener(
+            ({
+                progress,
+                focusedIndex,
+                leftDiffs,
+                rightDiffs,
+                fretboards,
+                invert,
+                brushMode,
+                isDragging,
+                label,
+            }) => {
+                if (!shadowRef.current) return;
 
-                    const i = focusedIndex; // to battle verbosity
-                    const fretboard = fretboards[i];
-                    const leftDiff = leftDiffs[i];
-                    const rightDiff = rightDiffs[i];
-                    const isSelected = fretboard.get(value);
-                    const isHighlighted = fretboard.getFret(stringIndex, value);
-                    isSelectedRef.current = isSelected;
-                    isHighlightedRef.current = isHighlighted;
-                    brushModeRef.current = brushMode;
-                    isDraggingRef.current = isDragging;
-                    if (label !== labelRef.current) {
-                        setNoteLabel(
-                            label === "value" ? noteValue : note.getName(label)
-                        );
-                        labelRef.current = label;
-                    }
-
-                    let newLeft;
-                    let fillPercentage;
-                    let diameter = CIRCLE_SIZE;
-                    let background = getBackgroundColor(
-                        isSelected,
-                        isHighlighted
+                const i = focusedIndex; // to battle verbosity
+                const fretboard = fretboards[i];
+                const leftDiff = leftDiffs[i];
+                const rightDiff = rightDiffs[i];
+                const isSelected = fretboard.get(value);
+                const isHighlighted = fretboard.getFret(stringIndex, value);
+                isSelectedRef.current = isSelected;
+                isHighlightedRef.current = isHighlighted;
+                brushModeRef.current = brushMode;
+                isDraggingRef.current = isDragging;
+                if (label !== labelRef.current) {
+                    setNoteLabel(
+                        label === "value" ? noteValue : note.getName(label)
                     );
-                    let direction = invert ? -1 : 1;
-
-                    // this fret has a destination in the fretboard to the left/right
-                    const leftExists = isNot(leftDiff, noteValue, undefined);
-                    const rightExists = isNot(rightDiff, noteValue, undefined);
-
-                    // this fret is filled now,
-                    // and does not have a destination in the fretboard to the left/right
-                    const leftEmpty =
-                        isSelected && is(leftDiff, noteValue, -9999);
-                    const rightEmpty =
-                        isSelected && is(rightDiff, noteValue, -9999);
-
-                    // this fret is empty now,
-                    // and has a destination in the fretboard to the left/right
-                    const leftFill =
-                        !isSelected && is(leftDiff, noteValue, 9999);
-                    const rightFill =
-                        !isSelected && is(rightDiff, noteValue, 9999);
-
-                    // consts
-                    const origin = 50;
-                    const leftWindow = 0.25;
-                    const rightWindow = 0.75;
-                    const windowLength = 1 + leftWindow - rightWindow;
-
-                    // slider range booleans
-                    const outsideLeft = leftExists && progress < i;
-                    const insideLeft =
-                        leftExists &&
-                        i <= progress &&
-                        progress <= i + leftWindow;
-                    const middle =
-                        i + leftWindow < progress &&
-                        progress <= i + rightWindow;
-                    const insideRight =
-                        rightExists &&
-                        i + rightWindow < progress &&
-                        progress < i + 1;
-                    const outsideRight = rightExists && i + 1 <= progress;
-
-                    let x: number;
-                    let diffSteps: number;
-
-                    if (outsideLeft) {
-                        // all altered notes should be 50% to the left
-                        if (leftEmpty) {
-                            fillPercentage = 100;
-                        } else if (leftFill) {
-                            fillPercentage = 0;
-                        } else {
-                            newLeft =
-                                direction * leftDiff[noteValue] * 50 + origin;
-                        }
-                    } else if (insideLeft) {
-                        // all altered notes should be x% to the left
-                        x = ((i + leftWindow - progress) * 100) / windowLength;
-
-                        if (leftEmpty) {
-                            fillPercentage = 100 - x;
-                        } else if (leftFill) {
-                            fillPercentage = x;
-                            background = secondaryColor;
-                        } else {
-                            diffSteps = leftDiff[noteValue];
-                            newLeft = direction * diffSteps * x + origin;
-                        }
-                    } else if (middle) {
-                        // all altered notes should be in the middle
-                        if (leftEmpty || rightEmpty) {
-                            fillPercentage = 100;
-                        } else if (leftFill || rightFill) {
-                            fillPercentage = 0;
-                        }
-                        newLeft = origin;
-                    } else if (insideRight) {
-                        // all altered notes should be x% to the left
-                        x =
-                            ((progress - (i + rightWindow)) * 100) /
-                            windowLength;
-
-                        if (rightEmpty) {
-                            fillPercentage = 100 - x;
-                        } else if (rightFill) {
-                            fillPercentage = x;
-                            background = secondaryColor;
-                        } else {
-                            diffSteps = rightDiff[noteValue];
-                            newLeft = direction * diffSteps * x + origin;
-                        }
-                    } else if (outsideRight) {
-                        // all altered notes should be 50% to the right
-                        if (rightEmpty) {
-                            fillPercentage = 100;
-                        } else if (rightFill) {
-                            fillPercentage = 0;
-                        } else {
-                            diffSteps = rightDiff[noteValue];
-                            newLeft = direction * diffSteps * 50 + origin;
-                        }
-                    }
-
-                    // set position
-                    if (newLeft !== undefined) {
-                        shadowRef.current.style.left = `${newLeft}%`;
-                    }
-
-                    if (fillPercentage !== undefined) {
-                        diameter = (diameter * fillPercentage) / 100;
-                    }
-
-                    // set circle diameter
-                    const radius = diameter / 2;
-                    shadowRef.current.style.width = `${diameter}px`;
-                    shadowRef.current.style.height = `${diameter}px`;
-                    shadowRef.current.style.marginLeft = `-${radius}px`;
-                    shadowRef.current.style.marginRight = `-${radius}px`;
-                    shadowRef.current.style.top = `${
-                        3.5 - radius + CIRCLE_SIZE / 2
-                    }px`;
-
-                    // set background color
-                    shadowRef.current.style.backgroundColor = background;
+                    labelRef.current = label;
                 }
-            ),
-        []
-    );
+
+                let newLeft;
+                let fillPercentage;
+                let diameter = CIRCLE_SIZE;
+                let background = getBackgroundColor(isSelected, isHighlighted);
+                let direction = invert ? -1 : 1;
+
+                // this fret has a destination in the fretboard to the left/right
+                const leftExists = isNot(leftDiff, noteValue, undefined);
+                const rightExists = isNot(rightDiff, noteValue, undefined);
+
+                // this fret is filled now,
+                // and does not have a destination in the fretboard to the left/right
+                const leftEmpty = isSelected && is(leftDiff, noteValue, -9999);
+                const rightEmpty =
+                    isSelected && is(rightDiff, noteValue, -9999);
+
+                // this fret is empty now,
+                // and has a destination in the fretboard to the left/right
+                const leftFill = !isSelected && is(leftDiff, noteValue, 9999);
+                const rightFill = !isSelected && is(rightDiff, noteValue, 9999);
+
+                // consts
+                const origin = 50;
+                const leftWindow = 0.25;
+                const rightWindow = 0.75;
+                const windowLength = 1 + leftWindow - rightWindow;
+
+                // slider range booleans
+                const outsideLeft = leftExists && progress < i;
+                const insideLeft =
+                    leftExists && i <= progress && progress <= i + leftWindow;
+                const middle =
+                    i + leftWindow < progress && progress <= i + rightWindow;
+                const insideRight =
+                    rightExists &&
+                    i + rightWindow < progress &&
+                    progress < i + 1;
+                const outsideRight = rightExists && i + 1 <= progress;
+
+                let x: number;
+                let diffSteps: number;
+
+                if (outsideLeft) {
+                    // all altered notes should be 50% to the left
+                    if (leftEmpty) {
+                        fillPercentage = 100;
+                    } else if (leftFill) {
+                        fillPercentage = 0;
+                    } else {
+                        newLeft = direction * leftDiff[noteValue] * 50 + origin;
+                    }
+                } else if (insideLeft) {
+                    // all altered notes should be x% to the left
+                    x = ((i + leftWindow - progress) * 100) / windowLength;
+
+                    if (leftEmpty) {
+                        fillPercentage = 100 - x;
+                    } else if (leftFill) {
+                        fillPercentage = x;
+                        background = secondaryColor;
+                    } else {
+                        diffSteps = leftDiff[noteValue];
+                        newLeft = direction * diffSteps * x + origin;
+                    }
+                } else if (middle) {
+                    // all altered notes should be in the middle
+                    if (leftEmpty || rightEmpty) {
+                        fillPercentage = 100;
+                    } else if (leftFill || rightFill) {
+                        fillPercentage = 0;
+                    }
+                    newLeft = origin;
+                } else if (insideRight) {
+                    // all altered notes should be x% to the left
+                    x = ((progress - (i + rightWindow)) * 100) / windowLength;
+
+                    if (rightEmpty) {
+                        fillPercentage = 100 - x;
+                    } else if (rightFill) {
+                        fillPercentage = x;
+                        background = secondaryColor;
+                    } else {
+                        diffSteps = rightDiff[noteValue];
+                        newLeft = direction * diffSteps * x + origin;
+                    }
+                } else if (outsideRight) {
+                    // all altered notes should be 50% to the right
+                    if (rightEmpty) {
+                        fillPercentage = 100;
+                    } else if (rightFill) {
+                        fillPercentage = 0;
+                    } else {
+                        diffSteps = rightDiff[noteValue];
+                        newLeft = direction * diffSteps * 50 + origin;
+                    }
+                }
+
+                // set position
+                if (newLeft !== undefined) {
+                    shadowRef.current.style.left = `${newLeft}%`;
+                }
+
+                if (fillPercentage !== undefined) {
+                    diameter = (diameter * fillPercentage) / 100;
+                }
+
+                // set circle diameter
+                const radius = diameter / 2;
+                shadowRef.current.style.width = `${diameter}px`;
+                shadowRef.current.style.height = `${diameter}px`;
+                shadowRef.current.style.marginLeft = `-${radius}px`;
+                shadowRef.current.style.marginRight = `-${radius}px`;
+                shadowRef.current.style.top = `${
+                    3.5 - radius + CIRCLE_SIZE / 2
+                }px`;
+
+                // set background color
+                shadowRef.current.style.backgroundColor = background;
+            }
+        );
+    }, []);
 
     function onContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         e.preventDefault();

@@ -37,7 +37,7 @@ export function useStore<T, A>(store: Store<T, A>) {
     const [state, setState] = useState(store.state);
 
     useEffect(() => {
-        return store.addListener(setState);
+        store.addListener(setState);
     }, [store]);
 
     return [state, store.setState] as const;

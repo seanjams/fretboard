@@ -126,20 +126,18 @@ export const NavControls: React.FC<Props> = ({ store }) => {
     const invertRef = useRef(invert);
     const leftHandRef = useRef(leftHand);
 
-    useEffect(
-        () =>
-            store.addListener((newState) => {
-                if (newState.invert !== invertRef.current) {
-                    setInvert(newState.invert);
-                    invertRef.current = newState.invert;
-                }
-                if (newState.leftHand !== leftHandRef.current) {
-                    setLeftHand(newState.leftHand);
-                    leftHandRef.current = newState.leftHand;
-                }
-            }),
-        []
-    );
+    useEffect(() => {
+        store.addListener((newState) => {
+            if (newState.invert !== invertRef.current) {
+                setInvert(newState.invert);
+                invertRef.current = newState.invert;
+            }
+            if (newState.leftHand !== leftHandRef.current) {
+                setLeftHand(newState.leftHand);
+                leftHandRef.current = newState.leftHand;
+            }
+        });
+    }, []);
 
     function onInvert(
         e:
@@ -254,16 +252,14 @@ export const BrushControls: React.FC<Props> = ({ store }) => {
     const [brushMode, setBrushMode] = useState(state.brushMode);
     const brushModeRef = useRef(state.brushMode);
 
-    useEffect(
-        () =>
-            store.addListener((newState) => {
-                if (newState.brushMode !== brushModeRef.current) {
-                    setBrushMode(newState.brushMode);
-                    brushModeRef.current = newState.brushMode;
-                }
-            }),
-        []
-    );
+    useEffect(() => {
+        store.addListener((newState) => {
+            if (newState.brushMode !== brushModeRef.current) {
+                setBrushMode(newState.brushMode);
+                brushModeRef.current = newState.brushMode;
+            }
+        });
+    }, []);
 
     const onClick = (brushMode: BrushTypes) => () => {
         store.setKey("brushMode", brushMode);

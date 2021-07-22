@@ -73,15 +73,13 @@ export const Fretboard: React.FC<Props> = ({ store }) => {
         };
     }, []);
 
-    useEffect(
-        () =>
-            store.addListener((newState) => {
-                invertRef.current = newState.invert;
-                leftHandRef.current = newState.leftHand;
-                setHighEBottom(invertRef.current !== leftHandRef.current);
-            }),
-        []
-    );
+    useEffect(() => {
+        store.addListener((newState) => {
+            invertRef.current = newState.invert;
+            leftHandRef.current = newState.leftHand;
+            setHighEBottom(invertRef.current !== leftHandRef.current);
+        });
+    }, []);
 
     const strings = STANDARD_TUNING.map((value, i) => {
         return (
