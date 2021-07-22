@@ -23,9 +23,15 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
     const isDraggingRef = useRef(false);
 
     useEffect(() => {
+        screen.orientation.lock('landscape');
+
+        console.log('Orientation is ' + screen.orientation.type);
+
+        
         window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("touchend", onMouseUp);
         return () => {
+            screen.orientation.unlock();
             window.removeEventListener("mouseup", onMouseUp);
             window.removeEventListener("touchend", onMouseUp);
         };
