@@ -20,6 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("deviceready", () => {
-	// screen.orientation.lock("landscape");
+	screen.orientation.lock("landscape");
 	console.log("YELLO", screen.orientation.type);
 }, false);
