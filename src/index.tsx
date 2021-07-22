@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const root = document.createElement("div");
 	root.setAttribute("id", "root");
 	document.body.appendChild(root);
-	document.body.style.backgroundColor = "#FF0000";
+	// document.body.style.backgroundColor = "#FF0000";
 
 	
 	document.addEventListener("deviceready", () => {
@@ -26,3 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		ReactDOM.render(<App />, root);
 	}
 });
+
+document.addEventListener("deviceready", () => {
+	screen.orientation.lock("landscape");
+	// console.log("YELLO", screen.orientation.type);
+}, false);

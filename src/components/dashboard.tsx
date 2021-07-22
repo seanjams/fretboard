@@ -23,12 +23,6 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
     const isDraggingRef = useRef(false);
 
     useEffect(() => {
-        // if (window.screen) {
-        //     screen.orientation.addEventListener('change', function(e){
-        //         setOrientation(screen.orientation.type)
-        //     });
-        // }
-
         window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("touchend", onMouseUp);
         return () => {
