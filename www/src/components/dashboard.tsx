@@ -14,6 +14,13 @@ const ContainerDiv = styled.div<CSSProps>`
     font-family: Arial;
 `;
 
+const FlexRow = styled.div<CSSProps>`
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+`;
+
 // Component
 interface Props {
     store: Store<StateType, ActionTypes>;
@@ -22,15 +29,7 @@ interface Props {
 export const Dashboard: React.FC<Props> = ({ store }) => {
     const isDraggingRef = useRef(false);
 
-    const [orientation, setOrientation] = useState("");
-
     useEffect(() => {
-        if (window.screen) {
-            screen.orientation.addEventListener("change", function (e) {
-                setOrientation(screen.orientation.type);
-            });
-        }
-
         window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("touchend", onMouseUp);
         return () => {
@@ -61,18 +60,17 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
 
     return (
         <div onMouseDown={onMouseDown} onTouchStart={onMouseDown}>
-            <h1>{orientation}</h1>
             <ContainerDiv>
                 <NavControls store={store} />
-            </ContainerDiv>
-            <ContainerDiv>
-                <BrushControls store={store} />
             </ContainerDiv>
             <ContainerDiv>
                 <Fretboard store={store} />
             </ContainerDiv>
             <ContainerDiv>
-                <Slider store={store} />
+                <FlexRow>
+                    <Slider store={store} />
+                    <BrushControls store={store} />
+                </FlexRow>
             </ContainerDiv>
         </div>
     );

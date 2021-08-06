@@ -3,11 +3,14 @@ var HtmlWebpackPlugin = require("html-webpack-plugin");
 // var BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
 // 	.BundleAnalyzerPlugin;
 
-module.exports = {
-    entry: "./src/index.tsx",
+module.exports = (env, argv) => ({
+    entry:
+        argv.mode === "production"
+            ? "./www/src/cordova_entry.tsx"
+            : "./www/src/web_entry.tsx",
     output: {
         filename: "bundle.js",
-        path: path.resolve(__dirname, "./www/js"),
+        path: path.resolve(__dirname, "./www/dist"),
     },
 
     resolve: {
@@ -34,10 +37,18 @@ module.exports = {
         ],
     },
 
-    plugins: [],
+    plugins: [
+        new HtmlWebpackPlugin({
+            title: "Fretboard",
+            inject: "head",
+        }),
+        // new BundleAnalyzerPlugin({
+        // 	analyzerMode: "static",
+        // }),
+    ],
     devServer: {
-        contentBase: path.join(__dirname, "./www"),
+        contentBase: path.join(__dirname, "./www/dist"),
         compress: true,
         port: 3000,
     },
-};
+});

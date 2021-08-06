@@ -25,7 +25,7 @@ interface CSSProps {
 }
 
 const ContainerDiv = styled.div<CSSProps>`
-    width: 100vw;
+    width: 80vw;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -79,7 +79,7 @@ const BrushContainer = styled.div<CSSProps>`
     display: flex;
     align-items: center;
     justify-content: start;
-    width: 100vw;
+    width: 20vw;
     padding-left: 18px;
 `;
 
