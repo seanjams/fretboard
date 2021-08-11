@@ -8,9 +8,15 @@ import {
     COLORS,
     STANDARD_TUNING,
     FRETBOARD_WIDTH,
+    FRETBOARD_HEIGHT,
     STRING_SIZE,
     CIRCLE_SIZE,
 } from "../utils";
+
+const getTopMargin = (fretHeight: number, diameter: number) => {
+    // As circles resize, this top margin keeps them centered
+    return (fretHeight - diameter) / 2;
+};
 
 // CSS
 interface CSSProps {
@@ -27,9 +33,9 @@ const FretDiv = styled.div.attrs((props: CSSProps) => ({
         borderLeft: props.border,
         borderRight: props.border,
         width: `${props.width}%`,
+        height: `${props.height}px`,
     },
 }))<CSSProps>`
-    height: 33px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -75,7 +81,7 @@ const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     border-radius: 100%;
     z-index: 9998;
     position: absolute;
-    top: 3.5px;
+    top: ${getTopMargin(FRETBOARD_HEIGHT / 6, CIRCLE_SIZE)}px;
 `;
 
 const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
@@ -109,9 +115,6 @@ export const Fret: React.FC<Props> = ({
     store,
 }) => {
     const [state, setState] = useStore(store);
-    const shadowRef = useRef<HTMLDivElement>();
-    const brushModeRef = useRef(state.brushMode);
-    const isDraggingRef = useRef(false);
 
     const noteValue = mod(value, 12);
     // const [secondaryColor, primaryColor] = COLORS[mod(fretboardIndex, COLORS.length)];
@@ -128,22 +131,23 @@ export const Fret: React.FC<Props> = ({
 
     // temporary until I scale it to no moving target
     const fretWidth = FRETBOARD_WIDTH / STRING_SIZE;
+    const fretHeight = FRETBOARD_HEIGHT / 6;
 
     const thickness = (6 - stringIndex + 1) / 2;
     const border = openString ? "none" : "1px solid #333";
 
     // init refs
+    const [label, setLabel] = useState(state.label);
     const fretboard = state.fretboards[state.focusedIndex];
     const isHighlighted = fretboard.getFret(stringIndex, value);
     const isSelected = fretboard.get(value);
     const isSelectedRef = useRef(isSelected);
     const isHighlightedRef = useRef(isHighlighted);
-    const labelRef = useRef(state.label);
-    const [noteLabel, setNoteLabel] = useState(
-        labelRef.current === "value"
-            ? noteValue
-            : note.getName(labelRef.current)
-    );
+    const shadowRef = useRef<HTMLDivElement>();
+    const brushModeRef = useRef(state.brushMode);
+    const isDraggingRef = useRef(false);
+    const labelRef = useRef(label);
+    labelRef.current = label;
 
     const getBackgroundColor = (
         isSelected: boolean,
@@ -177,16 +181,16 @@ export const Fret: React.FC<Props> = ({
                 const rightDiff = rightDiffs[i];
                 const isSelected = fretboard.get(value);
                 const isHighlighted = fretboard.getFret(stringIndex, value);
-                isSelectedRef.current = isSelected;
-                isHighlightedRef.current = isHighlighted;
-                brushModeRef.current = brushMode;
-                isDraggingRef.current = isDragging;
-                if (label !== labelRef.current) {
-                    setNoteLabel(
-                        label === "value" ? noteValue : note.getName(label)
-                    );
-                    labelRef.current = label;
-                }
+
+                if (isSelectedRef.current !== isSelected)
+                    isSelectedRef.current = isSelected;
+                if (isHighlightedRef.current !== isHighlighted)
+                    isHighlightedRef.current = isHighlighted;
+                if (brushModeRef.current !== brushMode)
+                    brushModeRef.current = brushMode;
+                if (isDraggingRef.current !== isDragging)
+                    isDraggingRef.current = isDragging;
+                if (labelRef.current !== label) setLabel(label);
 
                 let newLeft;
                 let fillPercentage;
@@ -300,9 +304,10 @@ export const Fret: React.FC<Props> = ({
                 shadowRef.current.style.height = `${diameter}px`;
                 shadowRef.current.style.marginLeft = `-${radius}px`;
                 shadowRef.current.style.marginRight = `-${radius}px`;
-                shadowRef.current.style.top = `${
-                    3.5 - radius + CIRCLE_SIZE / 2
-                }px`;
+                shadowRef.current.style.top = `${getTopMargin(
+                    fretHeight,
+                    diameter
+                )}px`;
 
                 // set background color
                 shadowRef.current.style.backgroundColor = background;
@@ -312,6 +317,7 @@ export const Fret: React.FC<Props> = ({
 
     function onContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         e.preventDefault();
+        // highlight note on right click
         store.dispatch({
             type: "SET_HIGHLIGHTED_NOTE",
             payload: {
@@ -361,75 +367,19 @@ export const Fret: React.FC<Props> = ({
         }
     }
 
-    function onMouseOver(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!isDraggingRef.current || !e.buttons) return;
-
-        // turn note off if in erase mode
-        if (brushModeRef.current === "erase" && isSelectedRef.current) {
-            store.dispatch({
-                type: "SET_NOTE",
-                payload: {
-                    note: value,
-                    turnOn: false,
-                },
-            });
-        } else if (brushModeRef.current === "select") {
-            // turn highlighted note off if in select mode and already highlighted
-            if (isHighlightedRef.current) {
-                store.dispatch({
-                    type: "SET_HIGHLIGHTED_NOTE",
-                    payload: {
-                        stringIndex,
-                        value,
-                        turnOn: false,
-                    },
-                });
-                // turn selected note on if in select mode and not already selected
-            } else if (!isSelectedRef.current) {
-                store.dispatch({
-                    type: "SET_NOTE",
-                    payload: {
-                        note: value,
-                        turnOn: true,
-                    },
-                });
-            }
-        } else if (
-            brushModeRef.current === "highlight" &&
-            isSelectedRef.current &&
-            !isHighlightedRef.current
-        ) {
-            // turn highlighted note on if not already highlighted
-            store.dispatch({
-                type: "SET_HIGHLIGHTED_NOTE",
-                payload: {
-                    stringIndex,
-                    value,
-                    turnOn: true,
-                },
-            });
-        }
-    }
-
     return (
         <FretDiv
             border={border}
             width={fretWidth}
+            height={fretHeight}
             onContextMenu={onContextMenu}
         >
             <StringSegmentDiv
                 height={thickness}
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
-            <CircleDiv
-                onClick={onClick}
-                onMouseMove={onMouseOver}
-                onTouchStart={onClick}
-                color={color}
-            >
-                {noteLabel}
+            <CircleDiv onClick={onClick} onTouchStart={onClick} color={color}>
+                {label === "value" ? noteValue : note.getName(label)}
             </CircleDiv>
             <ShadowDiv
                 ref={shadowRef}
