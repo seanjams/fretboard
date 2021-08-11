@@ -14,7 +14,6 @@ import {
     DEFAULT_STATE,
     ActionTypes,
 } from "../store";
-// import lodash from "lodash";
 
 // CSS
 interface CSSProps {
@@ -25,11 +24,10 @@ interface CSSProps {
 }
 
 const ContainerDiv = styled.div<CSSProps>`
-    width: 80vw;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 10px 0 20px 0;
 `;
 
 const ProgressBar = styled.div.attrs((props: CSSProps) => ({
@@ -46,15 +44,19 @@ const ProgressBar = styled.div.attrs((props: CSSProps) => ({
 
 const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
     style: {
-        width: `${props.width}%`,
+        width: `calc(${props.width}% - ${
+            props.isFirst || props.isLast ? "10" : "0"
+        }px)`,
         borderLeft: `${props.isFirst ? "1px solid #333" : "0"}`,
-        borderTopLeftRadius: `${props.isFirst ? "4px" : "0"}`,
-        borderBottomLeftRadius: `${props.isFirst ? "4px" : "0"}`,
-        borderTopRightRadius: `${props.isLast ? "4px" : "0"}`,
-        borderBottomRightRadius: `${props.isLast ? "4px" : "0"}`,
+        borderTopLeftRadius: `${props.isFirst ? "100000000000000px" : "0"}`,
+        borderBottomLeftRadius: `${props.isFirst ? "100000000000000px" : "0"}`,
+        borderTopRightRadius: `${props.isLast ? "100000000000000px" : "0"}`,
+        borderBottomRightRadius: `${props.isLast ? "100000000000000px" : "0"}`,
+        marginLeft: `${props.isFirst ? "10px" : "0"}`,
+        marginRight: `${props.isLast ? "10px" : "0"}`,
     },
 }))<CSSProps>`
-    height: 30px;
+    height: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -62,15 +64,16 @@ const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
     border: 1px solid #333;
     color: #333;
     touch-action: none;
+    margin: 10px 0;
 `;
 
 const SliderBar = styled.div.attrs((props: CSSProps) => ({
     style: {
         left: `${props.left}px`,
-        width: `${props.width}%`,
     },
 }))<CSSProps>`
     height: 30px;
+    width: 30px;
     position: absolute;
     z-index: 10001;
     display: flex;
@@ -81,27 +84,7 @@ const SliderBar = styled.div.attrs((props: CSSProps) => ({
     color: #333;
     opacity: 0.5;
     touch-action: none;
-`;
-
-const ControlsContainer = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        width: `${props.width}%`,
-    },
-}))<CSSProps>`
-    display: flex;
-    align-items: center;
-    font-size: 10px;
-`;
-
-const ButtonContainer = styled.div<CSSProps>`
-    margin: 0 10px;
-`;
-
-const ButtonInput = styled.button<CSSProps>`
-    height: 30px;
-    font-size: 14px;
-    white-space: nowrap;
-    min-width: 30px;
+    border-radius: 100000000000000px;
 `;
 
 // Component
@@ -121,7 +104,6 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
     const leftRef = useRef(0);
     const deltaRef = useRef(0);
     const stateRef = useRef(DEFAULT_STATE());
-    // const ratioRef = useRef<number>(ratio);
 
     draggingRef.current = dragging;
     leftRef.current = left;
@@ -133,26 +115,15 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
     const sliderBarRef = useRef<HTMLDivElement>();
 
     useEffect(() => {
-        // const unsubscribe = useStore.subscribe(
-        // 	(progress: number) => {
-        // 		progressRef.current = progress;
-        // 		// setProgressRef.current = setProgress;
-        // 	},
-        // 	(store) => store.progress
-        // );
-
         window.addEventListener("mousemove", onMouseMove);
         window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("touchmove", onMouseMove);
         window.addEventListener("touchend", onMouseUp);
-        // window.addEventListener("resize", onResize);
         return () => {
             window.removeEventListener("mousemove", onMouseMove);
             window.removeEventListener("mouseup", onMouseUp);
             window.removeEventListener("touchmove", onMouseMove);
             window.removeEventListener("touchend", onMouseUp);
-            // unsubscribe();
-            // window.removeEventListener("resize", onResize);
         };
     }, []);
 
@@ -176,16 +147,6 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
             setLeft(newLeft);
         }
     }, [stateRef.current.rehydrateSuccess, stateRef.current.fretboards.length]);
-
-    // Drag event listeners
-    // const onResize = lodash.debounce((event: UIEvent) => {
-    // 	event.preventDefault();
-    // 	const origin = progressBarRef.current.offsetLeft;
-    // 	const progressBarWidth = progressBarRef.current.offsetWidth;
-    // 	if (progressBarRef.current && sliderBarRef.current) {
-    // 		setLeft(progressBarWidth * ratioRef.current - origin);
-    // 	}
-    // }, 100);
 
     const repositionSlider = useCallback((clientX: number) => {
         // get widths, maxwidth is how far the left of the slider can move
@@ -314,7 +275,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
             <ProgressBar
                 id="progress-bar"
                 ref={progressBarRef}
-                width={70}
+                width={100}
                 onClick={onSliderClick}
                 onTouchStart={onSliderClick}
             >
@@ -322,7 +283,6 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                     id="slider-bar"
                     ref={sliderBarRef}
                     left={left}
-                    width={5}
                     onMouseDown={onMouseDown}
                     onTouchStart={onMouseDown}
                 />
@@ -334,37 +294,11 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                             isFirst={i === 0}
                             isLast={i === state.fretboards.length - 1}
                         >
-                            {`board ${i + 1}`}
+                            {/* {`board ${i + 1}`} */}
                         </ProgressBarFragment>
                     );
                 })}
             </ProgressBar>
-            <ControlsContainer width={20}>
-                <ButtonContainer>
-                    <ButtonInput
-                        onClick={() =>
-                            store.dispatch({ type: "ADD_FRETBOARD" })
-                        } // maybe preventDefault
-                        onTouchStart={() =>
-                            store.dispatch({ type: "ADD_FRETBOARD" })
-                        }
-                    >
-                        &#43;
-                    </ButtonInput>
-                </ButtonContainer>
-                <ButtonContainer>
-                    <ButtonInput
-                        onClick={() =>
-                            store.dispatch({ type: "REMOVE_FRETBOARD" })
-                        }
-                        onTouchStart={() =>
-                            store.dispatch({ type: "REMOVE_FRETBOARD" })
-                        }
-                    >
-                        &minus;
-                    </ButtonInput>
-                </ButtonContainer>
-            </ControlsContainer>
         </ContainerDiv>
     );
 };

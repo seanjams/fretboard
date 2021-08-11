@@ -12,8 +12,9 @@
     "scripts": {
         "start": "webpack-dev-server --mode=development --progress --open",
         "build": "yarn run clean && webpack --mode=production --progress --display-modules && cordova prepare ios",
+        "watch": "yarn run clean && webpack --mode=development --progress --display-modules --watch",
         "deps": "rm -rf node_modules && yarn install",
-        "clean": "rm -rf www/dist"
+        "clean": "rm -f www/bundle.js && rm -rf www/assets"
     },
     "devDependencies": {
         "@types/react": "^16.9.25",
@@ -24,7 +25,7 @@
         "cordova-plugin-screen-orientation": "^3.0.2",
         "cordova-plugin-whitelist": "^1.3.4",
         "css-loader": "^5.1.3",
-        "html-webpack-plugin": "^3.2.0",
+        "file-loader": "^6.2.0",
         "prettier": "^2.2.1",
         "source-map-loader": "^0.2.4",
         "style-loader": "^2.0.0",

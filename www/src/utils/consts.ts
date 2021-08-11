@@ -70,6 +70,8 @@ export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
 
 export const FRETBOARD_WIDTH = 1700;
 
+export const FRETBOARD_HEIGHT = 250;
+
 export const STRING_SIZE = 22;
 
 export const CIRCLE_SIZE = 26;

@@ -93,6 +93,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
                 rehydrateSuccess: true,
                 brushMode: parseItem("brushMode") || defaultState.brushMode,
                 isDragging: defaultState.isDragging,
+                scrollToFret: defaultState.scrollToFret,
             };
         }
 

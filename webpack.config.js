@@ -1,16 +1,12 @@
-var path = require("path");
-var HtmlWebpackPlugin = require("html-webpack-plugin");
+const path = require("path");
 // var BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
 // 	.BundleAnalyzerPlugin;
 
 module.exports = (env, argv) => ({
-    entry:
-        argv.mode === "production"
-            ? "./www/src/cordova_entry.tsx"
-            : "./www/src/web_entry.tsx",
+    entry: "./www/src/entry.tsx",
     output: {
         filename: "bundle.js",
-        path: path.resolve(__dirname, "./www/dist"),
+        path: path.resolve(__dirname, "./www"),
     },
 
     resolve: {
@@ -34,20 +30,23 @@ module.exports = (env, argv) => ({
                 include: /node_modules/,
                 use: ["style-loader", "css-loader"],
             },
+            {
+                test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                loader: "file-loader",
+                options: {
+                    name: "assets/icons/[name].[ext]",
+                },
+            },
         ],
     },
 
     plugins: [
-        new HtmlWebpackPlugin({
-            title: "Fretboard",
-            inject: "head",
-        }),
         // new BundleAnalyzerPlugin({
         // 	analyzerMode: "static",
         // }),
     ],
     devServer: {
-        contentBase: path.join(__dirname, "./www/dist"),
+        contentBase: path.join(__dirname, "./www"),
         compress: true,
         port: 3000,
     },

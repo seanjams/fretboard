@@ -10,7 +10,7 @@ import {
 function NeverCalled(never: never): void {}
 
 export function reducer(state: StateType, action: ActionTypes): StateType {
-    let { fretboards, focusedIndex } = state;
+    let { fretboards, focusedIndex, scrollToFret } = state;
     fretboards = fretboards.map((fretboard) => fretboard.copy());
 
     if (action.type === "CLEAR") {
@@ -53,48 +53,68 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         for (let i = 0; i < fretboards.length; i++) {
             if (i === focusedIndex) {
                 fretboards[i].incrementPosition(1, false);
+                scrollToFret = fretboards[i].getScrollToFret();
             } else {
                 fretboards[i].strings = DEFAULT_STRINGSWITCH;
             }
         }
 
-        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
+        return {
+            ...state,
+            scrollToFret,
+            ...cascadeDiffs(fretboards, focusedIndex),
+        };
     }
 
     if (action.type === "DECREMENT_POSITION_X") {
         for (let i = 0; i < fretboards.length; i++) {
             if (i === focusedIndex) {
                 fretboards[i].incrementPosition(-1, false);
+                scrollToFret = fretboards[i].getScrollToFret();
             } else {
                 fretboards[i].strings = DEFAULT_STRINGSWITCH;
             }
         }
 
-        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
+        return {
+            ...state,
+            scrollToFret,
+            ...cascadeDiffs(fretboards, focusedIndex),
+        };
     }
 
     if (action.type === "INCREMENT_POSITION_Y") {
         for (let i = 0; i < fretboards.length; i++) {
             if (i === focusedIndex) {
                 fretboards[i].incrementPosition(1, true);
+                scrollToFret = fretboards[i].getScrollToFret();
             } else {
                 fretboards[i].strings = DEFAULT_STRINGSWITCH;
             }
         }
 
-        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
+        return {
+            ...state,
+            scrollToFret,
+            ...cascadeDiffs(fretboards, focusedIndex),
+        };
     }
 
     if (action.type === "DECREMENT_POSITION_Y") {
         for (let i = 0; i < fretboards.length; i++) {
             if (i === focusedIndex) {
                 fretboards[i].incrementPosition(-1, true);
+                scrollToFret = fretboards[i].getScrollToFret();
             } else {
                 fretboards[i].strings = DEFAULT_STRINGSWITCH;
             }
         }
 
-        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
+        return {
+            ...state,
+            scrollToFret,
+            ...cascadeDiffs(fretboards, focusedIndex),
+        };
     }
 
     if (action.type === "SET_HIGHLIGHTED_NOTE") {
@@ -136,8 +156,8 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
     }
 
     if (action.type === "SET_FOCUS") {
-        const { fretboardIndex } = action.payload;
-        return { ...state, focusedIndex: fretboardIndex };
+        const { focusedIndex } = action.payload;
+        return { ...state, focusedIndex };
     }
 
     if (action.type === "REHYDRATE") {

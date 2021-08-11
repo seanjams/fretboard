@@ -64,7 +64,7 @@ export type RemoveFretboard = {
 export type SetFocus = {
     readonly type: "SET_FOCUS";
     readonly payload: {
-        fretboardIndex: number;
+        focusedIndex: number;
     };
 };
 

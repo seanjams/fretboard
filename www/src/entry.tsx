@@ -2,8 +2,8 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { App } from "./components/app";
 
-document.addEventListener("deviceready", () => {
-    screen.orientation.lock("landscape");
+function init() {
+    if (screen) screen.orientation.lock("landscape");
 
     const root = document.createElement("div");
     root.setAttribute("id", "root");
@@ -18,4 +18,7 @@ document.addEventListener("deviceready", () => {
         console.warn("Unable to parse state from url, resorting to default", e);
         ReactDOM.render(<App />, root);
     }
-});
+}
+
+document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("deviceready", init);

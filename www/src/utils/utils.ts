@@ -102,8 +102,8 @@ function _getMinDiff(
     let minDiffScore;
     if (longerList.length === shorterList.length) {
         // return min sum and Diff for best rotation
-        const rotatedIndexes = longerList.map((_, i) => (j: number) =>
-            (j + i) % longerList.length
+        const rotatedIndexes = longerList.map(
+            (_, i) => (j: number) => (j + i) % longerList.length
         );
 
         for (let rotation of rotatedIndexes) {
@@ -234,9 +234,7 @@ export class FretboardUtil implements FretboardUtilType {
 
     // sets whether index of note is "on" or "off" in this fretboard
     set(index: numString, active: boolean): boolean {
-        if (!active) {
-            this.clearFrets(mod(+index, 12));
-        }
+        if (!active) this.clearFrets(mod(+index, 12));
         return (this.notes[mod(+index, 12)] = active);
     }
 
@@ -256,9 +254,7 @@ export class FretboardUtil implements FretboardUtilType {
         fretValue: numString,
         active: boolean
     ): boolean {
-        if (active) {
-            this.set(fretValue, active);
-        }
+        if (active) this.set(fretValue, active);
         return (this.strings[mod(+stringIndex, 6)][+fretValue] = active);
     }
 
@@ -402,6 +398,25 @@ export class FretboardUtil implements FretboardUtilType {
         }
 
         return valid && !!turnOff.length && !!turnOn.length;
+    }
+
+    getScrollToFret() {
+        // look at highlighted frets on fretboard and get median
+        const highlightedFrets = [];
+        for (let stringIndex in this.strings) {
+            for (let fretValue in this.strings[stringIndex]) {
+                if (this.strings[stringIndex][fretValue]) {
+                    const highlightedFret =
+                        +fretValue - STANDARD_TUNING[stringIndex];
+                    highlightedFrets.push(highlightedFret);
+                }
+            }
+        }
+
+        highlightedFrets.sort();
+        const minFret = highlightedFrets[0];
+        const maxFret = highlightedFrets[highlightedFrets.length - 1];
+        return (maxFret + minFret) / 2;
     }
 
     copy(): FretboardUtil {

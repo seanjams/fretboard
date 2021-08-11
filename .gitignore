@@ -11,4 +11,5 @@ node_modules/
 /platforms/
 
 # build files
-www/dist
+www/assets
+www/bundle.js

@@ -19,6 +19,7 @@ export interface StateType {
     progress: number;
     brushMode: BrushTypes;
     isDragging: boolean;
+    scrollToFret: number;
 }
 
 const fretboards = [
@@ -38,5 +39,6 @@ export function DEFAULT_STATE(): StateType {
         progress: 0,
         brushMode: "select",
         isDragging: false,
+        scrollToFret: 0,
     };
 }
