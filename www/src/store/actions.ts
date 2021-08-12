@@ -32,8 +32,15 @@ export type DecrementPositionY = {
     readonly type: "DECREMENT_POSITION_Y";
 };
 
+export type ClearAllNotes = {
+    readonly type: "CLEAR_ALL";
+};
+
 export type ClearNotes = {
     readonly type: "CLEAR";
+    readonly payload: {
+        focusedIndex: number;
+    };
 };
 
 export type InvertFretboard = {
@@ -76,6 +83,7 @@ export type RehydrateState = {
 export type ActionTypes =
     | SetNote
     | SetLabel
+    | ClearAllNotes
     | ClearNotes
     | IncrementPositionX
     | DecrementPositionX

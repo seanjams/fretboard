@@ -15,10 +15,16 @@ const StringDiv = styled.div<CSSProps>`
 interface Props {
     base: number;
     stringIndex: number;
+    fretboardHeight: number;
     store: Store<StateType, ActionTypes>;
 }
 
-export const String: React.FC<Props> = ({ base, stringIndex, store }) => {
+export const String: React.FC<Props> = ({
+    base,
+    stringIndex,
+    fretboardHeight,
+    store,
+}) => {
     const [state] = useStore(store);
 
     const frets = Array(state.stringSize)
@@ -31,6 +37,7 @@ export const String: React.FC<Props> = ({ base, stringIndex, store }) => {
                     openString={i === 0}
                     key={`fret-${value}`}
                     stringIndex={stringIndex}
+                    fretboardHeight={fretboardHeight}
                     store={store}
                 />
             );

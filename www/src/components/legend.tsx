@@ -1,10 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
-import { mod, FRETBOARD_WIDTH, STRING_SIZE } from "../utils";
+import { mod, FRETBOARD_WIDTH, STRING_SIZE, LEGEND_HEIGHT } from "../utils";
 import { Store, StateType, useStore, ActionTypes } from "../store";
 
 // CSS
 interface CSSProps {
+    top?: boolean;
     width?: number;
 }
 
@@ -14,7 +15,6 @@ const StringDiv = styled.div<CSSProps>`
 `;
 
 const EmptyDiv = styled.div<CSSProps>`
-    height: 20px;
     width: ${({ width }) => width}%;
     display: flex;
     justify-content: center;
@@ -22,12 +22,18 @@ const EmptyDiv = styled.div<CSSProps>`
     margin-left: -2px;
 `;
 
-const Dot = styled.div<CSSProps>`
-    width: 8px;
-    height: 8px;
+const Dot = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        marginTop: props.top ? 0 : `${LEGEND_HEIGHT / 2}px`,
+        marginRight: `${LEGEND_HEIGHT / 2}px`,
+        marginBottom: props.top ? `${LEGEND_HEIGHT / 2}px` : 0,
+        marginLeft: `${LEGEND_HEIGHT / 2}px`,
+    },
+}))<CSSProps>`
+    width: ${LEGEND_HEIGHT / 2}px;
+    height: ${LEGEND_HEIGHT / 2}px;
     border-radius: 100%;
     background-color: #333;
-    margin: 10px;
 `;
 
 // Component
@@ -48,8 +54,10 @@ export const Legend: React.FC<Props> = ({ top, store }) => {
             const width = FRETBOARD_WIDTH / STRING_SIZE;
             return (
                 <EmptyDiv width={width} key={`legend-${i}-${top ? 1 : 0}`}>
-                    {i !== 0 && [0, 3, 5, 7, 9].includes(dotIndex) && <Dot />}
-                    {i !== 0 && dotIndex === 0 && <Dot />}
+                    {i !== 0 && [0, 3, 5, 7, 9].includes(dotIndex) && (
+                        <Dot top={top} />
+                    )}
+                    {i !== 0 && dotIndex === 0 && <Dot top={top} />}
                 </EmptyDiv>
             );
         });

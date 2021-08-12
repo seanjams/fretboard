@@ -37,10 +37,11 @@ const FretboardDiv = styled.div<CSSProps>`
 
 // Component
 interface Props {
+    fretboardHeight: number;
     store: Store<StateType, ActionTypes>;
 }
 
-export const Fretboard: React.FC<Props> = ({ store }) => {
+export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
     const [state, setState] = useStore(store);
     const invertRef = useRef(state.invert);
     const leftHandRef = useRef(state.leftHand);
@@ -87,6 +88,7 @@ export const Fretboard: React.FC<Props> = ({ store }) => {
                 stringIndex={i}
                 base={value}
                 key={`string-${i}`}
+                fretboardHeight={fretboardHeight}
                 store={store}
             />
         );

@@ -3,6 +3,7 @@ import * as ReactDOM from "react-dom";
 import { App } from "./components/app";
 
 function init() {
+    // set to landscape on mobile
     if (screen) screen.orientation.lock("landscape");
 
     const root = document.createElement("div");

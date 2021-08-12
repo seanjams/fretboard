@@ -10,16 +10,25 @@ import {
 function NeverCalled(never: never): void {}
 
 export function reducer(state: StateType, action: ActionTypes): StateType {
-    let { fretboards, focusedIndex, scrollToFret } = state;
+    let { fretboards, focusedIndex, scrollToFret, showInput } = state;
     fretboards = fretboards.map((fretboard) => fretboard.copy());
 
-    if (action.type === "CLEAR") {
+    if (action.type === "CLEAR_ALL") {
         const newFretboards = Array(fretboards.length)
             .fill(0)
             .map(() => new FretboardUtil());
         return {
             ...state,
             ...rebuildDiffs(newFretboards),
+        };
+    }
+
+    if (action.type === "CLEAR") {
+        const { focusedIndex } = action.payload;
+        fretboards[focusedIndex] = new FretboardUtil();
+        return {
+            ...state,
+            ...rebuildDiffs(fretboards),
         };
     }
 
@@ -139,7 +148,14 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         const lastIndex = fretboards.length - 1;
         const lastFretboard = fretboards[lastIndex].copy();
         fretboards.push(lastFretboard);
-        return { ...state, ...cascadeDiffs(fretboards, lastIndex) };
+        focusedIndex = fretboards.length - 1;
+        showInput = true;
+        return {
+            ...state,
+            focusedIndex,
+            showInput,
+            ...cascadeDiffs(fretboards, lastIndex),
+        };
     }
 
     if (action.type === "REMOVE_FRETBOARD") {

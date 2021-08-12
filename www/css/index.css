@@ -29,3 +29,21 @@ body {
 ::-webkit-scrollbar {
     display: none;
 }
+
+.alert-enter {
+    height: 0px;
+}
+.alert-enter-active {
+    height: 100px;
+    transition: height 500ms;
+}
+.alert-enter-done {
+    height: 100px;
+}
+.alert-exit {
+    height: 100px;
+}
+.alert-exit-active {
+    height: 0px;
+    transition: height 500ms;
+}

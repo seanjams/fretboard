@@ -5,6 +5,7 @@ import {
     DEFAULT_STRINGSWITCH,
     STANDARD_TUNING,
     STRING_SIZE,
+    SHAPES,
 } from "./consts";
 import {
     NoteTypes,
@@ -15,8 +16,10 @@ import {
     KeyControlTypes,
     DiffType,
     FretboardUtilType,
+    ChordTypes,
 } from "../types";
 import { kCombinations } from "./combinations";
+import { isEqual } from "lodash";
 
 export function copy(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -25,6 +28,24 @@ export function copy(obj: any): any {
 export function mod(a: numString, m: number): number {
     return ((+a % m) + m) % m;
 }
+
+export const getNotes = (noteIndices: number[]) => {
+    const notes = Array<boolean>(12).fill(false);
+    noteIndices.forEach((index) => {
+        index = mod(index, 12);
+        notes[index] = true;
+    });
+    return notes;
+};
+
+export const rotate = (arr: any[], times: number = 1) => {
+    let rotated = copy(arr);
+    for (let i = 0; i < times; i++) {
+        rotated = rotated.slice(1).concat(rotated[0]);
+    }
+
+    return rotated;
+};
 
 export function stopClick() {
     // can be placed within a mouseup event to prevent
@@ -417,6 +438,39 @@ export class FretboardUtil implements FretboardUtilType {
         const minFret = highlightedFrets[0];
         const maxFret = highlightedFrets[highlightedFrets.length - 1];
         return (maxFret + minFret) / 2;
+    }
+
+    getName(label: LabelTypes) {
+        const chords = Object.keys(SHAPES) as Array<ChordTypes>;
+        let chordName = "";
+        let rootIdx = 0;
+        let rootName = "";
+
+        loop1: for (let i = 0; i < chords.length; i++) {
+            let chordShape = getNotes(SHAPES[chords[i]]);
+            let temp = Array(12)
+                .fill(false)
+                .map((_, i) => this.notes[i]);
+            for (let j = 0; j < chordShape.length; j++) {
+                if (isEqual(temp, chordShape)) {
+                    rootIdx = j;
+                    chordName = chords[i];
+                    if (label === "sharp") {
+                        rootName = SHARP_NAMES[rootIdx];
+                    } else if (label === "flat") {
+                        rootName = FLAT_NAMES[rootIdx];
+                    } else {
+                        rootName = `${rootIdx}`;
+                    }
+                    break loop1;
+                } else {
+                    temp = rotate(temp);
+                }
+            }
+        }
+
+        // return { chordName, rootIdx, rootName };
+        return `${rootName} ${chordName}`;
     }
 
     copy(): FretboardUtil {

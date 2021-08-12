@@ -48,7 +48,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
     }, []);
 
     const saveToLocalStorage = () => {
-        const IGNORE = ["rehydrateSuccess", "isDragging"];
+        const IGNORE = ["rehydrateSuccess", "isDragging", "scrollToFret"];
         // add in special formatters for keys that were serialized to localStorage
         const HANDLERS: {
             [key in string]: (state: StateType) => any;
@@ -94,6 +94,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
                 brushMode: parseItem("brushMode") || defaultState.brushMode,
                 isDragging: defaultState.isDragging,
                 scrollToFret: defaultState.scrollToFret,
+                showInput: parseItem("showInput") || defaultState.showInput,
             };
         }
 

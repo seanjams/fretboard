@@ -9,6 +9,7 @@ import LeftIcon from "../assets/icons/left-arrow.png";
 import DownIcon from "../assets/icons/down-arrow.png";
 import UpIcon from "../assets/icons/up-arrow.png";
 import RightIcon from "../assets/icons/right-arrow.png";
+import ClearIcon from "../assets/icons/clear.png";
 
 const [secondaryColor, primaryColor] = COLORS[0];
 
@@ -349,18 +350,15 @@ export const CircleIconButton: React.FC<ButtonProps> = ({
     );
 };
 
-export const Controls: React.FC<Props> = ({ store }) => {
+export const BottomControls: React.FC<Props> = ({ store }) => {
     const [state, setState] = useStore(store);
     const [invert, setInvert] = useState(state.invert);
     const [leftHand, setLeftHand] = useState(state.leftHand);
-    const [brushMode, setBrushMode] = useState(state.brushMode);
 
     const invertRef = useRef(invert);
     const leftHandRef = useRef(leftHand);
-    const brushModeRef = useRef(brushMode);
     invertRef.current = invert;
     leftHandRef.current = leftHand;
-    brushModeRef.current = brushMode;
 
     useEffect(() => {
         store.addListener((newState) => {
@@ -368,18 +366,8 @@ export const Controls: React.FC<Props> = ({ store }) => {
                 setInvert(newState.invert);
             if (newState.leftHand !== leftHandRef.current)
                 setLeftHand(newState.leftHand);
-            if (newState.brushMode !== brushModeRef.current)
-                setBrushMode(newState.brushMode);
         });
     }, []);
-
-    const onClick = () => {
-        if (brushModeRef.current === "highlight") {
-            store.setKey("brushMode", "select");
-        } else {
-            store.setKey("brushMode", "highlight");
-        }
-    };
 
     const onArrowPress = (direction: ArrowTypes) => () => {
         const actionType = getPositionActionType(
@@ -434,6 +422,51 @@ export const Controls: React.FC<Props> = ({ store }) => {
                 <CircleIconButton
                     onClick={onArrowPress("ArrowRight")}
                     imageSrc={RightIcon}
+                />
+                <Label>{""}</Label>
+            </div>
+        </CircleControlsContainer>
+    );
+};
+
+export const TopControls: React.FC<Props> = ({ store }) => {
+    const [state, setState] = useStore(store);
+    const [brushMode, setBrushMode] = useState(state.brushMode);
+    const [focusedIndex, setFocusedIndex] = useState(state.focusedIndex);
+
+    const brushModeRef = useRef(brushMode);
+    const focusedIndexRef = useRef(focusedIndex);
+    brushModeRef.current = brushMode;
+    focusedIndexRef.current = focusedIndex;
+
+    useEffect(() => {
+        store.addListener((newState) => {
+            if (newState.brushMode !== brushModeRef.current)
+                setBrushMode(newState.brushMode);
+            if (newState.focusedIndex !== focusedIndexRef.current)
+                setFocusedIndex(newState.focusedIndex);
+        });
+    }, []);
+
+    const onClick = () => {
+        if (brushModeRef.current === "highlight") {
+            store.setKey("brushMode", "select");
+        } else {
+            store.setKey("brushMode", "highlight");
+        }
+    };
+
+    return (
+        <CircleControlsContainer>
+            <div>
+                <CircleIconButton
+                    onClick={() =>
+                        store.dispatch({
+                            type: "CLEAR",
+                            payload: { focusedIndex },
+                        })
+                    }
+                    imageSrc={ClearIcon}
                 />
                 <Label>{""}</Label>
             </div>

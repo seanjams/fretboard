@@ -57,9 +57,6 @@ const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
     },
 }))<CSSProps>`
     height: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background-color: white;
     border: 1px solid #333;
     color: #333;
@@ -85,6 +82,13 @@ const SliderBar = styled.div.attrs((props: CSSProps) => ({
     opacity: 0.5;
     touch-action: none;
     border-radius: 100000000000000px;
+`;
+
+const ProgressBarName = styled.div<CSSProps>`
+    position: relative;
+    top: 14px;
+    padding-left: 6px;
+    font-size: 12px;
 `;
 
 // Component
@@ -286,7 +290,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                     onMouseDown={onMouseDown}
                     onTouchStart={onMouseDown}
                 />
-                {state.fretboards.map((_, i) => {
+                {state.fretboards.map((fretboard, i) => {
                     return (
                         <ProgressBarFragment
                             key={`button-pad-${i}`}
@@ -294,7 +298,9 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                             isFirst={i === 0}
                             isLast={i === state.fretboards.length - 1}
                         >
-                            {/* {`board ${i + 1}`} */}
+                            <ProgressBarName>
+                                {fretboard.getName(state.label)}
+                            </ProgressBarName>
                         </ProgressBarFragment>
                     );
                 })}

@@ -25,7 +25,9 @@ interface CSSProps {
     border?: string;
     color?: string;
     backgroundColor?: string;
+    top?: number;
     left?: number;
+    letterSpacing?: number;
 }
 
 const FretDiv = styled.div.attrs((props: CSSProps) => ({
@@ -50,6 +52,7 @@ const FretDiv = styled.div.attrs((props: CSSProps) => ({
 const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         color: props.color,
+        letterSpacing: props.letterSpacing,
     },
 }))<CSSProps>`
     margin-left: -13px;
@@ -70,6 +73,7 @@ const CircleDiv = styled.div.attrs((props: CSSProps) => ({
 const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         left: `${props.left}%`,
+        top: `${props.top}px`,
         width: props.width,
         backgroundColor: props.backgroundColor,
     },
@@ -81,7 +85,6 @@ const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     border-radius: 100%;
     z-index: 9998;
     position: absolute;
-    top: ${getTopMargin(FRETBOARD_HEIGHT / 6, CIRCLE_SIZE)}px;
 `;
 
 const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
@@ -99,6 +102,7 @@ interface Props {
     value: number;
     stringIndex: number;
     openString?: boolean;
+    fretboardHeight: number;
     store: Store<StateType, ActionTypes>;
 }
 
@@ -112,6 +116,7 @@ export const Fret: React.FC<Props> = ({
     value,
     openString,
     stringIndex,
+    fretboardHeight,
     store,
 }) => {
     const [state, setState] = useStore(store);
@@ -131,7 +136,7 @@ export const Fret: React.FC<Props> = ({
 
     // temporary until I scale it to no moving target
     const fretWidth = FRETBOARD_WIDTH / STRING_SIZE;
-    const fretHeight = FRETBOARD_HEIGHT / 6;
+    const fretHeight = fretboardHeight / 6;
 
     const thickness = (6 - stringIndex + 1) / 2;
     const border = openString ? "none" : "1px solid #333";
@@ -378,13 +383,21 @@ export const Fret: React.FC<Props> = ({
                 height={thickness}
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
-            <CircleDiv onClick={onClick} onTouchStart={onClick} color={color}>
+            <CircleDiv
+                onClick={onClick}
+                onTouchStart={onClick}
+                color={color}
+                letterSpacing={
+                    label !== "value" && note.getName(label).length > 1 ? -4 : 0
+                }
+            >
                 {label === "value" ? noteValue : note.getName(label)}
             </CircleDiv>
             <ShadowDiv
                 ref={shadowRef}
                 backgroundColor={getBackgroundColor(isSelected, isHighlighted)}
                 left={50}
+                top={getTopMargin(fretboardHeight / 6, CIRCLE_SIZE)}
             />
             <StringSegmentDiv
                 height={thickness}
