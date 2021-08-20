@@ -10,7 +10,7 @@ import {
 function NeverCalled(never: never): void {}
 
 export function reducer(state: StateType, action: ActionTypes): StateType {
-    let { fretboards, focusedIndex, scrollToFret, showInput } = state;
+    let { fretboards, focusedIndex, scrollToFret, showInput, label } = state;
     fretboards = fretboards.map((fretboard) => fretboard.copy());
 
     if (action.type === "CLEAR_ALL") {
@@ -50,12 +50,41 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
             fretboard.toggle(note);
         }
 
+        fretboard.setName(label);
+
+        return { ...state, ...rebuildDiffs(fretboards) };
+    }
+
+    if (action.type === "SET_NOTES") {
+        const { notes } = action.payload;
+        const oldFretboard = fretboards[focusedIndex];
+
+        let newFretboard = new FretboardUtil();
+        for (let i = 0; i < notes.length; i++) {
+            newFretboard.set(notes[i], true);
+        }
+
+        // copy highlight to newFretboard
+        const { fretboards: newFretboards } = cascadeDiffs(
+            [oldFretboard, newFretboard],
+            0
+        );
+
+        newFretboard = newFretboards[1];
+        newFretboard.setName(label);
+        fretboards[focusedIndex] = newFretboard;
+
         return { ...state, ...rebuildDiffs(fretboards) };
     }
 
     if (action.type === "SET_LABEL") {
         const { label } = action.payload;
-        return { ...state, label };
+
+        for (let i = 0; i < fretboards.length; i++) {
+            fretboards[i].setName(label);
+        }
+
+        return { ...state, fretboards, label };
     }
 
     if (action.type === "INCREMENT_POSITION_X") {

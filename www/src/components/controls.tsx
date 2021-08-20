@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
-import { Store, StateType, useStore, ActionTypes } from "../store";
+import { Store, StateType, useStore, ActionTypes, useStateRef } from "../store";
 import { LabelTypes, ArrowTypes, BrushTypes } from "../types";
 import { getPositionActionType, COLORS } from "../utils";
 import PlusIcon from "../assets/icons/plus.png";
@@ -352,20 +352,15 @@ export const CircleIconButton: React.FC<ButtonProps> = ({
 
 export const BottomControls: React.FC<Props> = ({ store }) => {
     const [state, setState] = useStore(store);
-    const [invert, setInvert] = useState(state.invert);
-    const [leftHand, setLeftHand] = useState(state.leftHand);
-
-    const invertRef = useRef(invert);
-    const leftHandRef = useRef(leftHand);
-    invertRef.current = invert;
-    leftHandRef.current = leftHand;
+    const invertRef = useRef(state.invert);
+    const leftHandRef = useRef(state.leftHand);
 
     useEffect(() => {
         store.addListener((newState) => {
             if (newState.invert !== invertRef.current)
-                setInvert(newState.invert);
+                invertRef.current = newState.invert;
             if (newState.leftHand !== leftHandRef.current)
-                setLeftHand(newState.leftHand);
+                leftHandRef.current = newState.leftHand;
         });
     }, []);
 
@@ -430,23 +425,14 @@ export const BottomControls: React.FC<Props> = ({ store }) => {
 };
 
 export const TopControls: React.FC<Props> = ({ store }) => {
-    const [state, setState] = useStore(store);
-    const [brushMode, setBrushMode] = useState(state.brushMode);
-    const [focusedIndex, setFocusedIndex] = useState(state.focusedIndex);
-
-    const brushModeRef = useRef(brushMode);
-    const focusedIndexRef = useRef(focusedIndex);
-    brushModeRef.current = brushMode;
-    focusedIndexRef.current = focusedIndex;
-
-    useEffect(() => {
-        store.addListener((newState) => {
-            if (newState.brushMode !== brushModeRef.current)
-                setBrushMode(newState.brushMode);
-            if (newState.focusedIndex !== focusedIndexRef.current)
-                setFocusedIndex(newState.focusedIndex);
-        });
-    }, []);
+    const [focusedIndex, focusedIndexRef, setFocusedIndex] = useStateRef(
+        store,
+        "focusedIndex"
+    );
+    const [brushMode, brushModeRef, setBrushMode] = useStateRef(
+        store,
+        "brushMode"
+    );
 
     const onClick = () => {
         if (brushModeRef.current === "highlight") {

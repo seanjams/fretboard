@@ -9,21 +9,21 @@ import {
 } from "../types";
 
 export const C = "C";
-export const Cs = "C♯";
-export const Db = "D♭";
+export const Cs = "C__♯__";
+export const Db = "D__♭__";
 export const D = "D";
-export const Ds = "D♯";
-export const Eb = "E♭";
+export const Ds = "D__♯__";
+export const Eb = "E__♭__";
 export const E = "E";
 export const F = "F";
-export const Fs = "F♯";
-export const Gb = "G♭";
+export const Fs = "F__♯__";
+export const Gb = "G__♭__";
 export const G = "G";
-export const Gs = "G♯";
-export const Ab = "A♭";
+export const Gs = "G__♯__";
+export const Ab = "A__♭__";
 export const A = "A";
-export const As = "A♯";
-export const Bb = "B♭";
+export const As = "A__♯__";
+export const Bb = "B__♭__";
 export const B = "B";
 
 export const DEFAULT_NOTESWITCH: NoteSwitchType = {
@@ -84,22 +84,22 @@ export const SAFETY_AREA_HEIGHT = 8;
 export const NATURAL_NOTE_NAMES: NaturalTypes[] = [C, D, E, F, G, A, B];
 
 export const majorChord = "maj";
-export const minorChord = "m";
+export const minorChord = "min";
 export const augChord = "aug";
 export const dimChord = "dim";
 export const susChord = "sus";
-export const maj7Chord = "maj7";
-export const min7Chord = "min7";
-export const domChord = "7";
-export const min7b5Chord = "min7♭5";
-export const dim7Chord = "dim♭♭7";
-export const pentaScale = "penta";
-export const dimPentaScale = "Dim Penta";
+export const maj7Chord = "maj__7";
+export const min7Chord = "min__7";
+export const domChord = "__7";
+export const min7b5Chord = "min__7♭5";
+export const dim7Chord = "dim__♭♭7";
+export const pentaScale = "pentatonic";
+export const dimPentaScale = "dim. pentatonic";
 export const majorScale = "Major";
-export const melMinScale = "Mel min";
-export const harMajScale = "Har Maj";
-export const harMinScale = "Har Min";
-export const NeoScale = "Neo";
+export const melMinScale = "Melodic Minor";
+export const harMajScale = "Harmonic Major";
+export const harMinScale = "Harmonic Minor";
+export const NeoScale = "Neopolitan";
 
 export const CHORD_NAMES: ChordTypes[] = [
     majorChord,

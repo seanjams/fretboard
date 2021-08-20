@@ -15,11 +15,10 @@ import {
     numString,
     KeyControlTypes,
     DiffType,
-    FretboardUtilType,
     ChordTypes,
 } from "../types";
 import { kCombinations } from "./combinations";
-import { isEqual } from "lodash";
+import { isEqual, result } from "lodash";
 
 export function copy(obj: any): any {
     return JSON.parse(JSON.stringify(obj));
@@ -236,16 +235,27 @@ export class NoteUtil {
     }
 }
 
+export interface FretboardUtilType {
+    notes: NoteSwitchType;
+    strings: StringSwitchType;
+    rootIdx?: number;
+    chordName?: ChordTypes;
+}
+
 export class FretboardUtil implements FretboardUtilType {
     notes: NoteSwitchType;
     strings: StringSwitchType;
+    rootIdx?: number;
+    chordName?: ChordTypes;
 
     constructor(
-        notes: NoteSwitchType | null = DEFAULT_NOTESWITCH,
-        strings: StringSwitchType | null = DEFAULT_STRINGSWITCH
+        notes: NoteSwitchType | null = { ...DEFAULT_NOTESWITCH },
+        strings: StringSwitchType | null = { ...DEFAULT_STRINGSWITCH }
     ) {
         this.notes = notes;
         this.strings = strings;
+
+        if (Object.values(this.notes).some((val) => val)) this.setName("flat");
     }
 
     // gets whether index of note is "on" or "off" in this fretboard
@@ -440,11 +450,11 @@ export class FretboardUtil implements FretboardUtilType {
         return (maxFret + minFret) / 2;
     }
 
-    getName(label: LabelTypes) {
+    setName(label: LabelTypes) {
         const chords = Object.keys(SHAPES) as Array<ChordTypes>;
-        let chordName = "";
-        let rootIdx = 0;
-        let rootName = "";
+        let rootIdx;
+        let rootName: NoteTypes;
+        let chordName: ChordTypes;
 
         loop1: for (let i = 0; i < chords.length; i++) {
             let chordShape = getNotes(SHAPES[chords[i]]);
@@ -455,13 +465,6 @@ export class FretboardUtil implements FretboardUtilType {
                 if (isEqual(temp, chordShape)) {
                     rootIdx = j;
                     chordName = chords[i];
-                    if (label === "sharp") {
-                        rootName = SHARP_NAMES[rootIdx];
-                    } else if (label === "flat") {
-                        rootName = FLAT_NAMES[rootIdx];
-                    } else {
-                        rootName = `${rootIdx}`;
-                    }
                     break loop1;
                 } else {
                     temp = rotate(temp);
@@ -469,8 +472,35 @@ export class FretboardUtil implements FretboardUtilType {
             }
         }
 
-        // return { chordName, rootIdx, rootName };
-        return `${rootName} ${chordName}`;
+        this.rootIdx = rootIdx;
+        this.chordName = chordName;
+
+        return this.getName(label);
+    }
+
+    getName(label: LabelTypes) {
+        if (
+            typeof this.rootIdx === "undefined" ||
+            typeof this.chordName === "undefined"
+        ) {
+            const result = [];
+            for (let i = 0; i < 12; i++) {
+                if (this.notes[i]) {
+                    let note = new NoteUtil(i);
+                    result.push(note.getName(label));
+                }
+            }
+            return result.join(", ");
+        }
+
+        let rootName;
+        if (label === "sharp") {
+            rootName = SHARP_NAMES[this.rootIdx];
+        } else if (label === "flat") {
+            rootName = FLAT_NAMES[this.rootIdx];
+        }
+
+        return `${rootName}~~${this.chordName}`;
     }
 
     copy(): FretboardUtil {

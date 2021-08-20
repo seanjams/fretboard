@@ -13,7 +13,9 @@ import {
     StateType,
     DEFAULT_STATE,
     ActionTypes,
+    useStateRef,
 } from "../store";
+import { ChordSymbol } from "./symbol";
 
 // CSS
 interface CSSProps {
@@ -21,6 +23,7 @@ interface CSSProps {
     width?: number;
     isFirst?: boolean;
     isLast?: boolean;
+    show?: boolean;
 }
 
 const ContainerDiv = styled.div<CSSProps>`
@@ -67,6 +70,7 @@ const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
 const SliderBar = styled.div.attrs((props: CSSProps) => ({
     style: {
         left: `${props.left}px`,
+        backgroundColor: props.show ? "red" : "transparent",
     },
 }))<CSSProps>`
     height: 30px;
@@ -76,7 +80,6 @@ const SliderBar = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: red;
     border-radius: 4px;
     color: #333;
     opacity: 0.5;
@@ -107,12 +110,24 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
     const draggingRef = useRef(false);
     const leftRef = useRef(0);
     const deltaRef = useRef(0);
-    const stateRef = useRef(DEFAULT_STATE());
-
     draggingRef.current = dragging;
     leftRef.current = left;
     deltaRef.current = delta;
-    stateRef.current = state;
+
+    const [focusedIndex, focusedIndexRef, setFocusedIndex] = useStateRef(
+        store,
+        "focusedIndex"
+    );
+    const [fretboards, fretboardsRef, setFretboards] = useStateRef(
+        store,
+        "fretboards"
+    );
+    const [rehydrateSuccess, rehydrateSuccessRef, setRehydrateSuccess] =
+        useStateRef(store, "rehydrateSuccess");
+    const [showInput, showInputRef, setShowInput] = useStateRef(
+        store,
+        "showInput"
+    );
 
     // DOM refs
     const progressBarRef = useRef<HTMLDivElement>();
@@ -133,8 +148,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
 
     function getProgressBarFragmentWidth() {
         return (
-            progressBarRef.current.offsetWidth /
-            stateRef.current.fretboards.length
+            progressBarRef.current.offsetWidth / fretboardsRef.current.length
         );
     }
 
@@ -144,13 +158,12 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
             const progressBarFragmentWidth = getProgressBarFragmentWidth();
             const origin = progressBarRef.current.offsetLeft;
             const newLeft =
-                progressBarFragmentWidth *
-                    (stateRef.current.focusedIndex + 0.5) -
+                progressBarFragmentWidth * (focusedIndexRef.current + 0.5) -
                 sliderBarRef.current.offsetWidth / 2 +
                 origin;
             setLeft(newLeft);
         }
-    }, [stateRef.current.rehydrateSuccess, stateRef.current.fretboards.length]);
+    }, [rehydrateSuccessRef.current, fretboardsRef.current.length]);
 
     const repositionSlider = useCallback((clientX: number) => {
         // get widths, maxwidth is how far the left of the slider can move
@@ -174,7 +187,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                 Math.floor(sliderProgressFragment / progressBarFragmentWidth),
                 0
             ),
-            stateRef.current.fretboards.length - 1
+            fretboardsRef.current.length - 1
         );
 
         // make changes
@@ -187,7 +200,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
             "progress",
             Math.max(sliderProgressFragment / progressBarFragmentWidth, 0)
         );
-        if (focusedIndex !== stateRef.current.focusedIndex)
+        if (focusedIndex !== focusedIndexRef.current)
             store.setKey("focusedIndex", focusedIndex || 0);
     }, []);
 
@@ -289,6 +302,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                     left={left}
                     onMouseDown={onMouseDown}
                     onTouchStart={onMouseDown}
+                    show={!showInput}
                 />
                 {state.fretboards.map((fretboard, i) => {
                     return (
@@ -299,7 +313,10 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                             isLast={i === state.fretboards.length - 1}
                         >
                             <ProgressBarName>
-                                {fretboard.getName(state.label)}
+                                <ChordSymbol
+                                    value={fretboard.getName(state.label)}
+                                    fontSize={12}
+                                />
                             </ProgressBarName>
                         </ProgressBarFragment>
                     );

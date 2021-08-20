@@ -1,9 +1,10 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
-import { StateType, Store, ActionTypes, useStore } from "../store";
+import { StateType, Store, ActionTypes, useStateRef } from "../store";
 import { Fretboard } from "./fretboard";
 import { BottomControls, TopControls } from "./controls";
+import { ChordInput } from "./input";
 import { Slider } from "./slider";
 import { Title } from "./title";
 import {
@@ -39,20 +40,14 @@ const FlexContainerDiv = styled.div.attrs((props: CSSProps) => ({
         marginTop: props.marginTop ? `${props.marginTop}px` : 0,
         marginBottom: props.marginBottom ? `${props.marginBottom}px` : 0,
     },
-}))<CSSProps>`
-    width: 100vw;
-    overflow-x: auto;
-    font-family: Arial;
-`;
+}))<CSSProps>``;
 
 const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         height: `${props.height}px`,
     },
 }))<CSSProps>`
-    width: 100vw;
     overflow-x: auto;
-    font-family: Arial;
 `;
 
 const FlexRow = styled.div<CSSProps>`
@@ -68,13 +63,14 @@ interface Props {
 }
 
 export const Dashboard: React.FC<Props> = ({ store }) => {
-    const [state, setState] = useStore(store);
     const fretboardContainerRef = useRef(null);
     const isDraggingRef = useRef(false);
     const scrollToFretRef = useRef(0);
-    const [showInput, setShowInput] = useState(state.showInput);
-    const showInputRef = useRef(showInput);
-    showInputRef.current = showInput;
+
+    const [showInput, showInputRef, setShowInput] = useStateRef(
+        store,
+        "showInput"
+    );
 
     let windowWidth;
     let windowHeight;
@@ -100,7 +96,7 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
     }, []);
 
     useEffect(() => {
-        store.addListener(({ isDragging, scrollToFret, showInput }) => {
+        store.addListener(({ isDragging, scrollToFret }) => {
             isDraggingRef.current = isDragging;
             if (scrollToFret !== scrollToFretRef.current) {
                 const fretXPosition =
@@ -115,8 +111,6 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
                 });
                 scrollToFretRef.current = scrollToFret;
             }
-
-            if (showInput !== showInputRef.current) setShowInput(showInput);
         });
     }, []);
 
@@ -158,14 +152,11 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
             <CSSTransition
                 in={showInput}
                 timeout={300}
-                classNames="alert"
+                classNames="input-grow"
                 // onEnter={() => setShowButton(false)}
                 // onExited={() => setShowButton(true)}
             >
-                <div
-                    onClick={() => store.setKey("showInput", false)}
-                    onTouchStart={() => store.setKey("showInput", false)}
-                ></div>
+                <ChordInput store={store} />
             </CSSTransition>
             <OverflowContainerDiv
                 height={mainHeight}

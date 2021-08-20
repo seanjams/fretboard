@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { useStore, Store, StateType, ActionTypes } from "../store";
-import { DiffType } from "../types";
+import { useStore, Store, StateType, ActionTypes, useStateRef } from "../store";
+import { DiffType, LabelTypes } from "../types";
 import {
     mod,
     NoteUtil,
@@ -12,6 +12,7 @@ import {
     STRING_SIZE,
     CIRCLE_SIZE,
 } from "../utils";
+import { ChordSymbol } from "./symbol";
 
 const getTopMargin = (fretHeight: number, diameter: number) => {
     // As circles resize, this top margin keeps them centered
@@ -27,7 +28,7 @@ interface CSSProps {
     backgroundColor?: string;
     top?: number;
     left?: number;
-    letterSpacing?: number;
+    legendTop?: boolean;
 }
 
 const FretDiv = styled.div.attrs((props: CSSProps) => ({
@@ -52,7 +53,6 @@ const FretDiv = styled.div.attrs((props: CSSProps) => ({
 const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         color: props.color,
-        letterSpacing: props.letterSpacing,
     },
 }))<CSSProps>`
     margin-left: -13px;
@@ -96,6 +96,20 @@ const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
     width: calc(50% - 13px);
     margin: auto 0;
 `;
+
+// const LegendDot = styled.div.attrs((props: CSSProps) => ({
+//     style: {
+//         left: `calc(100% - 16px)`,
+//         top: props.legendTop ? "8px" : `calc(${props.height}px - 8px)`,
+//     },
+// }))<CSSProps>`
+//     width: 8px;
+//     height: 8px;
+//     border-radius: 100%;
+//     position: absolute;
+//     background-color: #000;
+//     margin-top: -4px;
+// `;
 
 // Component
 interface Props {
@@ -142,7 +156,7 @@ export const Fret: React.FC<Props> = ({
     const border = openString ? "none" : "1px solid #333";
 
     // init refs
-    const [label, setLabel] = useState(state.label);
+    const [label, labelRef, setLabel] = useStateRef(store, "label");
     const fretboard = state.fretboards[state.focusedIndex];
     const isHighlighted = fretboard.getFret(stringIndex, value);
     const isSelected = fretboard.get(value);
@@ -151,8 +165,6 @@ export const Fret: React.FC<Props> = ({
     const shadowRef = useRef<HTMLDivElement>();
     const brushModeRef = useRef(state.brushMode);
     const isDraggingRef = useRef(false);
-    const labelRef = useRef(label);
-    labelRef.current = label;
 
     const getBackgroundColor = (
         isSelected: boolean,
@@ -383,15 +395,12 @@ export const Fret: React.FC<Props> = ({
                 height={thickness}
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
-            <CircleDiv
-                onClick={onClick}
-                onTouchStart={onClick}
-                color={color}
-                letterSpacing={
-                    label !== "value" && note.getName(label).length > 1 ? -4 : 0
-                }
-            >
-                {label === "value" ? noteValue : note.getName(label)}
+            <CircleDiv onClick={onClick} onTouchStart={onClick} color={color}>
+                {label === "value" ? (
+                    noteValue
+                ) : (
+                    <ChordSymbol value={note.getName(label)} fontSize={16} />
+                )}
             </CircleDiv>
             <ShadowDiv
                 ref={shadowRef}
@@ -403,6 +412,22 @@ export const Fret: React.FC<Props> = ({
                 height={thickness}
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
+            {/* {fretIndex !== 0 &&
+                (stringIndex === 0 || stringIndex === 5) &&
+                [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
+                    <LegendDot
+                        legendTop={stringIndex !== 0}
+                        height={fretHeight}
+                    />
+                )}
+            {fretIndex !== 0 &&
+                (stringIndex === 0 || stringIndex === 5) &&
+                mod(fretIndex, 12) === 0 && (
+                    <LegendDot
+                        legendTop={stringIndex !== 0}
+                        height={fretHeight}
+                    />
+                )} */}
         </FretDiv>
     );
 };

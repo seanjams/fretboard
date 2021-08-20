@@ -30,20 +30,38 @@ body {
     display: none;
 }
 
-.alert-enter {
+.input-grow-enter {
     height: 0px;
 }
-.alert-enter-active {
-    height: 100px;
-    transition: height 500ms;
+.input-grow-enter-active {
+    height: 15%;
+    transition: height 150ms;
 }
-.alert-enter-done {
-    height: 100px;
+.input-grow-enter-done {
+    height: 15%;
 }
-.alert-exit {
-    height: 100px;
+.input-grow-exit {
+    height: 15%;
 }
-.alert-exit-active {
+.input-grow-exit-active {
     height: 0px;
-    transition: height 500ms;
+    transition: height 150ms;
+}
+
+.input-fade-enter {
+    color: transparent;
+}
+.input-fade-enter-active {
+    color: #000;
+    transition: color 150ms ease;
+}
+.input-fade-enter-done {
+    color: #000;
+}
+.input-fade-exit {
+    color: #000;
+}
+.input-fade-exit-active {
+    color: transparent;
+    transition: color 150ms ease;
 }

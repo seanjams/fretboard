@@ -24,9 +24,9 @@ const EmptyDiv = styled.div<CSSProps>`
 
 const Dot = styled.div.attrs((props: CSSProps) => ({
     style: {
-        marginTop: props.top ? 0 : `${LEGEND_HEIGHT / 2}px`,
+        marginTop: props.top ? "2px" : `${LEGEND_HEIGHT / 2 - 2}px`,
         marginRight: `${LEGEND_HEIGHT / 2}px`,
-        marginBottom: props.top ? `${LEGEND_HEIGHT / 2}px` : 0,
+        marginBottom: props.top ? `${LEGEND_HEIGHT / 2 - 2}px` : "2px",
         marginLeft: `${LEGEND_HEIGHT / 2}px`,
     },
 }))<CSSProps>`

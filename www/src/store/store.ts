@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export class Store<T, A> {
     constructor(public state: T, public reducer: (state: T, action: A) => T) {}
@@ -41,4 +41,22 @@ export function useStore<T, A>(store: Store<T, A>) {
     }, [store]);
 
     return [state, store.setState] as const;
+}
+
+export function useStateRef<T, A, Key extends keyof T>(
+    store: Store<T, A>,
+    key: Key
+) {
+    const [state, setState] = useState(store.state);
+    const [keyState, setKeyState] = useState<T[Key]>(state[key]);
+    const keyRef = useRef<T[Key]>(keyState);
+    keyRef.current = keyState;
+
+    useEffect(() => {
+        store.addListener((newState) => {
+            if (newState[key] !== keyRef.current) setKeyState(newState[key]);
+        });
+    }, [store]);
+
+    return [keyState, keyRef, setKeyState] as const;
 }

@@ -9,6 +9,13 @@ export type SetNote = {
     };
 };
 
+export type SetNotes = {
+    readonly type: "SET_NOTES";
+    readonly payload: {
+        notes: number[];
+    };
+};
+
 export type SetLabel = {
     readonly type: "SET_LABEL";
     readonly payload: {
@@ -82,6 +89,7 @@ export type RehydrateState = {
 
 export type ActionTypes =
     | SetNote
+    | SetNotes
     | SetLabel
     | ClearAllNotes
     | ClearNotes
