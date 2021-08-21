@@ -7,14 +7,7 @@ import React, {
 } from "react";
 import styled from "styled-components";
 import { stopClick } from "../utils";
-import {
-    Store,
-    useStore,
-    StateType,
-    DEFAULT_STATE,
-    ActionTypes,
-    useStateRef,
-} from "../store";
+import { Store, StateType, ActionTypes, useStoreRef } from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -100,33 +93,26 @@ interface SliderProps {
 }
 
 export const Slider: React.FC<SliderProps> = ({ store }) => {
-    const [state, setState] = useStore(store);
     const [dragging, setDragging] = useState(false);
     const [left, setLeft] = useState(0);
     const [delta, setDelta] = useState(0);
-    // const [ratio, setRatio] = useState(0);
-
-    // refs
-    const draggingRef = useRef(false);
-    const leftRef = useRef(0);
-    const deltaRef = useRef(0);
+    const draggingRef = useRef(dragging);
+    const leftRef = useRef(left);
+    const deltaRef = useRef(delta);
     draggingRef.current = dragging;
     leftRef.current = left;
     deltaRef.current = delta;
 
-    const [focusedIndex, focusedIndexRef, setFocusedIndex] = useStateRef(
+    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
         store,
         "focusedIndex"
     );
-    const [fretboards, fretboardsRef, setFretboards] = useStateRef(
+    const [getFretboards, setFretboards] = useStoreRef(store, "fretboards");
+    const [getShowInput, setShowInput] = useStoreRef(store, "showInput");
+    const [getLabel, setLabel] = useStoreRef(store, "label");
+    const [getRehydrateSuccess, setRehydrateSuccess] = useStoreRef(
         store,
-        "fretboards"
-    );
-    const [rehydrateSuccess, rehydrateSuccessRef, setRehydrateSuccess] =
-        useStateRef(store, "rehydrateSuccess");
-    const [showInput, showInputRef, setShowInput] = useStateRef(
-        store,
-        "showInput"
+        "rehydrateSuccess"
     );
 
     // DOM refs
@@ -147,9 +133,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
     }, []);
 
     function getProgressBarFragmentWidth() {
-        return (
-            progressBarRef.current.offsetWidth / fretboardsRef.current.length
-        );
+        return progressBarRef.current.offsetWidth / getFretboards().length;
     }
 
     useLayoutEffect(() => {
@@ -158,12 +142,12 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
             const progressBarFragmentWidth = getProgressBarFragmentWidth();
             const origin = progressBarRef.current.offsetLeft;
             const newLeft =
-                progressBarFragmentWidth * (focusedIndexRef.current + 0.5) -
+                progressBarFragmentWidth * (getFocusedIndex() + 0.5) -
                 sliderBarRef.current.offsetWidth / 2 +
                 origin;
             setLeft(newLeft);
         }
-    }, [rehydrateSuccessRef.current, fretboardsRef.current.length]);
+    }, [getRehydrateSuccess(), getFretboards().length]);
 
     const repositionSlider = useCallback((clientX: number) => {
         // get widths, maxwidth is how far the left of the slider can move
@@ -187,7 +171,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                 Math.floor(sliderProgressFragment / progressBarFragmentWidth),
                 0
             ),
-            fretboardsRef.current.length - 1
+            getFretboards().length - 1
         );
 
         // make changes
@@ -200,7 +184,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
             "progress",
             Math.max(sliderProgressFragment / progressBarFragmentWidth, 0)
         );
-        if (focusedIndex !== focusedIndexRef.current)
+        if (focusedIndex !== getFocusedIndex())
             store.setKey("focusedIndex", focusedIndex || 0);
     }, []);
 
@@ -302,19 +286,19 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                     left={left}
                     onMouseDown={onMouseDown}
                     onTouchStart={onMouseDown}
-                    show={!showInput}
+                    show={!getShowInput()}
                 />
-                {state.fretboards.map((fretboard, i) => {
+                {getFretboards().map((fretboard, i) => {
                     return (
                         <ProgressBarFragment
                             key={`button-pad-${i}`}
-                            width={100 / state.fretboards.length}
+                            width={100 / getFretboards().length}
                             isFirst={i === 0}
-                            isLast={i === state.fretboards.length - 1}
+                            isLast={i === getFretboards().length - 1}
                         >
                             <ProgressBarName>
                                 <ChordSymbol
-                                    value={fretboard.getName(state.label)}
+                                    value={fretboard.getName(getLabel())}
                                     fontSize={12}
                                 />
                             </ProgressBarName>

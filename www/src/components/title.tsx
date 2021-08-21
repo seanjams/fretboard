@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef } from "react";
 import styled from "styled-components";
-import { StateType, Store, ActionTypes, useStore, useStateRef } from "../store";
+import { StateType, Store, ActionTypes, useStoreRef } from "../store";
 import { ChordSymbol } from "./symbol";
-import { isEqual } from "lodash";
 
 // CSS
 interface CSSProps {}
@@ -19,36 +18,28 @@ interface Props {
 }
 
 export const Title: React.FC<Props> = ({ store }) => {
-    const [state, setState] = useStore(store);
-    const { fretboards, focusedIndex, label, showInput } = state;
-    const fretboard = fretboards[focusedIndex];
-    const [name, setName] = useState(fretboard.getName(label));
-    const notesRef = useRef(fretboard.notes);
-    const labelRef = useRef(label);
-    const showInputRef = useRef(showInput);
+    const [getLabel, setLabel] = useStoreRef(store, "label");
+    const [getShowInput, setShowInput] = useStoreRef(store, "showInput");
+    const [getFretboards, setFretboards] = useStoreRef(store, "fretboards");
+    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
+        store,
+        "focusedIndex"
+    );
 
-    useEffect(() => {
-        store.addListener(({ focusedIndex, fretboards, label, showInput }) => {
-            if (
-                !isEqual(fretboards[focusedIndex].notes, notesRef.current) ||
-                label !== labelRef.current
-            ) {
-                setName(fretboards[focusedIndex].getName(label));
-                notesRef.current = fretboards[focusedIndex].notes;
-                labelRef.current = label;
-            }
-            if (showInput !== showInputRef.current)
-                showInputRef.current = showInput;
-        });
-    }, []);
+    const fretboard = getFretboards()[getFocusedIndex()];
+    const notesRef = useRef(fretboard.notes);
+    notesRef.current = fretboard.notes;
 
     const onClick = () => {
-        return store.setKey("showInput", !showInputRef.current);
+        return store.dispatch({
+            type: "SET_SHOW_INPUT",
+            payload: { showInput: !getShowInput() },
+        });
     };
 
     return (
         <TitleContainerDiv onClick={onClick} onTouchStart={onClick}>
-            <ChordSymbol value={name} fontSize={28} />
+            <ChordSymbol value={fretboard.getName(getLabel())} fontSize={28} />
         </TitleContainerDiv>
     );
 };

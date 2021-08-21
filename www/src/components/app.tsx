@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useCallback } from "react";
 import {
     ActionTypes,
     DEFAULT_STATE,
@@ -47,7 +47,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
         };
     }, []);
 
-    const saveToLocalStorage = () => {
+    const saveToLocalStorage = useCallback(() => {
         const IGNORE = ["rehydrateSuccess", "isDragging", "scrollToFret"];
         // add in special formatters for keys that were serialized to localStorage
         const HANDLERS: {
@@ -65,9 +65,9 @@ export const App: React.FC<Props> = ({ oldState }) => {
             );
             localStorage.setItem(key, value);
         }
-    };
+    }, [state]);
 
-    const rehydrateState = () => {
+    const rehydrateState = useCallback(() => {
         let newState;
         if (oldState) {
             newState = {
@@ -99,7 +99,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
         }
 
         if (newState) setState(newState);
-    };
+    }, [state]);
 
     return <Dashboard store={store} />;
 };

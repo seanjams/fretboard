@@ -1,4 +1,4 @@
-import { LabelTypes } from "../types";
+import { BrushTypes, LabelTypes } from "../types";
 import { StateType } from "./state";
 
 export type SetNote = {
@@ -82,6 +82,20 @@ export type SetFocus = {
     };
 };
 
+export type SetShowInput = {
+    readonly type: "SET_SHOW_INPUT";
+    readonly payload: {
+        showInput: boolean;
+    };
+};
+
+export type SetBrushMode = {
+    readonly type: "SET_BRUSH_MODE";
+    readonly payload: {
+        brushMode: BrushTypes;
+    };
+};
+
 export type RehydrateState = {
     readonly type: "REHYDRATE";
     readonly payload: StateType;
@@ -103,4 +117,6 @@ export type ActionTypes =
     | AddFretboard
     | RemoveFretboard
     | SetFocus
+    | SetShowInput
+    | SetBrushMode
     | RehydrateState;

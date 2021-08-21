@@ -1,7 +1,7 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useEffect } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
-import { StateType, Store, ActionTypes, useStateRef } from "../store";
+import { StateType, Store, ActionTypes, useStoreRef } from "../store";
 import { Fretboard } from "./fretboard";
 import { BottomControls, TopControls } from "./controls";
 import { ChordInput } from "./input";
@@ -63,41 +63,15 @@ interface Props {
 }
 
 export const Dashboard: React.FC<Props> = ({ store }) => {
+    // const isDraggingRef = useRef(false);
+    // const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+    const [getShowInput, setShowInput] = useStoreRef(store, "showInput");
     const fretboardContainerRef = useRef(null);
-    const isDraggingRef = useRef(false);
     const scrollToFretRef = useRef(0);
-
-    const [showInput, showInputRef, setShowInput] = useStateRef(
-        store,
-        "showInput"
-    );
-
-    let windowWidth;
-    let windowHeight;
-    if (isMobile) {
-        windowWidth = Math.max(screen.width, screen.height);
-        windowHeight = Math.min(screen.width, screen.height);
-    } else {
-        windowWidth = window.innerWidth;
-        windowHeight = window.innerHeight;
-    }
-
-    const gutterHeight = windowHeight * 0.12;
-    const mainHeight = windowHeight * 0.76 - 2 * SAFETY_AREA_HEIGHT;
-    const fretboardHeight = mainHeight - 2 * LEGEND_HEIGHT;
-
-    useEffect(() => {
-        window.addEventListener("mouseup", onMouseUp);
-        window.addEventListener("touchend", onMouseUp);
-        return () => {
-            window.removeEventListener("mouseup", onMouseUp);
-            window.removeEventListener("touchend", onMouseUp);
-        };
-    }, []);
 
     useEffect(() => {
         store.addListener(({ isDragging, scrollToFret }) => {
-            isDraggingRef.current = isDragging;
+            // isDraggingRef.current = isDragging;
             if (scrollToFret !== scrollToFretRef.current) {
                 const fretXPosition =
                     (FRETBOARD_WIDTH * scrollToFret) / STRING_SIZE;
@@ -114,24 +88,52 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
         });
     }, []);
 
-    const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
-        store.setKey("isDragging", false);
-    }, []);
+    // hack fix for mobile dimensions
+    let windowWidth;
+    let windowHeight;
+    if (isMobile) {
+        windowWidth = Math.max(screen.width, screen.height);
+        windowHeight = Math.min(screen.width, screen.height);
+    } else {
+        windowWidth = window.innerWidth;
+        windowHeight = window.innerHeight;
+    }
 
-    const onMouseDown = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        event.preventDefault();
-        store.setKey("isDragging", true);
-    };
+    const gutterHeight = windowHeight * 0.12;
+    const mainHeight = windowHeight * 0.76 - 2 * SAFETY_AREA_HEIGHT;
+    const fretboardHeight = mainHeight - 2 * LEGEND_HEIGHT;
+
+    // useEffect(() => {
+    //     window.addEventListener("mouseup", onMouseUp);
+    //     window.addEventListener("touchend", onMouseUp);
+    //     return () => {
+    //         window.removeEventListener("mouseup", onMouseUp);
+    //         window.removeEventListener("touchend", onMouseUp);
+    //     };
+    // }, []);
+
+    // const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
+    //     event.preventDefault();
+    //     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    //     if (isDraggingRef.current) store.setKey("isDragging", false);
+    // }, []);
+
+    // const onMouseDown = (
+    //     event:
+    //         | React.MouseEvent<HTMLDivElement, MouseEvent>
+    //         | React.TouchEvent<HTMLDivElement>
+    // ) => {
+    //     event.preventDefault();
+    //     timeoutRef.current = setTimeout(
+    //         () => store.setKey("isDragging", true),
+    //         300
+    //     );
+    // };
 
     return (
         <ContainerDiv
-            onMouseDown={onMouseDown}
-            onTouchStart={onMouseDown}
+            // onMouseDown={onMouseDown}
+            // onTouchStart={onMouseDown}
             height={windowHeight}
             width={windowWidth}
         >
@@ -150,7 +152,7 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
                 </FlexRow>
             </FlexContainerDiv>
             <CSSTransition
-                in={showInput}
+                in={getShowInput()}
                 timeout={300}
                 classNames="input-grow"
                 // onEnter={() => setShowButton(false)}

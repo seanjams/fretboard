@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { mod, FRETBOARD_WIDTH, STRING_SIZE, LEGEND_HEIGHT } from "../utils";
-import { Store, StateType, useStore, ActionTypes } from "../store";
+import { Store, StateType, ActionTypes, useStoreRef } from "../store";
 
 // CSS
 interface CSSProps {
@@ -43,9 +43,10 @@ interface Props {
 }
 
 export const Legend: React.FC<Props> = ({ top, store }) => {
-    const [state, setState] = useStore(store);
+    const [getStringSize, setStringSize] = useStoreRef(store, "stringSize");
+    const [getInvert, setInvert] = useStoreRef(store, "invert");
 
-    const frets = Array(state.stringSize)
+    const frets = Array(getStringSize())
         .fill(0)
         .map((_, i) => {
             const dotIndex = mod(i, 12);
@@ -62,5 +63,5 @@ export const Legend: React.FC<Props> = ({ top, store }) => {
             );
         });
 
-    return <StringDiv>{state.invert ? frets.reverse() : frets}</StringDiv>;
+    return <StringDiv>{getInvert() ? frets.reverse() : frets}</StringDiv>;
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { useStore, Store, StateType, ActionTypes, useStateRef } from "../store";
+import { Store, StateType, ActionTypes, useStoreRef } from "../store";
 import { DiffType, LabelTypes } from "../types";
 import {
     mod,
@@ -133,7 +133,7 @@ export const Fret: React.FC<Props> = ({
     fretboardHeight,
     store,
 }) => {
-    const [state, setState] = useStore(store);
+    // const [state, setState] = useStore(store);
 
     const noteValue = mod(value, 12);
     // const [secondaryColor, primaryColor] = COLORS[mod(fretboardIndex, COLORS.length)];
@@ -155,16 +155,19 @@ export const Fret: React.FC<Props> = ({
     const thickness = (6 - stringIndex + 1) / 2;
     const border = openString ? "none" : "1px solid #333";
 
+    const [getFretboards, setFretboards] = useStoreRef(store, "fretboards");
+    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
+        store,
+        "focusedIndex"
+    );
+    const [getBrushMode, setBrushMode] = useStoreRef(store, "brushMode");
+    const [getLabel, setLabel] = useStoreRef(store, "label");
+
     // init refs
-    const [label, labelRef, setLabel] = useStateRef(store, "label");
-    const fretboard = state.fretboards[state.focusedIndex];
+    const fretboard = getFretboards()[getFocusedIndex()];
     const isHighlighted = fretboard.getFret(stringIndex, value);
     const isSelected = fretboard.get(value);
-    const isSelectedRef = useRef(isSelected);
-    const isHighlightedRef = useRef(isHighlighted);
     const shadowRef = useRef<HTMLDivElement>();
-    const brushModeRef = useRef(state.brushMode);
-    const isDraggingRef = useRef(false);
 
     const getBackgroundColor = (
         isSelected: boolean,
@@ -186,9 +189,6 @@ export const Fret: React.FC<Props> = ({
                 rightDiffs,
                 fretboards,
                 invert,
-                brushMode,
-                isDragging,
-                label,
             }) => {
                 if (!shadowRef.current) return;
 
@@ -198,16 +198,6 @@ export const Fret: React.FC<Props> = ({
                 const rightDiff = rightDiffs[i];
                 const isSelected = fretboard.get(value);
                 const isHighlighted = fretboard.getFret(stringIndex, value);
-
-                if (isSelectedRef.current !== isSelected)
-                    isSelectedRef.current = isSelected;
-                if (isHighlightedRef.current !== isHighlighted)
-                    isHighlightedRef.current = isHighlighted;
-                if (brushModeRef.current !== brushMode)
-                    brushModeRef.current = brushMode;
-                if (isDraggingRef.current !== isDragging)
-                    isDraggingRef.current = isDragging;
-                if (labelRef.current !== label) setLabel(label);
 
                 let newLeft;
                 let fillPercentage;
@@ -350,7 +340,7 @@ export const Fret: React.FC<Props> = ({
             | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) {
         // highlight note if brush mode is highlight
-        const highlightConditions = [brushModeRef.current === "highlight"];
+        const highlightConditions = [getBrushMode() === "highlight"];
 
         if (e.nativeEvent instanceof MouseEvent) {
             // highlight note if use is pressing shift + click or command + click
@@ -396,10 +386,13 @@ export const Fret: React.FC<Props> = ({
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
             <CircleDiv onClick={onClick} onTouchStart={onClick} color={color}>
-                {label === "value" ? (
+                {getLabel() === "value" ? (
                     noteValue
                 ) : (
-                    <ChordSymbol value={note.getName(label)} fontSize={16} />
+                    <ChordSymbol
+                        value={note.getName(getLabel())}
+                        fontSize={16}
+                    />
                 )}
             </CircleDiv>
             <ShadowDiv

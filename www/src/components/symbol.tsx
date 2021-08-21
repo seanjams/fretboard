@@ -1,9 +1,5 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
-import { CSSTransition } from "react-transition-group";
+import React from "react";
 import styled from "styled-components";
-import { Store, StateType, useStore, ActionTypes, useStateRef } from "../store";
-import { ChordTypes } from "../types";
-import { FLAT_NAMES, SHARP_NAMES, CHORD_NAMES, SHAPES, mod } from "../utils";
 
 // CSS
 interface CSSProps {

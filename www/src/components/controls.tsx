@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
-import { Store, StateType, useStore, ActionTypes, useStateRef } from "../store";
-import { LabelTypes, ArrowTypes, BrushTypes } from "../types";
+import { Store, StateType, ActionTypes, useStoreRef } from "../store";
+import { ArrowTypes } from "../types";
 import { getPositionActionType, COLORS } from "../utils";
 import PlusIcon from "../assets/icons/plus.png";
 import MinusIcon from "../assets/icons/minus.png";
@@ -351,23 +351,13 @@ export const CircleIconButton: React.FC<ButtonProps> = ({
 };
 
 export const BottomControls: React.FC<Props> = ({ store }) => {
-    const [state, setState] = useStore(store);
-    const invertRef = useRef(state.invert);
-    const leftHandRef = useRef(state.leftHand);
-
-    useEffect(() => {
-        store.addListener((newState) => {
-            if (newState.invert !== invertRef.current)
-                invertRef.current = newState.invert;
-            if (newState.leftHand !== leftHandRef.current)
-                leftHandRef.current = newState.leftHand;
-        });
-    }, []);
+    const [getInvert, setInvert] = useStoreRef(store, "invert");
+    const [getLeftHand, setLeftHand] = useStoreRef(store, "leftHand");
 
     const onArrowPress = (direction: ArrowTypes) => () => {
         const actionType = getPositionActionType(
-            invertRef.current,
-            leftHandRef.current,
+            getInvert(),
+            getLeftHand(),
             direction
         );
 
@@ -425,21 +415,20 @@ export const BottomControls: React.FC<Props> = ({ store }) => {
 };
 
 export const TopControls: React.FC<Props> = ({ store }) => {
-    const [focusedIndex, focusedIndexRef, setFocusedIndex] = useStateRef(
+    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
         store,
         "focusedIndex"
     );
-    const [brushMode, brushModeRef, setBrushMode] = useStateRef(
-        store,
-        "brushMode"
-    );
+    const [getBrushMode, setBrushMode] = useStoreRef(store, "brushMode");
 
     const onClick = () => {
-        if (brushModeRef.current === "highlight") {
-            store.setKey("brushMode", "select");
-        } else {
-            store.setKey("brushMode", "highlight");
-        }
+        store.dispatch({
+            type: "SET_BRUSH_MODE",
+            payload: {
+                brushMode:
+                    getBrushMode() === "highlight" ? "select" : "highlight",
+            },
+        });
     };
 
     return (
@@ -449,7 +438,7 @@ export const TopControls: React.FC<Props> = ({ store }) => {
                     onClick={() =>
                         store.dispatch({
                             type: "CLEAR",
-                            payload: { focusedIndex },
+                            payload: { focusedIndex: getFocusedIndex() },
                         })
                     }
                     imageSrc={ClearIcon}
@@ -458,10 +447,10 @@ export const TopControls: React.FC<Props> = ({ store }) => {
             </div>
             <div>
                 <HighlightButton
-                    highlighted={brushMode === "highlight"}
+                    highlighted={getBrushMode() === "highlight"}
                     onClick={onClick}
                 />
-                <Label>{brushMode === "highlight" && "highlight"}</Label>
+                <Label>{getBrushMode() === "highlight" && "highlight"}</Label>
             </div>
         </CircleControlsContainer>
     );

@@ -43,12 +43,11 @@ export function useStore<T, A>(store: Store<T, A>) {
     return [state, store.setState] as const;
 }
 
-export function useStateRef<T, A, Key extends keyof T>(
+export function useStoreRef<T, A, Key extends keyof T>(
     store: Store<T, A>,
     key: Key
 ) {
-    const [state, setState] = useState(store.state);
-    const [keyState, setKeyState] = useState<T[Key]>(state[key]);
+    const [keyState, setKeyState] = useState<T[Key]>(store.state[key]);
     const keyRef = useRef<T[Key]>(keyState);
     keyRef.current = keyState;
 
@@ -58,5 +57,5 @@ export function useStateRef<T, A, Key extends keyof T>(
         });
     }, [store]);
 
-    return [keyState, keyRef, setKeyState] as const;
+    return [() => keyRef.current, setKeyState] as const;
 }

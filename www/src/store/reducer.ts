@@ -205,6 +205,15 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         return { ...state, focusedIndex };
     }
 
+    if (action.type === "SET_SHOW_INPUT") {
+        const { showInput } = action.payload;
+        return { ...state, showInput };
+    }
+    if (action.type === "SET_BRUSH_MODE") {
+        const { brushMode } = action.payload;
+        return { ...state, brushMode };
+    }
+
     if (action.type === "REHYDRATE") {
         return {
             ...action.payload,

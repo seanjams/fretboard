@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { Store, StateType, useStore, ActionTypes } from "../store";
+import { Store, StateType, ActionTypes, useStoreRef } from "../store";
 import { String } from "./string";
 import { Legend } from "./legend";
 import {
@@ -42,24 +42,24 @@ interface Props {
 }
 
 export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
-    const [state, setState] = useStore(store);
-    const invertRef = useRef(state.invert);
-    const leftHandRef = useRef(state.leftHand);
+    const [getInvert, setInvert] = useStoreRef(store, "invert");
+    const [getLeftHand, setLeftHand] = useStoreRef(store, "leftHand");
+    const [getLabel, setLabel] = useStoreRef(store, "label");
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
     const [highEBottom, setHighEBottom] = useState(
-        state.invert !== state.leftHand
+        getInvert() !== getLeftHand()
     );
 
     let naturals: { [key in string]: number } = {};
     let i = 0;
     for (let name of NATURAL_NOTE_NAMES) {
-        if (state.label === "flat") {
+        if (getLabel() === "flat") {
             naturals[name] = i;
             if (name !== F && name !== C) i++;
             naturals[name.toLowerCase()] = i;
             i++;
-        } else if (state.label === "sharp") {
+        } else if (getLabel() === "sharp") {
             naturals[name.toLowerCase()] = i;
             if (name !== E && name !== B) i++;
             naturals[name] = i;
@@ -72,14 +72,6 @@ export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
         return () => {
             window.removeEventListener("keydown", onKeyPress);
         };
-    }, []);
-
-    useEffect(() => {
-        store.addListener((newState) => {
-            invertRef.current = newState.invert;
-            leftHandRef.current = newState.leftHand;
-            setHighEBottom(invertRef.current !== leftHandRef.current);
-        });
     }, []);
 
     const strings = STANDARD_TUNING.map((value, i) => {
@@ -96,8 +88,8 @@ export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
 
     function onKeyPress(this: Window, e: KeyboardEvent): any {
         const actionType = getPositionActionType(
-            invertRef.current,
-            leftHandRef.current,
+            getInvert(),
+            getLeftHand(),
             e.key
         );
         if (actionType) {
