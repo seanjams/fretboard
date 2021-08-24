@@ -1,8 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { Store, StateType, ActionTypes, useStoreRef } from "../store";
+import {
+    Store,
+    StateType,
+    ActionTypes,
+    useActiveStoreRef,
+    usePassiveStoreRef,
+} from "../store";
 import { String } from "./string";
-import { Legend } from "./legend";
+// import { Legend } from "./legend";
 import {
     getPositionActionType,
     STANDARD_TUNING,
@@ -42,30 +48,14 @@ interface Props {
 }
 
 export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
-    const [getInvert, setInvert] = useStoreRef(store, "invert");
-    const [getLeftHand, setLeftHand] = useStoreRef(store, "leftHand");
-    const [getLabel, setLabel] = useStoreRef(store, "label");
+    const [getInvert, setInvert] = useActiveStoreRef(store, "invert");
+    const [getLeftHand, setLeftHand] = useActiveStoreRef(store, "leftHand");
+    const [getLabel] = usePassiveStoreRef(store, "label");
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
     const [highEBottom, setHighEBottom] = useState(
         getInvert() !== getLeftHand()
     );
-
-    let naturals: { [key in string]: number } = {};
-    let i = 0;
-    for (let name of NATURAL_NOTE_NAMES) {
-        if (getLabel() === "flat") {
-            naturals[name] = i;
-            if (name !== F && name !== C) i++;
-            naturals[name.toLowerCase()] = i;
-            i++;
-        } else if (getLabel() === "sharp") {
-            naturals[name.toLowerCase()] = i;
-            if (name !== E && name !== B) i++;
-            naturals[name] = i;
-            i++;
-        }
-    }
 
     useEffect(() => {
         window.addEventListener("keydown", onKeyPress);
@@ -97,23 +87,39 @@ export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
             store.dispatch({
                 type: actionType,
             });
-        } else if (naturals.hasOwnProperty(e.key)) {
-            e.preventDefault();
-            store.dispatch({
-                type: "SET_NOTE",
-                payload: {
-                    note: naturals[e.key],
-                },
-            });
+        } else {
+            let naturals: { [key in string]: number } = {};
+            let i = 0;
+            for (let name of NATURAL_NOTE_NAMES) {
+                if (getLabel() === "flat") {
+                    naturals[name] = i;
+                    if (name !== F && name !== C) i++;
+                    naturals[name.toLowerCase()] = i;
+                    i++;
+                } else if (getLabel() === "sharp") {
+                    naturals[name.toLowerCase()] = i;
+                    if (name !== E && name !== B) i++;
+                    naturals[name] = i;
+                    i++;
+                }
+            }
+
+            if (naturals.hasOwnProperty(e.key)) {
+                e.preventDefault();
+                store.dispatch({
+                    type: "SET_NOTE",
+                    payload: {
+                        note: naturals[e.key],
+                    },
+                });
+            }
         }
     }
 
     return (
         <FretboardContainer width={FRETBOARD_WIDTH}>
             <FretboardDiv>
-                <Legend top={true} store={store} />
                 {highEBottom ? strings : strings.reverse()}
-                <Legend store={store} />
             </FretboardDiv>
         </FretboardContainer>
     );

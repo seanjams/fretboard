@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import styled from "styled-components";
-import { StateType, Store, ActionTypes, useStoreRef } from "../store";
+import { StateType, Store, ActionTypes, useActiveStoreRef } from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -18,10 +18,13 @@ interface Props {
 }
 
 export const Title: React.FC<Props> = ({ store }) => {
-    const [getLabel, setLabel] = useStoreRef(store, "label");
-    const [getShowInput, setShowInput] = useStoreRef(store, "showInput");
-    const [getFretboards, setFretboards] = useStoreRef(store, "fretboards");
-    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
+    const [getLabel, setLabel] = useActiveStoreRef(store, "label");
+    const [getShowInput, setShowInput] = useActiveStoreRef(store, "showInput");
+    const [getFretboards, setFretboards] = useActiveStoreRef(
+        store,
+        "fretboards"
+    );
+    const [getFocusedIndex, setFocusedIndex] = useActiveStoreRef(
         store,
         "focusedIndex"
     );

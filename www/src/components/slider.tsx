@@ -7,7 +7,13 @@ import React, {
 } from "react";
 import styled from "styled-components";
 import { stopClick } from "../utils";
-import { Store, StateType, ActionTypes, useStoreRef } from "../store";
+import {
+    Store,
+    StateType,
+    ActionTypes,
+    useActiveStoreRef,
+    usePassiveStoreRef,
+} from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -103,17 +109,17 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
     leftRef.current = left;
     deltaRef.current = delta;
 
-    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
+    const [getFretboards, setFretboards] = useActiveStoreRef(
         store,
-        "focusedIndex"
+        "fretboards"
     );
-    const [getFretboards, setFretboards] = useStoreRef(store, "fretboards");
-    const [getShowInput, setShowInput] = useStoreRef(store, "showInput");
-    const [getLabel, setLabel] = useStoreRef(store, "label");
-    const [getRehydrateSuccess, setRehydrateSuccess] = useStoreRef(
+    const [getShowInput, setShowInput] = useActiveStoreRef(store, "showInput");
+    const [getLabel, setLabel] = useActiveStoreRef(store, "label");
+    const [getRehydrateSuccess, setRehydrateSuccess] = useActiveStoreRef(
         store,
         "rehydrateSuccess"
     );
+    const [getFocusedIndex] = usePassiveStoreRef(store, "focusedIndex");
 
     // DOM refs
     const progressBarRef = useRef<HTMLDivElement>();
@@ -288,23 +294,25 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                     onTouchStart={onMouseDown}
                     show={!getShowInput()}
                 />
-                {getFretboards().map((fretboard, i) => {
-                    return (
-                        <ProgressBarFragment
-                            key={`button-pad-${i}`}
-                            width={100 / getFretboards().length}
-                            isFirst={i === 0}
-                            isLast={i === getFretboards().length - 1}
-                        >
-                            <ProgressBarName>
-                                <ChordSymbol
-                                    value={fretboard.getName(getLabel())}
-                                    fontSize={12}
-                                />
-                            </ProgressBarName>
-                        </ProgressBarFragment>
-                    );
-                })}
+                {getFretboards()
+                    .filter((fretboard) => fretboard.visible)
+                    .map((fretboard, i) => {
+                        return (
+                            <ProgressBarFragment
+                                key={`button-pad-${i}`}
+                                width={100 / getFretboards().length}
+                                isFirst={i === 0}
+                                isLast={i === getFretboards().length - 1}
+                            >
+                                <ProgressBarName>
+                                    <ChordSymbol
+                                        value={fretboard.getName(getLabel())}
+                                        fontSize={12}
+                                    />
+                                </ProgressBarName>
+                            </ProgressBarFragment>
+                        );
+                    })}
             </ProgressBar>
         </ContainerDiv>
     );

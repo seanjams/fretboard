@@ -1,7 +1,13 @@
 import React, { useRef, useEffect } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
-import { StateType, Store, ActionTypes, useStoreRef } from "../store";
+import {
+    StateType,
+    Store,
+    ActionTypes,
+    useActiveStoreRef,
+    // useDragging
+} from "../store";
 import { Fretboard } from "./fretboard";
 import { BottomControls, TopControls } from "./controls";
 import { ChordInput } from "./input";
@@ -10,8 +16,8 @@ import { Title } from "./title";
 import {
     FRETBOARD_WIDTH,
     STRING_SIZE,
-    LEGEND_HEIGHT,
     SAFETY_AREA_HEIGHT,
+    FRETBOARD_MARGIN_HEIGHT,
 } from "../utils";
 import { isMobile } from "react-device-detect";
 
@@ -48,6 +54,7 @@ const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
     },
 }))<CSSProps>`
     overflow-x: auto;
+    margin: ${FRETBOARD_MARGIN_HEIGHT}px 0;
 `;
 
 const FlexRow = styled.div<CSSProps>`
@@ -63,15 +70,13 @@ interface Props {
 }
 
 export const Dashboard: React.FC<Props> = ({ store }) => {
-    // const isDraggingRef = useRef(false);
-    // const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
-    const [getShowInput, setShowInput] = useStoreRef(store, "showInput");
+    const [getShowInput, setShowInput] = useActiveStoreRef(store, "showInput");
     const fretboardContainerRef = useRef(null);
     const scrollToFretRef = useRef(0);
+    // const [onDragStart, onDragEnd] = useDragging(store);
 
     useEffect(() => {
-        store.addListener(({ isDragging, scrollToFret }) => {
-            // isDraggingRef.current = isDragging;
+        const destroy = store.addListener(({ isDragging, scrollToFret }) => {
             if (scrollToFret !== scrollToFretRef.current) {
                 const fretXPosition =
                     (FRETBOARD_WIDTH * scrollToFret) / STRING_SIZE;
@@ -86,6 +91,10 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
                 scrollToFretRef.current = scrollToFret;
             }
         });
+
+        return () => {
+            destroy();
+        };
     }, []);
 
     // hack fix for mobile dimensions
@@ -99,41 +108,14 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
         windowHeight = window.innerHeight;
     }
 
-    const gutterHeight = windowHeight * 0.12;
-    const mainHeight = windowHeight * 0.76 - 2 * SAFETY_AREA_HEIGHT;
-    const fretboardHeight = mainHeight - 2 * LEGEND_HEIGHT;
-
-    // useEffect(() => {
-    //     window.addEventListener("mouseup", onMouseUp);
-    //     window.addEventListener("touchend", onMouseUp);
-    //     return () => {
-    //         window.removeEventListener("mouseup", onMouseUp);
-    //         window.removeEventListener("touchend", onMouseUp);
-    //     };
-    // }, []);
-
-    // const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
-    //     event.preventDefault();
-    //     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    //     if (isDraggingRef.current) store.setKey("isDragging", false);
-    // }, []);
-
-    // const onMouseDown = (
-    //     event:
-    //         | React.MouseEvent<HTMLDivElement, MouseEvent>
-    //         | React.TouchEvent<HTMLDivElement>
-    // ) => {
-    //     event.preventDefault();
-    //     timeoutRef.current = setTimeout(
-    //         () => store.setKey("isDragging", true),
-    //         300
-    //     );
-    // };
+    const gutterHeight = windowHeight * 0.15 - FRETBOARD_MARGIN_HEIGHT;
+    const mainHeight = windowHeight * 0.7 - 2 * SAFETY_AREA_HEIGHT;
+    const fretboardHeight = mainHeight;
 
     return (
         <ContainerDiv
-            // onMouseDown={onMouseDown}
-            // onTouchStart={onMouseDown}
+            // onMouseDown={onDragStart}
+            // onTouchStart={onDragEnd}
             height={windowHeight}
             width={windowWidth}
         >

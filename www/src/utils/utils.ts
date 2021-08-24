@@ -240,6 +240,7 @@ export interface FretboardUtilType {
     strings: StringSwitchType;
     rootIdx?: number;
     chordName?: ChordTypes;
+    visible?: boolean;
 }
 
 export class FretboardUtil implements FretboardUtilType {
@@ -247,15 +248,26 @@ export class FretboardUtil implements FretboardUtilType {
     strings: StringSwitchType;
     rootIdx?: number;
     chordName?: ChordTypes;
+    visible?: boolean;
 
     constructor(
         notes: NoteSwitchType | null = { ...DEFAULT_NOTESWITCH },
-        strings: StringSwitchType | null = { ...DEFAULT_STRINGSWITCH }
+        strings: StringSwitchType | null = { ...DEFAULT_STRINGSWITCH },
+        rootIdx: number | null = null,
+        chordName: ChordTypes | null = null,
+        visible: boolean = true
     ) {
         this.notes = notes;
         this.strings = strings;
-
-        if (Object.values(this.notes).some((val) => val)) this.setName("flat");
+        this.visible = visible;
+        if (rootIdx !== null) this.rootIdx = rootIdx;
+        if (chordName !== null) this.chordName = chordName;
+        if (
+            !rootIdx &&
+            !chordName &&
+            Object.values(this.notes).some((val) => val)
+        )
+            this.setName("flat");
     }
 
     // gets whether index of note is "on" or "off" in this fretboard
@@ -504,13 +516,22 @@ export class FretboardUtil implements FretboardUtilType {
     }
 
     copy(): FretboardUtil {
-        return new FretboardUtil(copy(this.notes), copy(this.strings));
+        return new FretboardUtil(
+            copy(this.notes),
+            copy(this.strings),
+            this.rootIdx,
+            this.chordName,
+            this.visible
+        );
     }
 
     toJSON(): FretboardUtilType {
         return {
             notes: copy(this.notes),
             strings: copy(this.strings),
+            rootIdx: this.rootIdx,
+            chordName: this.chordName,
+            visible: this.visible,
         };
     }
 }

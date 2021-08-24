@@ -2,9 +2,17 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { ChordSymbol } from "./symbol";
-import { Store, StateType, ActionTypes, useStoreRef } from "../store";
-import { ChordTypes } from "../types";
-import { FLAT_NAMES, SHARP_NAMES, CHORD_NAMES, SHAPES, mod } from "../utils";
+import { Store, StateType, ActionTypes, useActiveStore } from "../store";
+import { ChordTypes, NoteSwitchType } from "../types";
+import {
+    FLAT_NAMES,
+    SHARP_NAMES,
+    CHORD_NAMES,
+    SHAPES,
+    mod,
+    FretboardUtil,
+    cascadeDiffs,
+} from "../utils";
 
 // CSS
 interface CSSProps {
@@ -30,7 +38,6 @@ const FlexRow = styled.div<CSSProps>`
 `;
 
 const Title = styled.div<CSSProps>`
-    margin: 0 0 10px 0;
     font-size: 14px;
 `;
 
@@ -48,10 +55,11 @@ const Tag = styled.div.attrs((props: CSSProps) => {
     border-radius: 4px;
     min-width: 26px;
     min-height: 14px;
-    font-size: 12px;
+    font-size: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 2px;
 `;
 
 interface TagButtonProps {
@@ -119,20 +127,19 @@ interface Props {
 }
 
 export const ChordInput: React.FC<Props> = ({ store }) => {
-    const [getFretboards, setFretboards] = useStoreRef(store, "fretboards");
-    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
-        store,
-        "focusedIndex"
-    );
-    const [getShowInput, setShowInput] = useStoreRef(store, "showInput");
-    const [getLabel, setLabel] = useStoreRef(store, "label");
+    const [getState, setState] = useActiveStore(store);
+    const { fretboards, focusedIndex, label, showInput } = getState();
+    const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
 
-    const fretboard = getFretboards()[getFocusedIndex()];
+    const fretboard = fretboards[focusedIndex];
     const rootIdx = fretboard.rootIdx;
     const chordName = fretboard.chordName;
+    const rootIdxRef = useRef(rootIdx);
+    const chordNameRef = useRef(chordName);
+    rootIdxRef.current = rootIdx;
+    chordNameRef.current = chordName;
 
-    const noteNames: string[] =
-        getLabel() === "sharp" ? SHARP_NAMES : FLAT_NAMES;
+    const noteNames: string[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
 
     const getNotes = (rootIdx: number, chordName: ChordTypes) => {
         if (!chordName) chordName = "maj";
@@ -150,26 +157,69 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
         event.stopPropagation();
     };
 
+    const fretboardAnimation = (notes: number[]) => {
+        const { fretboards, focusedIndex, label } = getState();
+        let total = 0;
+        let n = 15;
+        let nextProgress = focusedIndex + 0.75;
+
+        // create new fretboard from notes, set name accordingly
+        let newFretboard = new FretboardUtil();
+        for (let i = 0; i < notes.length; i++) {
+            newFretboard.set(notes[i], true);
+        }
+        newFretboard.setName(label);
+
+        // add new fretboard to the right of current
+        fretboards.splice(focusedIndex + 1, 0, newFretboard);
+
+        // update diffs
+        store.setPartialState({
+            ...cascadeDiffs(fretboards, focusedIndex),
+            progress: nextProgress,
+        });
+
+        const performAnimation = () => {
+            animationRef.current = requestAnimationFrame(performAnimation);
+
+            // increment progress and focused index on each frame
+            nextProgress += 0.5 / n;
+            store.setKey("progress", nextProgress);
+            if (nextProgress > focusedIndex + 1)
+                store.setKey("focusedIndex", focusedIndex + 1);
+
+            total++;
+            if (total === n) {
+                // clear interval
+                cancelAnimationFrame(animationRef.current);
+
+                // reset progress and focused index on last frame
+                store.setKey("progress", focusedIndex + 0.5);
+                store.setKey("focusedIndex", focusedIndex);
+
+                // remove old fretboard, and update diffs
+                fretboards.splice(focusedIndex, 1);
+                store.setState({
+                    ...getState(),
+                    ...cascadeDiffs(fretboards, focusedIndex),
+                });
+            }
+        };
+        requestAnimationFrame(performAnimation);
+    };
+
     const onRootChange =
         (newRootIdx: number) => (event: MouseEvent | TouchEvent) => {
             event.preventDefault();
             event.stopPropagation();
-
-            store.dispatch({
-                type: "SET_NOTES",
-                payload: { notes: getNotes(newRootIdx, chordName) },
-            });
+            fretboardAnimation(getNotes(newRootIdx, chordNameRef.current));
         };
 
     const onChordChange =
         (newChordName: ChordTypes) => (event: MouseEvent | TouchEvent) => {
             event.preventDefault();
             event.stopPropagation();
-
-            store.dispatch({
-                type: "SET_NOTES",
-                payload: { notes: getNotes(rootIdx, newChordName) },
-            });
+            fretboardAnimation(getNotes(rootIdxRef.current, newChordName));
         };
 
     const onClick = () => {
@@ -181,9 +231,9 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
 
     return (
         <ChordInputContainer onClick={onClick} onTouchStart={onClick}>
-            {getShowInput() && (
+            {showInput && (
                 <CSSTransition
-                    in={getShowInput()}
+                    in={showInput}
                     timeout={300}
                     classNames="input-fade"
                     // onEnter={() => setShowButton(false)}
@@ -194,7 +244,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
                             onClick={preventDefault}
                             onTouchStart={preventDefault}
                         >
-                            <Title>Root</Title>
+                            {/* <Title>Root</Title> */}
                             <FlexRow>
                                 {noteNames.slice(0, 6).map((name, j) => (
                                     <TagButton
@@ -228,7 +278,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
                             onClick={preventDefault}
                             onTouchStart={preventDefault}
                         >
-                            <Title>Chord/Scale</Title>
+                            {/* <Title>Chord/Scale</Title> */}
                             <FlexRow>
                                 {CHORD_NAMES.slice(0, 11).map((name) => (
                                     <TagButton

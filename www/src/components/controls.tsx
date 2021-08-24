@@ -1,6 +1,12 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
-import { Store, StateType, ActionTypes, useStoreRef } from "../store";
+import {
+    Store,
+    StateType,
+    ActionTypes,
+    useActiveStoreRef,
+    usePassiveStoreRef,
+} from "../store";
 import { ArrowTypes } from "../types";
 import { getPositionActionType, COLORS } from "../utils";
 import PlusIcon from "../assets/icons/plus.png";
@@ -126,7 +132,7 @@ interface Props {
 }
 
 // export const NavControls: React.FC<Props> = ({ store }) => {
-//     const [state, setState] = useStore(store);
+//     const [state, setState] = useActiveStore(store);
 //     const [invert, setInvert] = useState(state.invert);
 //     const [leftHand, setLeftHand] = useState(state.leftHand);
 
@@ -351,8 +357,8 @@ export const CircleIconButton: React.FC<ButtonProps> = ({
 };
 
 export const BottomControls: React.FC<Props> = ({ store }) => {
-    const [getInvert, setInvert] = useStoreRef(store, "invert");
-    const [getLeftHand, setLeftHand] = useStoreRef(store, "leftHand");
+    const [getInvert] = usePassiveStoreRef(store, "invert");
+    const [getLeftHand] = usePassiveStoreRef(store, "leftHand");
 
     const onArrowPress = (direction: ArrowTypes) => () => {
         const actionType = getPositionActionType(
@@ -366,18 +372,22 @@ export const BottomControls: React.FC<Props> = ({ store }) => {
         }
     };
 
+    const onAddFretboard = () => store.dispatch({ type: "ADD_FRETBOARD" });
+
+    const onRemoveFretboard = () => store.dispatch({ type: "ADD_FRETBOARD" });
+
     return (
         <CircleControlsContainer>
             <div>
                 <CircleIconButton
-                    onClick={() => store.dispatch({ type: "ADD_FRETBOARD" })} // maybe preventDefault
+                    onClick={onAddFretboard}
                     imageSrc={PlusIcon}
                 />
                 <Label>{""}</Label>
             </div>
             <div>
                 <CircleIconButton
-                    onClick={() => store.dispatch({ type: "REMOVE_FRETBOARD" })}
+                    onClick={onRemoveFretboard}
                     imageSrc={MinusIcon}
                 />
                 <Label>{""}</Label>
@@ -415,13 +425,10 @@ export const BottomControls: React.FC<Props> = ({ store }) => {
 };
 
 export const TopControls: React.FC<Props> = ({ store }) => {
-    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
-        store,
-        "focusedIndex"
-    );
-    const [getBrushMode, setBrushMode] = useStoreRef(store, "brushMode");
+    const [getFocusedIndex] = usePassiveStoreRef(store, "focusedIndex");
+    const [getBrushMode, setBrushMode] = useActiveStoreRef(store, "brushMode");
 
-    const onClick = () => {
+    const onBrushMode = () => {
         store.dispatch({
             type: "SET_BRUSH_MODE",
             payload: {
@@ -431,24 +438,22 @@ export const TopControls: React.FC<Props> = ({ store }) => {
         });
     };
 
+    const onClearNotes = () =>
+        store.dispatch({
+            type: "CLEAR",
+            payload: { focusedIndex: getFocusedIndex() },
+        });
+
     return (
         <CircleControlsContainer>
             <div>
-                <CircleIconButton
-                    onClick={() =>
-                        store.dispatch({
-                            type: "CLEAR",
-                            payload: { focusedIndex: getFocusedIndex() },
-                        })
-                    }
-                    imageSrc={ClearIcon}
-                />
+                <CircleIconButton onClick={onClearNotes} imageSrc={ClearIcon} />
                 <Label>{""}</Label>
             </div>
             <div>
                 <HighlightButton
                     highlighted={getBrushMode() === "highlight"}
-                    onClick={onClick}
+                    onClick={onBrushMode}
                 />
                 <Label>{getBrushMode() === "highlight" && "highlight"}</Label>
             </div>

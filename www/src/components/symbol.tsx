@@ -60,14 +60,25 @@ export const ChordSymbol: React.FC<Props> = ({ value, fontSize }) => {
         let lastIndex = 0;
         for (var i = 0; i < name.length; i++) {
             if (name[i] === "♯" || name[i] === "♭") {
-                crumbs.push(<span>{name.slice(lastIndex, i)}</span>);
                 crumbs.push(
-                    <SymbolSpan fontSize={crumbFontSize}>{name[i]}</SymbolSpan>
+                    <span key={`cr-${name[i]}-${i}`}>
+                        {name.slice(lastIndex, i)}
+                    </span>
+                );
+                crumbs.push(
+                    <SymbolSpan
+                        key={`sy-${name[i]}-${i}`}
+                        fontSize={crumbFontSize}
+                    >
+                        {name[i]}
+                    </SymbolSpan>
                 );
                 lastIndex = i + 1;
             }
         }
-        crumbs.push(<span>{name.slice(lastIndex, i)}</span>);
+        crumbs.push(
+            <span key={`cr-${name[i]}-${i}`}>{name.slice(lastIndex, i)}</span>
+        );
 
         return crumbs;
     };

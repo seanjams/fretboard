@@ -5,7 +5,7 @@ import {
     reducer,
     StateType,
     Store,
-    useStore,
+    usePassiveStore,
 } from "../store";
 import { FretboardUtil } from "../utils";
 import { Dashboard } from "./dashboard";
@@ -36,7 +36,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
         () => new Store<StateType, ActionTypes>(DEFAULT_STATE(), reducer),
         []
     );
-    const [state, setState] = useStore(store);
+    const [getState] = usePassiveStore(store);
 
     useEffect(() => {
         rehydrateState();
@@ -47,7 +47,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
         };
     }, []);
 
-    const saveToLocalStorage = useCallback(() => {
+    const saveToLocalStorage = () => {
         const IGNORE = ["rehydrateSuccess", "isDragging", "scrollToFret"];
         // add in special formatters for keys that were serialized to localStorage
         const HANDLERS: {
@@ -57,6 +57,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
                 fretboards.map((fretboard) => fretboard.toJSON()),
         };
 
+        const state = getState();
         let key: keyof StateType;
         for (key in state) {
             if (IGNORE.includes(key)) continue;
@@ -65,9 +66,9 @@ export const App: React.FC<Props> = ({ oldState }) => {
             );
             localStorage.setItem(key, value);
         }
-    }, [state]);
+    };
 
-    const rehydrateState = useCallback(() => {
+    const rehydrateState = () => {
         let newState;
         if (oldState) {
             newState = {
@@ -76,7 +77,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
                 rehydrateSuccess: true,
             };
         } else if (
-            Object.keys(state).some((key) => localStorage.getItem(key))
+            Object.keys(getState()).some((key) => localStorage.getItem(key))
         ) {
             const defaultState = DEFAULT_STATE();
             newState = {
@@ -98,8 +99,8 @@ export const App: React.FC<Props> = ({ oldState }) => {
             };
         }
 
-        if (newState) setState(newState);
-    }, [state]);
+        if (newState) store.setState(newState);
+    };
 
     return <Dashboard store={store} />;
 };

@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { Store, StateType, ActionTypes, useStoreRef } from "../store";
+import {
+    Store,
+    StateType,
+    ActionTypes,
+    useActiveStoreRef,
+    usePassiveStoreRef,
+} from "../store";
 import { DiffType, LabelTypes } from "../types";
 import {
     mod,
@@ -8,15 +14,24 @@ import {
     COLORS,
     STANDARD_TUNING,
     FRETBOARD_WIDTH,
-    FRETBOARD_HEIGHT,
     STRING_SIZE,
     CIRCLE_SIZE,
 } from "../utils";
 import { ChordSymbol } from "./symbol";
 
+const [secondaryColor, primaryColor] = COLORS[0];
+
 const getTopMargin = (fretHeight: number, diameter: number) => {
     // As circles resize, this top margin keeps them centered
     return (fretHeight - diameter) / 2;
+};
+
+const getBackgroundColor = (isSelected: boolean, isHighlighted: boolean) => {
+    return isHighlighted
+        ? primaryColor
+        : isSelected
+        ? secondaryColor
+        : "transparent";
 };
 
 // CSS
@@ -97,19 +112,65 @@ const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
     margin: auto 0;
 `;
 
-// const LegendDot = styled.div.attrs((props: CSSProps) => ({
-//     style: {
-//         left: `calc(100% - 16px)`,
-//         top: props.legendTop ? "8px" : `calc(${props.height}px - 8px)`,
-//     },
-// }))<CSSProps>`
-//     width: 8px;
-//     height: 8px;
-//     border-radius: 100%;
-//     position: absolute;
-//     background-color: #000;
-//     margin-top: -4px;
-// `;
+const legendDotSize = 4;
+
+const LegendDot = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        left: `calc(100% - ${(legendDotSize * 3) / 2}px)`,
+        top: props.legendTop
+            ? `${2 + legendDotSize / 2}px`
+            : `calc(${props.height}px - ${2 + legendDotSize / 2}px)`,
+    },
+}))<CSSProps>`
+    width: ${legendDotSize}px;
+    height: ${legendDotSize}px;
+    border-radius: 100%;
+    position: absolute;
+    background-color: #000;
+    margin-top: -${legendDotSize / 2}px;
+`;
+
+const OctaveDot = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        left: `calc(100% - ${(legendDotSize * 3) / 2}px)`,
+        top: props.legendTop
+            ? `${2 + 2 * legendDotSize}px`
+            : `calc(${props.height}px - ${2 + 2 * legendDotSize}px)`,
+    },
+}))<CSSProps>`
+    width: ${legendDotSize}px;
+    height: ${legendDotSize}px;
+    border-radius: 100%;
+    position: absolute;
+    background-color: #000;
+    margin-top: -${legendDotSize / 2}px;
+`;
+
+interface LegendProps {
+    stringIndex: number;
+    fretIndex?: number;
+    fretHeight?: number;
+}
+
+const Legend: React.FC<LegendProps> = ({
+    stringIndex,
+    fretIndex,
+    fretHeight,
+}) => (
+    <>
+        {" "}
+        {fretIndex !== 0 &&
+            (stringIndex === 0 || stringIndex === 5) &&
+            [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
+                <LegendDot legendTop={stringIndex !== 0} height={fretHeight} />
+            )}
+        {fretIndex !== 0 &&
+            (stringIndex === 0 || stringIndex === 5) &&
+            mod(fretIndex, 12) === 0 && (
+                <OctaveDot legendTop={stringIndex !== 0} height={fretHeight} />
+            )}
+    </>
+);
 
 // Component
 interface Props {
@@ -133,12 +194,7 @@ export const Fret: React.FC<Props> = ({
     fretboardHeight,
     store,
 }) => {
-    // const [state, setState] = useStore(store);
-
     const noteValue = mod(value, 12);
-    // const [secondaryColor, primaryColor] = COLORS[mod(fretboardIndex, COLORS.length)];
-    const [secondaryColor, primaryColor] = COLORS[0];
-
     const note = new NoteUtil(value);
     // const color = isHighlighted ? "white" : "#333";
     const color = false ? "white" : "#333";
@@ -155,33 +211,20 @@ export const Fret: React.FC<Props> = ({
     const thickness = (6 - stringIndex + 1) / 2;
     const border = openString ? "none" : "1px solid #333";
 
-    const [getFretboards, setFretboards] = useStoreRef(store, "fretboards");
-    const [getFocusedIndex, setFocusedIndex] = useStoreRef(
-        store,
-        "focusedIndex"
-    );
-    const [getBrushMode, setBrushMode] = useStoreRef(store, "brushMode");
-    const [getLabel, setLabel] = useStoreRef(store, "label");
+    const [getBrushMode] = usePassiveStoreRef(store, "brushMode");
+    const [getLabel, setLabel] = useActiveStoreRef(store, "label");
 
     // init refs
-    const fretboard = getFretboards()[getFocusedIndex()];
+    const fretboard = store.state.fretboards[store.state.focusedIndex];
     const isHighlighted = fretboard.getFret(stringIndex, value);
     const isSelected = fretboard.get(value);
     const shadowRef = useRef<HTMLDivElement>();
 
-    const getBackgroundColor = (
-        isSelected: boolean,
-        isHighlighted: boolean
-    ) => {
-        return isHighlighted
-            ? primaryColor
-            : isSelected
-            ? secondaryColor
-            : "transparent";
-    };
+    const backgroundColor = getBackgroundColor(isSelected, isHighlighted);
+    const top = getTopMargin(fretboardHeight / 6, CIRCLE_SIZE);
 
     useEffect(() => {
-        store.addListener(
+        const destroy = store.addListener(
             ({
                 progress,
                 focusedIndex,
@@ -320,6 +363,10 @@ export const Fret: React.FC<Props> = ({
                 shadowRef.current.style.backgroundColor = background;
             }
         );
+
+        return () => {
+            destroy();
+        };
     }, []);
 
     function onContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -397,30 +444,19 @@ export const Fret: React.FC<Props> = ({
             </CircleDiv>
             <ShadowDiv
                 ref={shadowRef}
-                backgroundColor={getBackgroundColor(isSelected, isHighlighted)}
+                backgroundColor={backgroundColor}
                 left={50}
-                top={getTopMargin(fretboardHeight / 6, CIRCLE_SIZE)}
+                top={top}
             />
             <StringSegmentDiv
                 height={thickness}
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
-            {/* {fretIndex !== 0 &&
-                (stringIndex === 0 || stringIndex === 5) &&
-                [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
-                    <LegendDot
-                        legendTop={stringIndex !== 0}
-                        height={fretHeight}
-                    />
-                )}
-            {fretIndex !== 0 &&
-                (stringIndex === 0 || stringIndex === 5) &&
-                mod(fretIndex, 12) === 0 && (
-                    <LegendDot
-                        legendTop={stringIndex !== 0}
-                        height={fretHeight}
-                    />
-                )} */}
+            <Legend
+                stringIndex={stringIndex}
+                fretIndex={fretIndex}
+                fretHeight={fretHeight}
+            />
         </FretDiv>
     );
 };

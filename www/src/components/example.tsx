@@ -1,21 +1,25 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Store, StateType, useStore, ActionTypes } from "../store";
+import { Store, StateType, useActiveStore, ActionTypes } from "../store";
 
 interface Props {
     store: Store<StateType, ActionTypes>;
 }
 
 export const Example: React.FC<Props> = ({ store }) => {
-    const [state, setState] = useStore(store);
-    const [focusedIndex, setFocusedIndex] = useState(state.focusedIndex);
+    const [getState, setState] = useActiveStore(store);
+    const [focusedIndex, setFocusedIndex] = useState(getState().focusedIndex);
     const focusedIndexRef = useRef(focusedIndex);
     focusedIndexRef.current = focusedIndex;
 
     useEffect(() => {
-        store.addListener((newState) => {
+        const destroy = store.addListener((newState) => {
             if (newState.focusedIndex !== focusedIndexRef.current)
                 setFocusedIndex(newState.focusedIndex);
         });
+
+        return () => {
+            destroy();
+        };
     }, []);
 
     const onClick = () => {
