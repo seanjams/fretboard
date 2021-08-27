@@ -122,6 +122,38 @@ interface DragStore {
     isDragging: boolean;
 }
 
+export function usePartialStore<T, A, Keys extends (keyof T)[]>(
+    store: Store<T, A>,
+    keys: Keys
+) {
+    let state: Partial<T> = {};
+    for (let i in keys) {
+        state[keys[i]] = store.state[keys[i]];
+    }
+
+    const [partialState, setPartialState] = useState<Partial<T>>(state);
+    const partialRef = useRef<Partial<T>>(partialState);
+    partialRef.current = partialState;
+
+    useEffect(() => {
+        const destroy = store.addListener((newState) => {
+            let update = false;
+            let state: Partial<T> = {};
+            for (let i in keys) {
+                if (newState[keys[i]] !== partialRef.current[keys[i]])
+                    update = true;
+                state[keys[i]] = newState[keys[i]];
+            }
+            if (update) setPartialState(state);
+        });
+        return () => {
+            destroy();
+        };
+    }, [store]);
+
+    return [() => partialRef.current] as const;
+}
+
 export function useDragging<T extends DragStore, A>(store: Store<T, A>) {
     const isDraggingRef = useRef(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout>>();

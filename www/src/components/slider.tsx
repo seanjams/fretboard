@@ -7,13 +7,7 @@ import React, {
 } from "react";
 import styled from "styled-components";
 import { stopClick } from "../utils";
-import {
-    Store,
-    StateType,
-    ActionTypes,
-    useActiveStoreRef,
-    usePassiveStoreRef,
-} from "../store";
+import { Store, StateType, ActionTypes, usePartialStore } from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -99,27 +93,26 @@ interface SliderProps {
 }
 
 export const Slider: React.FC<SliderProps> = ({ store }) => {
+    // state
+    const [getState] = usePartialStore(store, [
+        "fretboards",
+        "label",
+        "rehydrateSuccess",
+        "focusedIndex",
+    ]);
+    let { fretboards, label, rehydrateSuccess, focusedIndex } = getState();
+    fretboards = fretboards.filter((fretboard) => fretboard.visible);
     const [dragging, setDragging] = useState(false);
     const [left, setLeft] = useState(0);
     const [delta, setDelta] = useState(0);
+
+    // refs
     const draggingRef = useRef(dragging);
     const leftRef = useRef(left);
     const deltaRef = useRef(delta);
     draggingRef.current = dragging;
     leftRef.current = left;
     deltaRef.current = delta;
-
-    const [getFretboards, setFretboards] = useActiveStoreRef(
-        store,
-        "fretboards"
-    );
-    const [getShowInput, setShowInput] = useActiveStoreRef(store, "showInput");
-    const [getLabel, setLabel] = useActiveStoreRef(store, "label");
-    const [getRehydrateSuccess, setRehydrateSuccess] = useActiveStoreRef(
-        store,
-        "rehydrateSuccess"
-    );
-    const [getFocusedIndex] = usePassiveStoreRef(store, "focusedIndex");
 
     // DOM refs
     const progressBarRef = useRef<HTMLDivElement>();
@@ -138,26 +131,31 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
         };
     }, []);
 
-    function getProgressBarFragmentWidth() {
-        return progressBarRef.current.offsetWidth / getFretboards().length;
-    }
+    const getProgressBarFragmentWidth = () => {
+        let { fretboards } = getState();
+        fretboards = fretboards.filter((fretboard) => fretboard.visible);
+        return progressBarRef.current.offsetWidth / fretboards.length;
+    };
 
     useLayoutEffect(() => {
         // set default position to be halfway through the fragment of the current focusedIndex
         if (sliderBarRef.current && progressBarRef.current) {
+            const { focusedIndex } = getState();
             const progressBarFragmentWidth = getProgressBarFragmentWidth();
             const origin = progressBarRef.current.offsetLeft;
             const newLeft =
-                progressBarFragmentWidth * (getFocusedIndex() + 0.5) -
+                progressBarFragmentWidth * (focusedIndex + 0.5) -
                 sliderBarRef.current.offsetWidth / 2 +
                 origin;
             setLeft(newLeft);
         }
-    }, [getRehydrateSuccess(), getFretboards().length]);
+    }, [rehydrateSuccess, fretboards.length]);
 
     const repositionSlider = useCallback((clientX: number) => {
         // get widths, maxwidth is how far the left of the slider can move
         // aka full bar - width of slider
+        let { fretboards, focusedIndex } = getState();
+        fretboards = fretboards.filter((fretboard) => fretboard.visible);
         const origin = progressBarRef.current.offsetLeft;
         const progressBarWidth = progressBarRef.current.offsetWidth;
         const sliderBarWidth = sliderBarRef.current.offsetWidth;
@@ -172,12 +170,12 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
         const progressBarFragmentWidth = getProgressBarFragmentWidth();
         const sliderProgressFragment = newLeft + sliderBarWidth / 2 - origin;
 
-        const focusedIndex = Math.min(
+        const newFocusedIndex = Math.min(
             Math.max(
                 Math.floor(sliderProgressFragment / progressBarFragmentWidth),
                 0
             ),
-            getFretboards().length - 1
+            fretboards.length - 1
         );
 
         // make changes
@@ -190,8 +188,8 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
             "progress",
             Math.max(sliderProgressFragment / progressBarFragmentWidth, 0)
         );
-        if (focusedIndex !== getFocusedIndex())
-            store.setKey("focusedIndex", focusedIndex || 0);
+        if (newFocusedIndex !== focusedIndex)
+            store.setKey("focusedIndex", newFocusedIndex || 0);
     }, []);
 
     // slider drag release (set ratio for resize experiment)
@@ -292,27 +290,25 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                     left={left}
                     onMouseDown={onMouseDown}
                     onTouchStart={onMouseDown}
-                    show={!getShowInput()}
+                    show={true}
                 />
-                {getFretboards()
-                    .filter((fretboard) => fretboard.visible)
-                    .map((fretboard, i) => {
-                        return (
-                            <ProgressBarFragment
-                                key={`button-pad-${i}`}
-                                width={100 / getFretboards().length}
-                                isFirst={i === 0}
-                                isLast={i === getFretboards().length - 1}
-                            >
-                                <ProgressBarName>
-                                    <ChordSymbol
-                                        value={fretboard.getName(getLabel())}
-                                        fontSize={12}
-                                    />
-                                </ProgressBarName>
-                            </ProgressBarFragment>
-                        );
-                    })}
+                {fretboards.map((fretboard, i) => {
+                    return (
+                        <ProgressBarFragment
+                            key={`button-pad-${i}`}
+                            width={100 / fretboards.length}
+                            isFirst={i === 0}
+                            isLast={i === fretboards.length - 1}
+                        >
+                            <ProgressBarName>
+                                <ChordSymbol
+                                    value={fretboard.getName(label)}
+                                    fontSize={12}
+                                />
+                            </ProgressBarName>
+                        </ProgressBarFragment>
+                    );
+                })}
             </ProgressBar>
         </ContainerDiv>
     );

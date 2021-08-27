@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { ChordSymbol } from "./symbol";
-import { Store, StateType, ActionTypes, useActiveStore } from "../store";
+import { Store, StateType, ActionTypes, usePartialStore } from "../store";
 import { ChordTypes, NoteSwitchType } from "../types";
 import {
     FLAT_NAMES,
@@ -76,7 +76,7 @@ export const TagButton: React.FC<TagButtonProps> = ({
     highlighted,
     children,
 }) => {
-    const [active, setActive] = useState(false);
+    const [active, setActive] = useState(highlighted);
     const activeRef = useRef(active);
     activeRef.current = active;
 
@@ -127,17 +127,17 @@ interface Props {
 }
 
 export const ChordInput: React.FC<Props> = ({ store }) => {
-    const [getState, setState] = useActiveStore(store);
+    const [getState] = usePartialStore(store, [
+        "fretboards",
+        "focusedIndex",
+        "label",
+        "showInput",
+    ]);
     const { fretboards, focusedIndex, label, showInput } = getState();
     const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
-
     const fretboard = fretboards[focusedIndex];
     const rootIdx = fretboard.rootIdx;
     const chordName = fretboard.chordName;
-    const rootIdxRef = useRef(rootIdx);
-    const chordNameRef = useRef(chordName);
-    rootIdxRef.current = rootIdx;
-    chordNameRef.current = chordName;
 
     const noteNames: string[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
 
@@ -173,6 +173,9 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
         // add new fretboard to the right of current
         fretboards.splice(focusedIndex + 1, 0, newFretboard);
 
+        // set current fretboard to hidden for slider
+        fretboards[focusedIndex].visible = false;
+
         // update diffs
         store.setPartialState({
             ...cascadeDiffs(fretboards, focusedIndex),
@@ -199,8 +202,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
 
                 // remove old fretboard, and update diffs
                 fretboards.splice(focusedIndex, 1);
-                store.setState({
-                    ...getState(),
+                store.setPartialState({
                     ...cascadeDiffs(fretboards, focusedIndex),
                 });
             }
@@ -212,14 +214,24 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
         (newRootIdx: number) => (event: MouseEvent | TouchEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            fretboardAnimation(getNotes(newRootIdx, chordNameRef.current));
+            const { fretboards, focusedIndex } = getState();
+            const fretboard = fretboards[focusedIndex];
+            const rootIdx = fretboard.rootIdx;
+            const chordName = fretboard.chordName;
+            if (newRootIdx === rootIdx) return;
+            fretboardAnimation(getNotes(newRootIdx, chordName));
         };
 
     const onChordChange =
         (newChordName: ChordTypes) => (event: MouseEvent | TouchEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            fretboardAnimation(getNotes(rootIdxRef.current, newChordName));
+            const { fretboards, focusedIndex } = getState();
+            const fretboard = fretboards[focusedIndex];
+            const rootIdx = fretboard.rootIdx;
+            const chordName = fretboard.chordName;
+            if (newChordName === chordName) return;
+            fretboardAnimation(getNotes(rootIdx, newChordName));
         };
 
     const onClick = () => {

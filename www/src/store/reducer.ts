@@ -178,11 +178,9 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         const lastFretboard = fretboards[lastIndex].copy();
         fretboards.push(lastFretboard);
         focusedIndex = fretboards.length - 1;
-        showInput = true;
         return {
             ...state,
             focusedIndex,
-            showInput,
             ...cascadeDiffs(fretboards, lastIndex),
         };
     }

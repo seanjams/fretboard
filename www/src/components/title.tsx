@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import styled from "styled-components";
-import { StateType, Store, ActionTypes, useActiveStoreRef } from "../store";
+import { StateType, Store, ActionTypes, usePartialStore } from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -18,31 +18,26 @@ interface Props {
 }
 
 export const Title: React.FC<Props> = ({ store }) => {
-    const [getLabel, setLabel] = useActiveStoreRef(store, "label");
-    const [getShowInput, setShowInput] = useActiveStoreRef(store, "showInput");
-    const [getFretboards, setFretboards] = useActiveStoreRef(
-        store,
-        "fretboards"
-    );
-    const [getFocusedIndex, setFocusedIndex] = useActiveStoreRef(
-        store,
-        "focusedIndex"
-    );
+    const [getState] = usePartialStore(store, [
+        "label",
+        "fretboards",
+        "focusedIndex",
+        "showInput",
+    ]);
+    const { label, fretboards, focusedIndex } = getState();
 
-    const fretboard = getFretboards()[getFocusedIndex()];
-    const notesRef = useRef(fretboard.notes);
-    notesRef.current = fretboard.notes;
+    const fretboard = fretboards[focusedIndex];
 
     const onClick = () => {
         return store.dispatch({
             type: "SET_SHOW_INPUT",
-            payload: { showInput: !getShowInput() },
+            payload: { showInput: !getState().showInput },
         });
     };
 
     return (
         <TitleContainerDiv onClick={onClick} onTouchStart={onClick}>
-            <ChordSymbol value={fretboard.getName(getLabel())} fontSize={28} />
+            <ChordSymbol value={fretboard.getName(label)} fontSize={28} />
         </TitleContainerDiv>
     );
 };

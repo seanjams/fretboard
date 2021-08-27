@@ -9,7 +9,11 @@ import {
     // useDragging
 } from "../store";
 import { Fretboard } from "./fretboard";
-import { BottomControls, TopControls } from "./controls";
+import {
+    PositionControls,
+    HighlightControls,
+    SliderControls,
+} from "./controls";
 import { ChordInput } from "./input";
 import { Slider } from "./slider";
 import { Title } from "./title";
@@ -125,11 +129,14 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
                 marginBottom={0}
             >
                 <FlexRow>
-                    <div style={{ flexGrow: 1 }}>
+                    <div style={{ flex: 1 }}>
                         <Title store={store} />
                     </div>
+                    <div style={{ flex: 2 }}>
+                        <Slider store={store} />
+                    </div>
                     <div style={{ flexShrink: 1 }}>
-                        <TopControls store={store} />
+                        <SliderControls store={store} />
                     </div>
                 </FlexRow>
             </FlexContainerDiv>
@@ -155,10 +162,10 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
             >
                 <FlexRow>
                     <div style={{ flexGrow: 1 }}>
-                        <Slider store={store} />
+                        <HighlightControls store={store} />
                     </div>
                     <div style={{ flexShrink: 1 }}>
-                        <BottomControls store={store} />
+                        <PositionControls store={store} />
                     </div>
                 </FlexRow>
             </FlexContainerDiv>
