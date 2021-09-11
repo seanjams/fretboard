@@ -7,7 +7,17 @@ import React, {
 } from "react";
 import styled from "styled-components";
 import { stopClick } from "../utils";
-import { Store, StateType, ActionTypes, usePartialStore } from "../store";
+import {
+    Store,
+    StateType,
+    ActionTypes,
+    useStore,
+    useCurrentProgression,
+    getFretboard,
+    getFretboards,
+    ProgressionStateType,
+    useCurrentFretboard,
+} from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -94,14 +104,30 @@ interface SliderProps {
 
 export const Slider: React.FC<SliderProps> = ({ store }) => {
     // state
-    const [getState] = usePartialStore(store, [
-        "fretboards",
-        "label",
+    const [getState] = useStore(store, [
         "rehydrateSuccess",
-        "focusedIndex",
+        "currentProgressionIndex",
     ]);
-    let { fretboards, label, rehydrateSuccess, focusedIndex } = getState();
-    fretboards = fretboards.filter((fretboard) => fretboard.visible);
+    const [getCurrentProgression] = useCurrentProgression(store, [
+        "focusedIndex",
+        "label",
+    ]);
+    const [getCurrentFretboard] = useCurrentFretboard(store, [
+        "rootIdx",
+        "rootName",
+        "chordName",
+        "chordNotes",
+    ]);
+
+    const state = getState();
+    const { rehydrateSuccess, currentProgressionIndex } = state;
+    const { label, focusedIndex, fretboards } = getCurrentProgression();
+    const visibleFretboards = fretboards.filter(
+        (fretboard) => fretboard.visible
+    );
+
+    const fretboard = getFretboard(state);
+    const updating = visibleFretboards.length !== fretboards.length;
     const [dragging, setDragging] = useState(false);
     const [left, setLeft] = useState(0);
     const [delta, setDelta] = useState(0);
@@ -132,7 +158,7 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
     }, []);
 
     const getProgressBarFragmentWidth = () => {
-        let { fretboards } = getState();
+        let fretboards = getFretboards(getState());
         fretboards = fretboards.filter((fretboard) => fretboard.visible);
         return progressBarRef.current.offsetWidth / fretboards.length;
     };
@@ -140,7 +166,12 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
     useLayoutEffect(() => {
         // set default position to be halfway through the fragment of the current focusedIndex
         if (sliderBarRef.current && progressBarRef.current) {
-            const { focusedIndex } = getState();
+            const state = getState();
+            const fretboards = getFretboards(state);
+
+            // dont update if in middle of animation
+            if (fretboards.some((fretboard) => !fretboard.visible)) return;
+
             const progressBarFragmentWidth = getProgressBarFragmentWidth();
             const origin = progressBarRef.current.offsetLeft;
             const newLeft =
@@ -149,12 +180,19 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                 origin;
             setLeft(newLeft);
         }
-    }, [rehydrateSuccess, fretboards.length]);
+    }, [
+        rehydrateSuccess,
+        fretboards.length,
+        currentProgressionIndex,
+        updating && fretboard.rootIdx,
+        updating && fretboard.chordName,
+    ]);
 
     const repositionSlider = useCallback((clientX: number) => {
         // get widths, maxwidth is how far the left of the slider can move
         // aka full bar - width of slider
-        let { fretboards, focusedIndex } = getState();
+        let { currentProgressionIndex } = getState();
+        let { focusedIndex, fretboards } = getCurrentProgression();
         fretboards = fretboards.filter((fretboard) => fretboard.visible);
         const origin = progressBarRef.current.offsetLeft;
         const progressBarWidth = progressBarRef.current.offsetWidth;
@@ -184,12 +222,25 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
         // progress is decimal value of focusedIndex.
         // If you treat the slider bar as a number line, where the fretboard divisions
         // are the integers, progress is location on this number line.
-        store.setKey(
+        store.setNestedListKey<
+            ProgressionStateType,
+            keyof ProgressionStateType
+        >(
+            "progressions",
+            currentProgressionIndex,
             "progress",
             Math.max(sliderProgressFragment / progressBarFragmentWidth, 0)
         );
         if (newFocusedIndex !== focusedIndex)
-            store.setKey("focusedIndex", newFocusedIndex || 0);
+            store.setNestedListKey<
+                ProgressionStateType,
+                keyof ProgressionStateType
+            >(
+                "progressions",
+                currentProgressionIndex,
+                "focusedIndex",
+                newFocusedIndex || 0
+            );
     }, []);
 
     // slider drag release (set ratio for resize experiment)
@@ -292,17 +343,21 @@ export const Slider: React.FC<SliderProps> = ({ store }) => {
                     onTouchStart={onMouseDown}
                     show={true}
                 />
-                {fretboards.map((fretboard, i) => {
+                {visibleFretboards.map((fretboard, i) => {
                     return (
                         <ProgressBarFragment
                             key={`button-pad-${i}`}
-                            width={100 / fretboards.length}
+                            width={100 / visibleFretboards.length}
                             isFirst={i === 0}
-                            isLast={i === fretboards.length - 1}
+                            isLast={i === visibleFretboards.length - 1}
                         >
                             <ProgressBarName>
                                 <ChordSymbol
-                                    value={fretboard.getName(label)}
+                                    rootName={fretboard.rootName}
+                                    chordName={
+                                        fretboard.chordName ||
+                                        fretboard.chordNotes
+                                    }
                                     fontSize={12}
                                 />
                             </ProgressBarName>

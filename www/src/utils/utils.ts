@@ -1,4 +1,4 @@
-import { DEFAULT_NOTESWITCH } from "./consts";
+import { DEFAULT_NOTESWITCH, DEFAULT_STRINGSWITCH } from "./consts";
 import { FretboardUtil, mod } from "./fretboard";
 import { NoteSwitchType, KeyControlTypes, DiffType } from "../types";
 import { kCombinations } from "./combinations";
@@ -56,7 +56,7 @@ export const COLORS = [
 // shuffleArray(COLORS);
 
 export function SCALE_BUILDER(arr: number[]): NoteSwitchType {
-    const noteswitch = { ...DEFAULT_NOTESWITCH };
+    const noteswitch = DEFAULT_NOTESWITCH();
     for (let i of arr) {
         noteswitch[mod(i, 12)] = true;
     }
@@ -237,6 +237,8 @@ export function cascadeHighlight(
     fretboardB: FretboardUtil,
     diff: DiffType
 ) {
+    // reset fretboardB's highlighted notes
+    fretboardB.strings = DEFAULT_STRINGSWITCH();
     for (let stringIndex in fretboardA.strings) {
         const string = fretboardA.strings[stringIndex];
         for (let fretValue in string) {

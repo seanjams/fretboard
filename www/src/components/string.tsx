@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Store, StateType, ActionTypes, useActiveStoreRef } from "../store";
+import { Store, StateType, ActionTypes, useStore } from "../store";
 import { Fret } from "./fret";
 
 // CSS
@@ -25,13 +25,10 @@ export const String: React.FC<Props> = ({
     fretboardHeight,
     store,
 }) => {
-    const [getStringSize, setStringSize] = useActiveStoreRef(
-        store,
-        "stringSize"
-    );
-    const [getInvert, setInvert] = useActiveStoreRef(store, "invert");
+    const [getState] = useStore(store, ["invert", "stringSize"]);
+    const { invert, stringSize } = getState();
 
-    const frets = Array(getStringSize())
+    const frets = Array(stringSize)
         .fill(0)
         .map((_, i) => {
             const value = base + i;
@@ -47,5 +44,5 @@ export const String: React.FC<Props> = ({
             );
         });
 
-    return <StringDiv>{getInvert() ? frets.reverse() : frets}</StringDiv>;
+    return <StringDiv>{invert ? frets.reverse() : frets}</StringDiv>;
 };

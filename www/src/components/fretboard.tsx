@@ -4,8 +4,8 @@ import {
     Store,
     StateType,
     ActionTypes,
-    useActiveStoreRef,
-    usePassiveStoreRef,
+    useStore,
+    useCurrentProgression,
 } from "../store";
 import { String } from "./string";
 // import { Legend } from "./legend";
@@ -48,14 +48,13 @@ interface Props {
 }
 
 export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
-    const [getInvert, setInvert] = useActiveStoreRef(store, "invert");
-    const [getLeftHand, setLeftHand] = useActiveStoreRef(store, "leftHand");
-    const [getLabel] = usePassiveStoreRef(store, "label");
+    const [getState] = useStore(store, ["invert", "leftHand"]);
+    const [getCurrentProgression] = useCurrentProgression(store, ["label"]);
+    const { invert, leftHand } = getState();
+    const { label } = getCurrentProgression();
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
-    const [highEBottom, setHighEBottom] = useState(
-        getInvert() !== getLeftHand()
-    );
+    const [highEBottom, setHighEBottom] = useState(invert !== leftHand);
 
     useEffect(() => {
         window.addEventListener("keydown", onKeyPress);
@@ -77,11 +76,8 @@ export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
     });
 
     function onKeyPress(this: Window, e: KeyboardEvent): any {
-        const actionType = getPositionActionType(
-            getInvert(),
-            getLeftHand(),
-            e.key
-        );
+        const { invert, leftHand } = getState();
+        const actionType = getPositionActionType(invert, leftHand, e.key);
         if (actionType) {
             e.preventDefault();
             store.dispatch({
@@ -91,12 +87,12 @@ export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
             let naturals: { [key in string]: number } = {};
             let i = 0;
             for (let name of NATURAL_NOTE_NAMES) {
-                if (getLabel() === "flat") {
+                if (label === "flat") {
                     naturals[name] = i;
                     if (name !== F && name !== C) i++;
                     naturals[name.toLowerCase()] = i;
                     i++;
-                } else if (getLabel() === "sharp") {
+                } else if (label === "sharp") {
                     naturals[name.toLowerCase()] = i;
                     if (name !== E && name !== B) i++;
                     naturals[name] = i;

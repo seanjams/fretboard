@@ -1,6 +1,13 @@
 import { BrushTypes, LabelTypes } from "../types";
 import { StateType } from "./state";
 
+export type SetProgression = {
+    readonly type: "SET_PROGRESSION";
+    readonly payload: {
+        currentProgressionIndex: number;
+    };
+};
+
 export type SetNote = {
     readonly type: "SET_NOTE";
     readonly payload: {
@@ -102,6 +109,7 @@ export type RehydrateState = {
 };
 
 export type ActionTypes =
+    | SetProgression
     | SetNote
     | SetNotes
     | SetLabel

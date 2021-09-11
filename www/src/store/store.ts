@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 
 export class Store<T, A> {
-    constructor(public state: T, public reducer: (state: T, action: A) => T) {}
+    constructor(
+        public state: T,
+        public reducer: (state: T, action: A) => T = (state) => state
+    ) {}
 
     public setState = (nextState: T) => {
         // console.log("setState", nextState);
@@ -27,6 +30,19 @@ export class Store<T, A> {
         this.emit();
     };
 
+    public setNestedListKey<W, Key extends keyof W>(
+        listField: keyof T,
+        listIndex: number,
+        key: Key,
+        value: W[Key]
+    ) {
+        const list = this.state[listField] as unknown as W[];
+        if (!(list instanceof Array)) return;
+        const prop = list[listIndex];
+        prop[key] = value;
+        this.emit();
+    }
+
     private listeners = new Set<(state: T) => void>();
 
     public addListener(fn: (state: T) => void) {
@@ -45,156 +61,4 @@ export class Store<T, A> {
         this.state = nextState;
         this.emit();
     };
-}
-
-// Hook that subscribes to a store.
-export function useActiveStore<T, A>(store: Store<T, A>) {
-    const [state, setState] = useState(store.state);
-    const stateRef = useRef(state);
-    stateRef.current = state;
-
-    useEffect(() => {
-        const destroy = store.addListener(setState);
-        return () => {
-            destroy();
-        };
-    }, [store]);
-
-    return [() => stateRef.current, store.setState] as const;
-}
-
-// Hook that subscribes to a store.
-export function usePassiveStore<T, A>(store: Store<T, A>) {
-    const stateRef = useRef(store.state);
-
-    useEffect(() => {
-        const destroy = store.addListener(
-            (newState) => (stateRef.current = newState)
-        );
-        return () => {
-            destroy();
-        };
-    }, [store]);
-
-    return [() => stateRef.current] as const;
-}
-
-export function useActiveStoreRef<T, A, Key extends keyof T>(
-    store: Store<T, A>,
-    key: Key
-) {
-    const [keyState, setKeyState] = useState<T[Key]>(store.state[key]);
-    const keyRef = useRef<T[Key]>(keyState);
-    keyRef.current = keyState;
-
-    useEffect(() => {
-        const destroy = store.addListener((newState) => {
-            if (newState[key] !== keyRef.current) setKeyState(newState[key]);
-        });
-        return () => {
-            destroy();
-        };
-    }, [store]);
-
-    return [() => keyRef.current, setKeyState] as const;
-}
-
-export function usePassiveStoreRef<T, A, Key extends keyof T>(
-    store: Store<T, A>,
-    key: Key
-) {
-    const keyRef = useRef<T[Key]>(store.state[key]);
-
-    useEffect(() => {
-        const destroy = store.addListener((newState) => {
-            if (newState[key] !== keyRef.current)
-                keyRef.current = newState[key];
-        });
-        return () => {
-            destroy();
-        };
-    }, [store]);
-
-    return [() => keyRef.current] as const;
-}
-
-interface DragStore {
-    isDragging: boolean;
-}
-
-export function usePartialStore<T, A, Keys extends (keyof T)[]>(
-    store: Store<T, A>,
-    keys: Keys
-) {
-    let state: Partial<T> = {};
-    for (let i in keys) {
-        state[keys[i]] = store.state[keys[i]];
-    }
-
-    const [partialState, setPartialState] = useState<Partial<T>>(state);
-    const partialRef = useRef<Partial<T>>(partialState);
-    partialRef.current = partialState;
-
-    useEffect(() => {
-        const destroy = store.addListener((newState) => {
-            let update = false;
-            let state: Partial<T> = {};
-            for (let i in keys) {
-                if (newState[keys[i]] !== partialRef.current[keys[i]])
-                    update = true;
-                state[keys[i]] = newState[keys[i]];
-            }
-            if (update) setPartialState(state);
-        });
-        return () => {
-            destroy();
-        };
-    }, [store]);
-
-    return [() => partialRef.current] as const;
-}
-
-export function useDragging<T extends DragStore, A>(store: Store<T, A>) {
-    const isDraggingRef = useRef(false);
-    const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
-
-    useEffect(() => {
-        const destroy = store.addListener(({ isDragging }) => {
-            if (isDraggingRef.current !== isDragging)
-                isDraggingRef.current = isDragging;
-        });
-        window.addEventListener("mouseup", onDragStart);
-        window.addEventListener("touchend", onDragStart);
-        return () => {
-            destroy();
-            window.removeEventListener("mouseup", onDragStart);
-            window.removeEventListener("touchend", onDragStart);
-        };
-    }, []);
-
-    const onDragStart = useCallback(
-        (event: MouseEvent | TouchEvent) => {
-            event.preventDefault();
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            if (isDraggingRef.current) store.setKey("isDragging", false);
-        },
-        [store]
-    );
-
-    const onDragEnd = useCallback(
-        (
-            event:
-                | React.MouseEvent<HTMLDivElement, MouseEvent>
-                | React.TouchEvent<HTMLDivElement>
-        ) => {
-            event.preventDefault();
-            timeoutRef.current = setTimeout(
-                () => store.setKey("isDragging", true),
-                300
-            );
-        },
-        [store]
-    );
-
-    return [onDragStart, onDragEnd];
 }

@@ -1,4 +1,10 @@
-import React, { useMemo, useEffect, useCallback } from "react";
+import React, {
+    useMemo,
+    useEffect,
+    useCallback,
+    useRef,
+    useState,
+} from "react";
 import {
     ActionTypes,
     DEFAULT_STATE,
@@ -7,8 +13,9 @@ import {
     Store,
     usePassiveStore,
 } from "../store";
-import { FretboardUtil } from "../utils";
+import { FretboardUtil, FretboardUtilType } from "../utils";
 import { Dashboard } from "./dashboard";
+import { Menu } from "./menu";
 import "reset-css";
 
 interface Props {
@@ -20,11 +27,17 @@ function parseItem(key: keyof StateType): any {
     if (value) {
         try {
             value = JSON.parse(value);
-            if (key === "fretboards" && Array.isArray(value)) {
-                value = value.map(
-                    (fretboard) =>
-                        new FretboardUtil(fretboard.notes, fretboard.strings)
-                );
+            if (key === "progressions" && Array.isArray(value)) {
+                value = value.map((progression) => ({
+                    ...progression,
+                    fretboards: progression.fretboards.map(
+                        (fretboard: FretboardUtilType) =>
+                            new FretboardUtil(
+                                fretboard.notes,
+                                fretboard.strings
+                            )
+                    ),
+                }));
             }
         } catch (e) {}
     }
@@ -36,7 +49,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
         () => new Store<StateType, ActionTypes>(DEFAULT_STATE(), reducer),
         []
     );
-    const [getState] = usePassiveStore(store);
+    const [getState] = usePassiveStore(store, []);
 
     useEffect(() => {
         rehydrateState();
@@ -53,8 +66,14 @@ export const App: React.FC<Props> = ({ oldState }) => {
         const HANDLERS: {
             [key in string]: (state: StateType) => any;
         } = {
-            fretboards: ({ fretboards }) =>
-                fretboards.map((fretboard) => fretboard.toJSON()),
+            progressions: ({ progressions }) =>
+                progressions.map((progression) => ({
+                    ...progression,
+                    scrollToFret: 0,
+                    fretboards: progression.fretboards.map((fretboard) =>
+                        fretboard.toJSON()
+                    ),
+                })),
         };
 
         const state = getState();
@@ -69,7 +88,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
     };
 
     const rehydrateState = () => {
-        let newState;
+        let newState: StateType;
         if (oldState) {
             newState = {
                 ...DEFAULT_STATE(),
@@ -81,20 +100,17 @@ export const App: React.FC<Props> = ({ oldState }) => {
         ) {
             const defaultState = DEFAULT_STATE();
             newState = {
-                fretboards: parseItem("fretboards") || defaultState.fretboards,
-                leftDiffs: parseItem("leftDiffs") || defaultState.leftDiffs,
-                rightDiffs: parseItem("rightDiffs") || defaultState.rightDiffs,
-                label: parseItem("label") || defaultState.label,
+                progressions:
+                    parseItem("progressions") || defaultState.progressions,
                 invert: parseItem("invert") || defaultState.invert,
                 leftHand: parseItem("leftHand") || defaultState.leftHand,
                 stringSize: parseItem("stringSize") || defaultState.stringSize,
-                focusedIndex:
-                    parseItem("focusedIndex") || defaultState.focusedIndex,
-                progress: parseItem("progress") || defaultState.progress,
                 rehydrateSuccess: true,
                 brushMode: parseItem("brushMode") || defaultState.brushMode,
                 isDragging: defaultState.isDragging,
-                scrollToFret: defaultState.scrollToFret,
+                currentProgressionIndex:
+                    parseItem("currentProgressionIndex") ||
+                    defaultState.currentProgressionIndex,
                 showInput: parseItem("showInput") || defaultState.showInput,
             };
         }
@@ -102,5 +118,9 @@ export const App: React.FC<Props> = ({ oldState }) => {
         if (newState) store.setState(newState);
     };
 
-    return <Dashboard store={store} />;
+    return (
+        <div>
+            <Dashboard store={store} />
+        </div>
+    );
 };

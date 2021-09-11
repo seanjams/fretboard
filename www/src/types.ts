@@ -4,21 +4,9 @@ export type LabelTypes = "sharp" | "flat" | "value";
 
 export type NaturalTypes = "B" | "C" | "D" | "E" | "F" | "G" | "A";
 
-export type SharpTypes =
-    | "C__♯__"
-    | "D__♯__"
-    | "F__♯__"
-    | "G__♯__"
-    | "A__♯__"
-    | NaturalTypes;
+export type SharpTypes = "C♯" | "D♯" | "F♯" | "G♯" | "A♯" | NaturalTypes;
 
-export type FlatTypes =
-    | "D__♭__"
-    | "E__♭__"
-    | "G__♭__"
-    | "A__♭__"
-    | "B__♭__"
-    | NaturalTypes;
+export type FlatTypes = "D♭" | "E♭" | "G♭" | "A♭" | "B♭" | NaturalTypes;
 
 export type NoteTypes = NaturalTypes | SharpTypes | FlatTypes;
 

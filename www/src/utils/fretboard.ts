@@ -62,7 +62,9 @@ export interface FretboardUtilType {
     notes: NoteSwitchType;
     strings: StringSwitchType;
     rootIdx?: number;
+    rootName?: NoteTypes;
     chordName?: ChordTypes;
+    chordNotes?: string;
     visible?: boolean;
 }
 
@@ -70,24 +72,32 @@ export class FretboardUtil implements FretboardUtilType {
     notes: NoteSwitchType;
     strings: StringSwitchType;
     rootIdx?: number;
+    rootName?: NoteTypes;
     chordName?: ChordTypes;
+    chordNotes?: string;
     visible?: boolean;
 
     constructor(
-        notes: NoteSwitchType | null = { ...DEFAULT_NOTESWITCH },
-        strings: StringSwitchType | null = { ...DEFAULT_STRINGSWITCH },
-        rootIdx: number | null = null,
-        chordName: ChordTypes | null = null,
+        notes: NoteSwitchType | null = DEFAULT_NOTESWITCH(),
+        strings: StringSwitchType | null = DEFAULT_STRINGSWITCH(),
+        rootIdx: number | undefined = undefined,
+        rootName: NoteTypes | undefined = undefined,
+        chordName: ChordTypes | undefined = undefined,
+        chordNotes: string | undefined = undefined,
         visible: boolean = true
     ) {
         this.notes = notes;
         this.strings = strings;
         this.visible = visible;
-        if (rootIdx !== null) this.rootIdx = rootIdx;
-        if (chordName !== null) this.chordName = chordName;
+        if (rootIdx !== undefined) this.rootIdx = rootIdx;
+        if (rootName !== undefined) this.rootName = rootName;
+        if (chordName !== undefined) this.chordName = chordName;
+        if (chordNotes !== undefined) this.chordNotes = chordNotes;
         if (
             !rootIdx &&
             !chordName &&
+            !rootName &&
+            !chordNotes &&
             Object.values(this.notes).some((val) => val)
         )
             this.setName("flat");
@@ -290,6 +300,7 @@ export class FretboardUtil implements FretboardUtilType {
         let rootIdx;
         let rootName: NoteTypes;
         let chordName: ChordTypes;
+        let chordNotes: string;
 
         loop1: for (let i = 0; i < chords.length; i++) {
             let chordShape = getNotes(SHAPES[chords[i]]);
@@ -307,35 +318,38 @@ export class FretboardUtil implements FretboardUtilType {
             }
         }
 
+        if (label === "sharp" && rootIdx !== undefined) {
+            rootName = SHARP_NAMES[rootIdx];
+        } else if (label === "flat" && rootIdx !== undefined) {
+            rootName = FLAT_NAMES[rootIdx];
+        }
+
+        if (
+            rootIdx === undefined &&
+            rootName === undefined &&
+            chordName === undefined
+        ) {
+            const chordNoteNames = [];
+            for (let i = 0; i < 12; i++) {
+                if (this.notes[i]) {
+                    let note = new NoteUtil(i);
+                    chordNoteNames.push(note.getName(label));
+                }
+            }
+
+            chordNotes = chordNoteNames.join(", ");
+        }
+
         this.rootIdx = rootIdx;
+        this.rootName = rootName;
         this.chordName = chordName;
+        this.chordNotes = chordNotes;
 
         return this.getName(label);
     }
 
-    getName(label: LabelTypes) {
-        if (
-            typeof this.rootIdx === "undefined" ||
-            typeof this.chordName === "undefined"
-        ) {
-            const result = [];
-            for (let i = 0; i < 12; i++) {
-                if (this.notes[i]) {
-                    let note = new NoteUtil(i);
-                    result.push(note.getName(label));
-                }
-            }
-            return result.join(", ");
-        }
-
-        let rootName;
-        if (label === "sharp") {
-            rootName = SHARP_NAMES[this.rootIdx];
-        } else if (label === "flat") {
-            rootName = FLAT_NAMES[this.rootIdx];
-        }
-
-        return `${rootName}~~${this.chordName}`;
+    getName(label: LabelTypes): [number, string, string, string] {
+        return [this.rootIdx, this.rootName, this.chordName, this.chordNotes];
     }
 
     copy(): FretboardUtil {
@@ -343,7 +357,9 @@ export class FretboardUtil implements FretboardUtilType {
             copy(this.notes),
             copy(this.strings),
             this.rootIdx,
+            this.rootName,
             this.chordName,
+            this.chordNotes,
             this.visible
         );
     }
@@ -352,8 +368,10 @@ export class FretboardUtil implements FretboardUtilType {
         return {
             notes: copy(this.notes),
             strings: copy(this.strings),
+            rootName: this.rootName,
             rootIdx: this.rootIdx,
             chordName: this.chordName,
+            chordNotes: this.chordNotes,
             visible: this.visible,
         };
     }

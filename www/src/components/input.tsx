@@ -2,8 +2,17 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { ChordSymbol } from "./symbol";
-import { Store, StateType, ActionTypes, usePartialStore } from "../store";
-import { ChordTypes, NoteSwitchType } from "../types";
+import {
+    Store,
+    StateType,
+    ActionTypes,
+    useStore,
+    useCurrentProgression,
+    useCurrentFretboard,
+    getFretboard,
+    ProgressionStateType,
+} from "../store";
+import { ChordTypes, NoteTypes } from "../types";
 import {
     FLAT_NAMES,
     SHARP_NAMES,
@@ -12,6 +21,9 @@ import {
     mod,
     FretboardUtil,
     cascadeDiffs,
+    SLIDER_RIGHT_WINDOW,
+    SLIDER_WINDOW_LENGTH,
+    DEFAULT_STRINGSWITCH,
 } from "../utils";
 
 // CSS
@@ -44,10 +56,9 @@ const Title = styled.div<CSSProps>`
 const Tag = styled.div.attrs((props: CSSProps) => {
     return {
         style: {
-            border:
-                props.active || props.highlighted
-                    ? "2px solid #000"
-                    : "2px solid transparent",
+            border: props.highlighted
+                ? "2px solid #000"
+                : "2px solid transparent",
         },
     };
 })<CSSProps>`
@@ -89,6 +100,10 @@ export const TagButton: React.FC<TagButtonProps> = ({
         };
     }, []);
 
+    useEffect(() => {
+        if (!highlighted) setActive(false);
+    }, [highlighted]);
+
     const onMouseDown = (
         event:
             | React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -104,18 +119,14 @@ export const TagButton: React.FC<TagButtonProps> = ({
         event.preventDefault();
         event.stopPropagation();
 
-        if (activeRef.current) {
-            setActive(false);
-            if (onClick) onClick(event);
-        }
+        if (activeRef.current && onClick) onClick(event);
     }, []);
 
     return (
         <Tag
             onTouchStart={onMouseDown}
             onMouseDown={onMouseDown}
-            active={active}
-            highlighted={highlighted}
+            highlighted={highlighted || active}
         >
             {children}
         </Tag>
@@ -127,19 +138,26 @@ interface Props {
 }
 
 export const ChordInput: React.FC<Props> = ({ store }) => {
-    const [getState] = usePartialStore(store, [
-        "fretboards",
-        "focusedIndex",
-        "label",
+    const [getState] = useStore(store, [
         "showInput",
+        "currentProgressionIndex",
     ]);
-    const { fretboards, focusedIndex, label, showInput } = getState();
-    const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
-    const fretboard = fretboards[focusedIndex];
-    const rootIdx = fretboard.rootIdx;
-    const chordName = fretboard.chordName;
+    const [getCurrentProgression] = useCurrentProgression(store, [
+        "label",
+        "focusedIndex",
+    ]);
+    const [getCurrentFretboard] = useCurrentFretboard(store, [
+        "rootIdx",
+        "rootName",
+        "chordName",
+        "chordNotes",
+    ]);
+    const { showInput } = getState();
+    const { label } = getCurrentProgression();
+    const { rootIdx, chordName } = getCurrentFretboard();
 
-    const noteNames: string[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
+    const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
+    const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
 
     const getNotes = (rootIdx: number, chordName: ChordTypes) => {
         if (!chordName) chordName = "maj";
@@ -158,10 +176,15 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
     };
 
     const fretboardAnimation = (notes: number[]) => {
-        const { fretboards, focusedIndex, label } = getState();
-        let total = 0;
-        let n = 15;
-        let nextProgress = focusedIndex + 0.75;
+        // cancel past animation if pressed quickly
+        if (animationRef.current) cancelAnimationFrame(animationRef.current);
+
+        const { progressions, currentProgressionIndex } = getState();
+        const { focusedIndex, label, fretboards } = getCurrentProgression();
+        let frameCount = 0;
+        let animationDuration = 0.25; // 0.25 seconds roughly comes out to 15 frames
+        let totalFrames = Math.ceil(animationDuration * 60);
+        let nextProgress = focusedIndex + SLIDER_RIGHT_WINDOW;
 
         // create new fretboard from notes, set name accordingly
         let newFretboard = new FretboardUtil();
@@ -175,35 +198,67 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
 
         // set current fretboard to hidden for slider
         fretboards[focusedIndex].visible = false;
+        fretboards[focusedIndex].strings = DEFAULT_STRINGSWITCH();
+        progressions[currentProgressionIndex] = {
+            ...getCurrentProgression(),
+            ...cascadeDiffs(fretboards, focusedIndex),
+            progress: nextProgress,
+        };
 
         // update diffs
         store.setPartialState({
-            ...cascadeDiffs(fretboards, focusedIndex),
-            progress: nextProgress,
+            progressions,
         });
 
         const performAnimation = () => {
             animationRef.current = requestAnimationFrame(performAnimation);
 
             // increment progress and focused index on each frame
-            nextProgress += 0.5 / n;
-            store.setKey("progress", nextProgress);
-            if (nextProgress > focusedIndex + 1)
-                store.setKey("focusedIndex", focusedIndex + 1);
+            frameCount++;
 
-            total++;
-            if (total === n) {
+            // linear animation
+            nextProgress += SLIDER_WINDOW_LENGTH / totalFrames;
+
+            // sinusoidal animation
+            // nextProgress +=
+            //     2 *
+            //     (SLIDER_WINDOW_LENGTH / totalFrames) *
+            //     Math.sin((Math.PI * frameCount) / totalFrames) ** 2;
+
+            store.setNestedListKey<
+                ProgressionStateType,
+                keyof ProgressionStateType
+            >(
+                "progressions",
+                currentProgressionIndex,
+                "progress",
+                nextProgress
+            );
+            if (nextProgress > focusedIndex + 1)
+                store.setNestedListKey<
+                    ProgressionStateType,
+                    keyof ProgressionStateType
+                >(
+                    "progressions",
+                    currentProgressionIndex,
+                    "focusedIndex",
+                    focusedIndex + 1
+                );
+
+            if (frameCount === totalFrames) {
                 // clear interval
                 cancelAnimationFrame(animationRef.current);
 
-                // reset progress and focused index on last frame
-                store.setKey("progress", focusedIndex + 0.5);
-                store.setKey("focusedIndex", focusedIndex);
-
-                // remove old fretboard, and update diffs
+                // remove old fretboard, update diffs, reset progress and focusedIndex
                 fretboards.splice(focusedIndex, 1);
-                store.setPartialState({
+                progressions[currentProgressionIndex] = {
+                    ...getCurrentProgression(),
                     ...cascadeDiffs(fretboards, focusedIndex),
+                    progress: focusedIndex + 0.5,
+                    focusedIndex: focusedIndex,
+                };
+                store.setPartialState({
+                    progressions,
                 });
             }
         };
@@ -214,8 +269,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
         (newRootIdx: number) => (event: MouseEvent | TouchEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            const { fretboards, focusedIndex } = getState();
-            const fretboard = fretboards[focusedIndex];
+            const fretboard = getFretboard(getState());
             const rootIdx = fretboard.rootIdx;
             const chordName = fretboard.chordName;
             if (newRootIdx === rootIdx) return;
@@ -226,8 +280,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
         (newChordName: ChordTypes) => (event: MouseEvent | TouchEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            const { fretboards, focusedIndex } = getState();
-            const fretboard = fretboards[focusedIndex];
+            const fretboard = getFretboard(getState());
             const rootIdx = fretboard.rootIdx;
             const chordName = fretboard.chordName;
             if (newChordName === chordName) return;
@@ -265,7 +318,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
                                         highlighted={rootIdx === j}
                                     >
                                         <ChordSymbol
-                                            value={name}
+                                            rootName={name}
                                             fontSize={12}
                                         />
                                     </TagButton>
@@ -279,7 +332,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
                                         highlighted={rootIdx === j + 6}
                                     >
                                         <ChordSymbol
-                                            value={name}
+                                            rootName={name}
                                             fontSize={12}
                                         />
                                     </TagButton>
@@ -299,7 +352,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
                                         highlighted={chordName === name}
                                     >
                                         <ChordSymbol
-                                            value={name}
+                                            chordName={name}
                                             fontSize={12}
                                         />
                                     </TagButton>
@@ -313,7 +366,7 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
                                         highlighted={chordName === name}
                                     >
                                         <ChordSymbol
-                                            value={name}
+                                            chordName={name}
                                             fontSize={12}
                                         />
                                     </TagButton>

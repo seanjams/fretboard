@@ -4,8 +4,9 @@ import {
     Store,
     StateType,
     ActionTypes,
-    useActiveStoreRef,
-    usePassiveStoreRef,
+    useStore,
+    usePassiveStore,
+    useCurrentProgression,
 } from "../store";
 import { ArrowTypes } from "../types";
 import { getPositionActionType, COLORS } from "../utils";
@@ -169,15 +170,11 @@ export const CircleIconButton: React.FC<ButtonProps> = ({
 };
 
 export const PositionControls: React.FC<Props> = ({ store }) => {
-    const [getInvert] = usePassiveStoreRef(store, "invert");
-    const [getLeftHand] = usePassiveStoreRef(store, "leftHand");
+    const [getState] = usePassiveStore(store, ["invert", "leftHand"]);
 
     const onArrowPress = (direction: ArrowTypes) => () => {
-        const actionType = getPositionActionType(
-            getInvert(),
-            getLeftHand(),
-            direction
-        );
+        const { invert, leftHand } = getState();
+        const actionType = getPositionActionType(invert, leftHand, direction);
 
         if (actionType) {
             store.dispatch({ type: actionType });
@@ -219,24 +216,29 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
 };
 
 export const HighlightControls: React.FC<Props> = ({ store }) => {
-    const [getFocusedIndex] = usePassiveStoreRef(store, "focusedIndex");
-    const [getBrushMode, setBrushMode] = useActiveStoreRef(store, "brushMode");
+    const [getState] = useStore(store, ["brushMode"]);
+    const [getCurrentProgression] = useCurrentProgression(store, [
+        "focusedIndex",
+    ]);
+    const { brushMode } = getState();
 
     const onBrushMode = () => {
+        const { brushMode } = getState();
         store.dispatch({
             type: "SET_BRUSH_MODE",
             payload: {
-                brushMode:
-                    getBrushMode() === "highlight" ? "select" : "highlight",
+                brushMode: brushMode === "highlight" ? "select" : "highlight",
             },
         });
     };
 
-    const onClearNotes = () =>
+    const onClearNotes = () => {
+        const { focusedIndex } = getCurrentProgression();
         store.dispatch({
             type: "CLEAR",
-            payload: { focusedIndex: getFocusedIndex() },
+            payload: { focusedIndex: focusedIndex },
         });
+    };
 
     return (
         <CircleControlsContainer>
@@ -246,10 +248,10 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
             </div>
             <div>
                 <HighlightButton
-                    highlighted={getBrushMode() === "highlight"}
+                    highlighted={brushMode === "highlight"}
                     onClick={onBrushMode}
                 />
-                <Label>{getBrushMode() === "highlight" && "highlight"}</Label>
+                <Label>{brushMode === "highlight" && "highlight"}</Label>
             </div>
         </CircleControlsContainer>
     );

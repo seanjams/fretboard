@@ -1,5 +1,5 @@
 import { ActionTypes } from "./actions";
-import { StateType } from "./state";
+import { getFretboards, StateType, getProgression } from "./state";
 import {
     FretboardUtil,
     rebuildDiffs,
@@ -10,13 +10,20 @@ import {
 function NeverCalled(never: never): void {}
 
 export function reducer(state: StateType, action: ActionTypes): StateType {
-    let { fretboards, focusedIndex, scrollToFret, showInput, label } = state;
-    fretboards = fretboards.map((fretboard) => fretboard.copy());
+    let { progressions, currentProgressionIndex } = state;
+    let currentProgression = getProgression(state);
+    let { focusedIndex, scrollToFret, label } = currentProgression;
+    let fretboards = getFretboards(state).map((fretboard) => fretboard.copy());
 
     if (action.type === "CLEAR_ALL") {
         const newFretboards = Array(fretboards.length)
             .fill(0)
             .map(() => new FretboardUtil());
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...rebuildDiffs(newFretboards),
+        };
+
         return {
             ...state,
             ...rebuildDiffs(newFretboards),
@@ -26,9 +33,14 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
     if (action.type === "CLEAR") {
         const { focusedIndex } = action.payload;
         fretboards[focusedIndex] = new FretboardUtil();
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...rebuildDiffs(fretboards),
+        };
+
         return {
             ...state,
-            ...rebuildDiffs(fretboards),
+            progressions,
         };
     }
 
@@ -40,6 +52,22 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         return { ...state, leftHand: !state.leftHand };
     }
 
+    if (action.type === "SET_PROGRESSION") {
+        const { currentProgressionIndex } = action.payload;
+        const fretboards = progressions[currentProgressionIndex].fretboards;
+        progressions[currentProgressionIndex] = {
+            ...progressions[currentProgressionIndex],
+            focusedIndex: 0,
+            progress: 0.5,
+            ...cascadeDiffs(fretboards, 0),
+        };
+        return {
+            ...state,
+            progressions,
+            currentProgressionIndex,
+        };
+    }
+
     if (action.type === "SET_NOTE") {
         const { note, turnOn } = action.payload;
         const fretboard = fretboards[focusedIndex];
@@ -49,10 +77,14 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         } else {
             fretboard.toggle(note);
         }
-
         fretboard.setName(label);
 
-        return { ...state, ...rebuildDiffs(fretboards) };
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+        };
+
+        return { ...state, progressions };
     }
 
     if (action.type === "SET_NOTES") {
@@ -65,16 +97,22 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         }
 
         // copy highlight to newFretboard
-        const { fretboards: newFretboards } = cascadeDiffs(
-            [oldFretboard, newFretboard],
-            0
-        );
+        oldFretboard.strings = DEFAULT_STRINGSWITCH();
+        const newFretboards = [oldFretboard, newFretboard];
+        cascadeDiffs(newFretboards, 0);
 
         newFretboard = newFretboards[1];
         newFretboard.setName(label);
         fretboards[focusedIndex] = newFretboard;
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+        };
 
-        return { ...state, ...rebuildDiffs(fretboards) };
+        return {
+            ...state,
+            progressions,
+        };
     }
 
     if (action.type === "SET_LABEL") {
@@ -84,7 +122,13 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
             fretboards[i].setName(label);
         }
 
-        return { ...state, fretboards, label };
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+            label,
+        };
+
+        return { ...state, progressions };
     }
 
     if (action.type === "INCREMENT_POSITION_X") {
@@ -93,14 +137,18 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
                 fretboards[i].incrementPosition(1, false);
                 scrollToFret = fretboards[i].getScrollToFret();
             } else {
-                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+                fretboards[i].strings = DEFAULT_STRINGSWITCH();
             }
         }
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+            scrollToFret,
+        };
 
         return {
             ...state,
-            scrollToFret,
-            ...cascadeDiffs(fretboards, focusedIndex),
+            progressions,
         };
     }
 
@@ -110,14 +158,18 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
                 fretboards[i].incrementPosition(-1, false);
                 scrollToFret = fretboards[i].getScrollToFret();
             } else {
-                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+                fretboards[i].strings = DEFAULT_STRINGSWITCH();
             }
         }
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+            scrollToFret,
+        };
 
         return {
             ...state,
-            scrollToFret,
-            ...cascadeDiffs(fretboards, focusedIndex),
+            progressions,
         };
     }
 
@@ -127,14 +179,18 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
                 fretboards[i].incrementPosition(1, true);
                 scrollToFret = fretboards[i].getScrollToFret();
             } else {
-                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+                fretboards[i].strings = DEFAULT_STRINGSWITCH();
             }
         }
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+            scrollToFret,
+        };
 
         return {
             ...state,
-            scrollToFret,
-            ...cascadeDiffs(fretboards, focusedIndex),
+            progressions,
         };
     }
 
@@ -144,14 +200,18 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
                 fretboards[i].incrementPosition(-1, true);
                 scrollToFret = fretboards[i].getScrollToFret();
             } else {
-                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+                fretboards[i].strings = DEFAULT_STRINGSWITCH();
             }
         }
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+            scrollToFret,
+        };
 
         return {
             ...state,
-            scrollToFret,
-            ...cascadeDiffs(fretboards, focusedIndex),
+            progressions,
         };
     }
 
@@ -166,11 +226,18 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
                     fretboards[i].toggleFret(stringIndex, value);
                 }
             } else {
-                fretboards[i].strings = DEFAULT_STRINGSWITCH;
+                fretboards[i].strings = DEFAULT_STRINGSWITCH();
             }
         }
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+        };
 
-        return { ...state, ...cascadeDiffs(fretboards, focusedIndex) };
+        return {
+            ...state,
+            progressions,
+        };
     }
 
     if (action.type === "ADD_FRETBOARD") {
@@ -178,29 +245,40 @@ export function reducer(state: StateType, action: ActionTypes): StateType {
         const lastFretboard = fretboards[lastIndex].copy();
         fretboards.push(lastFretboard);
         focusedIndex = fretboards.length - 1;
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+            focusedIndex,
+        };
         return {
             ...state,
-            focusedIndex,
-            ...cascadeDiffs(fretboards, lastIndex),
+            progressions,
         };
     }
 
     if (action.type === "REMOVE_FRETBOARD") {
-        let { focusedIndex } = state;
         if (fretboards.length > 1) fretboards.pop();
         if (focusedIndex >= fretboards.length)
             focusedIndex = fretboards.length - 1;
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            ...rebuildDiffs(fretboards),
+            focusedIndex,
+        };
 
         return {
             ...state,
-            focusedIndex,
-            ...rebuildDiffs(fretboards),
+            progressions,
         };
     }
 
     if (action.type === "SET_FOCUS") {
         const { focusedIndex } = action.payload;
-        return { ...state, focusedIndex };
+        progressions[currentProgressionIndex] = {
+            ...currentProgression,
+            focusedIndex,
+        };
+        return { ...state, progressions };
     }
 
     if (action.type === "SET_SHOW_INPUT") {

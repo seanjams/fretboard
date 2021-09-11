@@ -9,39 +9,43 @@ import {
 } from "../types";
 
 export const C = "C";
-export const Cs = "C__♯__";
-export const Db = "D__♭__";
+export const Cs = "C♯";
+export const Db = "D♭";
 export const D = "D";
-export const Ds = "D__♯__";
-export const Eb = "E__♭__";
+export const Ds = "D♯";
+export const Eb = "E♭";
 export const E = "E";
 export const F = "F";
-export const Fs = "F__♯__";
-export const Gb = "G__♭__";
+export const Fs = "F♯";
+export const Gb = "G♭";
 export const G = "G";
-export const Gs = "G__♯__";
-export const Ab = "A__♭__";
+export const Gs = "G♯";
+export const Ab = "A♭";
 export const A = "A";
-export const As = "A__♯__";
-export const Bb = "B__♭__";
+export const As = "A♯";
+export const Bb = "B♭";
 export const B = "B";
 
-export const DEFAULT_NOTESWITCH: NoteSwitchType = {
-    0: false,
-    1: false,
-    2: false,
-    3: false,
-    4: false,
-    5: false,
-    6: false,
-    7: false,
-    8: false,
-    9: false,
-    10: false,
-    11: false,
-};
+export function DEFAULT_NOTESWITCH(): NoteSwitchType {
+    return {
+        0: false,
+        1: false,
+        2: false,
+        3: false,
+        4: false,
+        5: false,
+        6: false,
+        7: false,
+        8: false,
+        9: false,
+        10: false,
+        11: false,
+    };
+}
 
-export const DEFAULT_STRINGSWITCH: StringSwitchType = [{}, {}, {}, {}, {}, {}];
+export function DEFAULT_STRINGSWITCH(): StringSwitchType {
+    return [{}, {}, {}, {}, {}, {}];
+}
 
 export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
     [C, C],
@@ -82,6 +86,13 @@ export const STRING_SIZE = 22;
 export const CIRCLE_SIZE = 26;
 
 export const SAFETY_AREA_HEIGHT = SP[1];
+
+export const SLIDER_LEFT_WINDOW = 0.25;
+
+export const SLIDER_RIGHT_WINDOW = 1 - SLIDER_LEFT_WINDOW;
+
+export const SLIDER_WINDOW_LENGTH =
+    1 + SLIDER_LEFT_WINDOW - SLIDER_RIGHT_WINDOW;
 
 export const NATURAL_NOTE_NAMES: NaturalTypes[] = [C, D, E, F, G, A, B];
 
