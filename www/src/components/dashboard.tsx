@@ -2,14 +2,8 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import { isMobile } from "react-device-detect";
 import styled from "styled-components";
-import {
-    StateType,
-    Store,
-    ActionTypes,
-    useStore,
-    getProgression,
-    // useDragging
-} from "../store";
+import { SliderStateType, StateType } from "../types";
+import { Store } from "../store";
 import { Fretboard } from "./fretboard";
 import {
     PositionControls,
@@ -17,7 +11,7 @@ import {
     SliderControls,
 } from "./controls";
 import { ChordInput } from "./input";
-import { Menu } from "./menu";
+// import { Menu } from "./menu";
 import { Slider } from "./slider";
 import { Title } from "./title";
 import {
@@ -25,6 +19,7 @@ import {
     STRING_SIZE,
     SAFETY_AREA_HEIGHT,
     FRETBOARD_MARGIN_HEIGHT,
+    getCurrentProgression,
 } from "../utils";
 
 // CSS
@@ -73,16 +68,35 @@ const FlexRow = styled.div<CSSProps>`
 
 // Component
 interface Props {
-    store: Store<StateType, ActionTypes>;
+    store: Store<StateType>;
+    sliderStore: Store<SliderStateType>;
 }
 
-export const Dashboard: React.FC<Props> = ({ store }) => {
-    const [getState] = useStore(store, ["showInput"]);
-    const { showInput } = getState();
+export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
+    const { showInput } = store.state;
     const [orientation, setOrientation] =
         useState<OrientationType>("portrait-primary");
     const fretboardContainerRef = useRef(null);
     const scrollToFretRef = useRef(0);
+
+    useEffect(() => {
+        return store.addListener((newState: StateType) => {
+            const { scrollToFret } = getCurrentProgression(newState);
+            if (scrollToFret !== scrollToFretRef.current) {
+                const fretXPosition =
+                    (FRETBOARD_WIDTH * scrollToFret) / STRING_SIZE;
+                const halfContainerWidth =
+                    fretboardContainerRef.current.offsetWidth / 2;
+
+                fretboardContainerRef.current.scrollTo({
+                    top: 0,
+                    left: fretXPosition - halfContainerWidth,
+                    behavior: "smooth",
+                });
+                scrollToFretRef.current = scrollToFret;
+            }
+        });
+    });
     // const [onDragStart, onDragEnd] = useDragging(store);
 
     const getScreenDimensions = (): [number, number] => {
@@ -115,26 +129,8 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
     const fretboardHeight = mainHeight;
 
     useEffect(() => {
-        const destroy = store.addListener((newState) => {
-            const { scrollToFret } = getProgression(newState);
-            if (scrollToFret !== scrollToFretRef.current) {
-                const fretXPosition =
-                    (FRETBOARD_WIDTH * scrollToFret) / STRING_SIZE;
-                const halfContainerWidth =
-                    fretboardContainerRef.current.offsetWidth / 2;
-
-                fretboardContainerRef.current.scrollTo({
-                    top: 0,
-                    left: fretXPosition - halfContainerWidth,
-                    behavior: "smooth",
-                });
-                scrollToFretRef.current = scrollToFret;
-            }
-        });
-
         window.addEventListener("orientationchange", onOrientationChange);
         return () => {
-            destroy();
             window.removeEventListener(
                 "orientationchange",
                 onOrientationChange
@@ -147,15 +143,15 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
         setWindowDimensions(getScreenDimensions());
     }, []);
 
-    console.log("RERENDER", windowWidth, windowHeight);
-
     return (
         <>
             <ContainerDiv
                 // onMouseDown={onDragStart}
                 // onTouchStart={onDragEnd}
-                height={height}
-                width={width}
+                height={windowHeight}
+                width={windowWidth}
+                // height={height}
+                // width={width}
             >
                 <FlexContainerDiv
                     height={gutterHeight}
@@ -167,7 +163,7 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
                             <Title store={store} />
                         </div>
                         <div style={{ flex: 2 }}>
-                            <Slider store={store} />
+                            <Slider store={store} sliderStore={sliderStore} />
                         </div>
                         <div style={{ flexShrink: 1 }}>
                             <SliderControls store={store} />
@@ -181,7 +177,7 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
                     // onEnter={() => setShowButton(false)}
                     // onExited={() => setShowButton(true)}
                 >
-                    <ChordInput store={store} />
+                    <ChordInput store={store} sliderStore={sliderStore} />
                 </CSSTransition>
                 <OverflowContainerDiv
                     height={mainHeight}
@@ -190,6 +186,7 @@ export const Dashboard: React.FC<Props> = ({ store }) => {
                     <Fretboard
                         fretboardHeight={fretboardHeight}
                         store={store}
+                        sliderStore={sliderStore}
                     />
                 </OverflowContainerDiv>
                 <FlexContainerDiv

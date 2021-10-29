@@ -2,28 +2,26 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { ChordSymbol } from "./symbol";
-import {
-    Store,
-    StateType,
-    ActionTypes,
-    useStore,
-    useCurrentProgression,
-    useCurrentFretboard,
-    getFretboard,
-    ProgressionStateType,
-} from "../store";
-import { ChordTypes, NoteTypes } from "../types";
+import { Store } from "../store";
+import { ChordTypes, NoteTypes, StateType, SliderStateType } from "../types";
 import {
     FLAT_NAMES,
     SHARP_NAMES,
     CHORD_NAMES,
     SHAPES,
     mod,
-    FretboardUtil,
     cascadeDiffs,
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
     DEFAULT_STRINGSWITCH,
+    getCurrentProgression,
+    getCurrentFretboards,
+    getCurrentFretboard,
+    getName,
+    getNotes,
+    SELECTED,
+    setFret,
+    clearHighlight,
 } from "../utils";
 
 // CSS
@@ -134,35 +132,50 @@ export const TagButton: React.FC<TagButtonProps> = ({
 };
 
 interface Props {
-    store: Store<StateType, ActionTypes>;
+    store: Store<StateType>;
+    sliderStore: Store<SliderStateType>;
 }
 
-export const ChordInput: React.FC<Props> = ({ store }) => {
-    const [getState] = useStore(store, [
-        "showInput",
-        "currentProgressionIndex",
-    ]);
-    const [getCurrentProgression] = useCurrentProgression(store, [
-        "label",
-        "focusedIndex",
-    ]);
-    const [getCurrentFretboard] = useCurrentFretboard(store, [
-        "rootIdx",
-        "rootName",
-        "chordName",
-        "chordNotes",
-    ]);
-    const { showInput } = getState();
-    const { label } = getCurrentProgression();
-    const { rootIdx, chordName } = getCurrentFretboard();
-
+export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
+    // state
+    const stateRef = useRef(store.state);
+    // name
+    const { label } = getCurrentProgression(stateRef.current);
+    const [name, setName] = useState(
+        getName(getNotes(getCurrentFretboard(stateRef.current)), label)
+    );
+    const nameRef = useRef(name);
+    nameRef.current = name;
+    const [rootIdx, rootName, chordName, chordNotes] = name;
     const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
+
+    // showInput
+    const [showInput, setShowInput] = useState(stateRef.current.showInput);
+    const showInputRef = useRef(showInput);
+    showInputRef.current = showInput;
+
+    useEffect(() => {
+        return store.addListener((newState) => {
+            const newName = getName(
+                getNotes(getCurrentFretboard(newState)),
+                getCurrentProgression(newState).label
+            );
+            if (newName !== nameRef.current) {
+                setName(newName);
+            }
+            if (newState.showInput !== showInputRef.current) {
+                setShowInput(newState.showInput);
+            }
+            stateRef.current = newState;
+        });
+    }, []);
+
     const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
 
-    const getNotes = (rootIdx: number, chordName: ChordTypes) => {
+    const getNotesForAnimation = (rootIdx: number, chordName: ChordTypes) => {
         if (!chordName) chordName = "maj";
         let notes = SHAPES[chordName].map((i) => mod(i + rootIdx, 12));
-        notes.sort();
+        notes.sort((a, b) => a - b);
         return notes;
     };
 
@@ -179,36 +192,38 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
         // cancel past animation if pressed quickly
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
-        const { progressions, currentProgressionIndex } = getState();
-        const { focusedIndex, label, fretboards } = getCurrentProgression();
+        const { progressions, currentProgressionIndex } = stateRef.current;
+        const currentProgression = getCurrentProgression(stateRef.current);
+        const { focusedIndex, label, fretboards } = currentProgression;
         let frameCount = 0;
         let animationDuration = 0.25; // 0.25 seconds roughly comes out to 15 frames
         let totalFrames = Math.ceil(animationDuration * 60);
         let nextProgress = focusedIndex + SLIDER_RIGHT_WINDOW;
 
         // create new fretboard from notes, set name accordingly
-        let newFretboard = new FretboardUtil();
+        let newFretboard = DEFAULT_STRINGSWITCH();
         for (let i = 0; i < notes.length; i++) {
-            newFretboard.set(notes[i], true);
+            setFret(newFretboard, 0, notes[i], SELECTED);
         }
-        newFretboard.setName(label);
 
         // add new fretboard to the right of current
         fretboards.splice(focusedIndex + 1, 0, newFretboard);
 
         // set current fretboard to hidden for slider
-        fretboards[focusedIndex].visible = false;
-        fretboards[focusedIndex].strings = DEFAULT_STRINGSWITCH();
+        const hiddenFretboardIndices = [focusedIndex];
+        clearHighlight(fretboards[focusedIndex]);
         progressions[currentProgressionIndex] = {
-            ...getCurrentProgression(),
+            ...currentProgression,
             ...cascadeDiffs(fretboards, focusedIndex),
-            progress: nextProgress,
+            hiddenFretboardIndices,
         };
 
         // update diffs
-        store.setPartialState({
+        store.setState({
+            ...stateRef.current,
             progressions,
         });
+        sliderStore.setKey("progress", nextProgress);
 
         const performAnimation = () => {
             animationRef.current = requestAnimationFrame(performAnimation);
@@ -224,27 +239,9 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
             //     2 *
             //     (SLIDER_WINDOW_LENGTH / totalFrames) *
             //     Math.sin((Math.PI * frameCount) / totalFrames) ** 2;
-
-            store.setNestedListKey<
-                ProgressionStateType,
-                keyof ProgressionStateType
-            >(
-                "progressions",
-                currentProgressionIndex,
-                "progress",
-                nextProgress
-            );
+            sliderStore.setKey("progress", nextProgress);
             if (nextProgress > focusedIndex + 1)
-                store.setNestedListKey<
-                    ProgressionStateType,
-                    keyof ProgressionStateType
-                >(
-                    "progressions",
-                    currentProgressionIndex,
-                    "focusedIndex",
-                    focusedIndex + 1
-                );
-
+                store.reducers.setFocusedIndex(focusedIndex + 1);
             if (frameCount === totalFrames) {
                 // clear interval
                 cancelAnimationFrame(animationRef.current);
@@ -252,14 +249,16 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
                 // remove old fretboard, update diffs, reset progress and focusedIndex
                 fretboards.splice(focusedIndex, 1);
                 progressions[currentProgressionIndex] = {
-                    ...getCurrentProgression(),
+                    ...getCurrentProgression(stateRef.current),
                     ...cascadeDiffs(fretboards, focusedIndex),
-                    progress: focusedIndex + 0.5,
+                    hiddenFretboardIndices: [],
                     focusedIndex: focusedIndex,
                 };
-                store.setPartialState({
+                store.setState({
+                    ...stateRef.current,
                     progressions,
                 });
+                sliderStore.setKey("progress", focusedIndex + 0.5);
             }
         };
         requestAnimationFrame(performAnimation);
@@ -269,29 +268,32 @@ export const ChordInput: React.FC<Props> = ({ store }) => {
         (newRootIdx: number) => (event: MouseEvent | TouchEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            const fretboard = getFretboard(getState());
-            const rootIdx = fretboard.rootIdx;
-            const chordName = fretboard.chordName;
+            const { label } = getCurrentProgression(stateRef.current);
+            const fretboard = getCurrentFretboard(stateRef.current);
+            const [rootIdx, rootName, chordName, chordNotes] = getName(
+                getNotes(fretboard),
+                label
+            );
             if (newRootIdx === rootIdx) return;
-            fretboardAnimation(getNotes(newRootIdx, chordName));
+            fretboardAnimation(getNotesForAnimation(newRootIdx, chordName));
         };
 
     const onChordChange =
         (newChordName: ChordTypes) => (event: MouseEvent | TouchEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            const fretboard = getFretboard(getState());
-            const rootIdx = fretboard.rootIdx;
-            const chordName = fretboard.chordName;
+            const { label } = getCurrentProgression(stateRef.current);
+            const fretboard = getCurrentFretboard(stateRef.current);
+            const [rootIdx, rootName, chordName, chordNotes] = getName(
+                getNotes(fretboard),
+                label
+            );
             if (newChordName === chordName) return;
-            fretboardAnimation(getNotes(rootIdx, newChordName));
+            fretboardAnimation(getNotesForAnimation(rootIdx, newChordName));
         };
 
     const onClick = () => {
-        store.dispatch({
-            type: "SET_SHOW_INPUT",
-            payload: { showInput: false },
-        });
+        store.reducers.setShowInput(false);
     };
 
     return (

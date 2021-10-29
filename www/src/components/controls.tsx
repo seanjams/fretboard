@@ -1,15 +1,14 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
+import { Store } from "../store";
+import { ArrowTypes, StateType } from "../types";
 import {
-    Store,
-    StateType,
-    ActionTypes,
-    useStore,
-    usePassiveStore,
-    useCurrentProgression,
-} from "../store";
-import { ArrowTypes } from "../types";
-import { getPositionActionType, COLORS } from "../utils";
+    COLORS,
+    getCurrentProgression,
+    HIGHLIGHTED,
+    SELECTED,
+    BRUSH_MODES,
+} from "../utils";
 import PlusIcon from "../assets/icons/plus.png";
 import MinusIcon from "../assets/icons/minus.png";
 import LeftIcon from "../assets/icons/left-arrow.png";
@@ -68,7 +67,7 @@ const Label = styled.div<CSSProps>`
 
 // Component
 interface Props {
-    store: Store<StateType, ActionTypes>;
+    store: Store<StateType>;
 }
 
 interface ButtonProps {
@@ -170,15 +169,30 @@ export const CircleIconButton: React.FC<ButtonProps> = ({
 };
 
 export const PositionControls: React.FC<Props> = ({ store }) => {
-    const [getState] = usePassiveStore(store, ["invert", "leftHand"]);
-
     const onArrowPress = (direction: ArrowTypes) => () => {
-        const { invert, leftHand } = getState();
-        const actionType = getPositionActionType(invert, leftHand, direction);
+        const { invert, leftHand } = store.state;
 
-        if (actionType) {
-            store.dispatch({ type: actionType });
-        }
+        // Get the action direction based on orientation of fretboard
+        // could maybe move this to reducer.
+        // highEBottom
+        // 	- whether the high E string appears on the top or bottom of the fretboard,
+        // 	- depending on invert/leftHand views
+        const highEBottom = invert !== leftHand;
+        const keyMap: { [key in ArrowTypes]: () => StateType } = {
+            ArrowUp: highEBottom
+                ? store.reducers.decrementPositionY
+                : store.reducers.incrementPositionY,
+            ArrowDown: highEBottom
+                ? store.reducers.incrementPositionY
+                : store.reducers.decrementPositionY,
+            ArrowRight: invert
+                ? store.reducers.decrementPositionX
+                : store.reducers.incrementPositionX,
+            ArrowLeft: invert
+                ? store.reducers.incrementPositionX
+                : store.reducers.decrementPositionX,
+        };
+        if (keyMap[direction]) keyMap[direction]();
     };
 
     return (
@@ -216,28 +230,24 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
 };
 
 export const HighlightControls: React.FC<Props> = ({ store }) => {
-    const [getState] = useStore(store, ["brushMode"]);
-    const [getCurrentProgression] = useCurrentProgression(store, [
-        "focusedIndex",
-    ]);
-    const { brushMode } = getState();
+    const [brushMode, setBrushMode] = useState(store.state.brushMode);
+    const brushModeRef = useRef(brushMode);
+    brushModeRef.current = brushMode;
+
+    useEffect(() => {
+        return store.addListener(({ brushMode }) => {
+            if (brushMode !== brushModeRef.current) setBrushMode(brushMode);
+        });
+    }, []);
 
     const onBrushMode = () => {
-        const { brushMode } = getState();
-        store.dispatch({
-            type: "SET_BRUSH_MODE",
-            payload: {
-                brushMode: brushMode === "highlight" ? "select" : "highlight",
-            },
-        });
+        store.reducers.setBrushMode(
+            store.state.brushMode === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
+        );
     };
 
     const onClearNotes = () => {
-        const { focusedIndex } = getCurrentProgression();
-        store.dispatch({
-            type: "CLEAR",
-            payload: { focusedIndex: focusedIndex },
-        });
+        store.reducers.clear();
     };
 
     return (
@@ -248,20 +258,20 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
             </div>
             <div>
                 <HighlightButton
-                    highlighted={brushMode === "highlight"}
+                    highlighted={brushMode === HIGHLIGHTED}
                     onClick={onBrushMode}
                 />
-                <Label>{brushMode === "highlight" && "highlight"}</Label>
+                <Label>
+                    {brushMode === HIGHLIGHTED && BRUSH_MODES[HIGHLIGHTED]}
+                </Label>
             </div>
         </CircleControlsContainer>
     );
 };
 
 export const SliderControls: React.FC<Props> = ({ store }) => {
-    const onAddFretboard = () => store.dispatch({ type: "ADD_FRETBOARD" });
-
-    const onRemoveFretboard = () =>
-        store.dispatch({ type: "REMOVE_FRETBOARD" });
+    const onAddFretboard = () => store.reducers.addFretboard();
+    const onRemoveFretboard = () => store.reducers.removeFretboard();
 
     return (
         <CircleControlsContainer>

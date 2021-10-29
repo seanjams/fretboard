@@ -6,6 +6,8 @@ import {
     StringSwitchType,
     NaturalTypes,
     ChordTypes,
+    BrushModes,
+    BrushTypes,
 } from "../types";
 
 export const C = "C";
@@ -26,25 +28,38 @@ export const As = "A♯";
 export const Bb = "B♭";
 export const B = "B";
 
+export const NOT_SELECTED = 0;
+export const SELECTED = 1;
+export const HIGHLIGHTED = 2;
+
 export function DEFAULT_NOTESWITCH(): NoteSwitchType {
     return {
-        0: false,
-        1: false,
-        2: false,
-        3: false,
-        4: false,
-        5: false,
-        6: false,
-        7: false,
-        8: false,
-        9: false,
-        10: false,
-        11: false,
+        0: NOT_SELECTED,
+        1: NOT_SELECTED,
+        2: NOT_SELECTED,
+        3: NOT_SELECTED,
+        4: NOT_SELECTED,
+        5: NOT_SELECTED,
+        6: NOT_SELECTED,
+        7: NOT_SELECTED,
+        8: NOT_SELECTED,
+        9: NOT_SELECTED,
+        10: NOT_SELECTED,
+        11: NOT_SELECTED,
     };
 }
 
 export function DEFAULT_STRINGSWITCH(): StringSwitchType {
-    return [{}, {}, {}, {}, {}, {}];
+    const fretboard: StringSwitchType = [{}, {}, {}, {}, {}, {}];
+    for (let i = 0; i < STRING_SIZE; i++) {
+        fretboard[0][STANDARD_TUNING[0] + i] = NOT_SELECTED;
+        fretboard[1][STANDARD_TUNING[1] + i] = NOT_SELECTED;
+        fretboard[2][STANDARD_TUNING[2] + i] = NOT_SELECTED;
+        fretboard[3][STANDARD_TUNING[3] + i] = NOT_SELECTED;
+        fretboard[4][STANDARD_TUNING[4] + i] = NOT_SELECTED;
+        fretboard[5][STANDARD_TUNING[5] + i] = NOT_SELECTED;
+    }
+    return fretboard;
 }
 
 export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
@@ -153,3 +168,22 @@ export const SHAPES: { [key in ChordTypes]: number[] } = {
     [harMinScale]: [0, 2, 3, 5, 7, 8, 11],
     [NeoScale]: [0, 1, 3, 5, 7, 9, 11],
 };
+
+export const BRUSH_MODES: {
+    [key in BrushModes]: BrushTypes;
+} = {
+    [NOT_SELECTED]: "erase",
+    [SELECTED]: "select",
+    [HIGHLIGHTED]: "highlight",
+};
+
+export const COLORS = [
+    ["#C1BFB5", "#B02E0C"],
+    // ["#DBB3B1", "#6C534E"],
+    // ["#F2E3BC", "#618985"],
+    // ["#BBDFC5", "#14342B"],
+    // ["#CEDFD9", "#9B6A6C"],
+    // ["#E5D4ED", "#5941A9"],
+    // ["#D7BEA8", "#744253"],
+    // ["#CAD2C5", "#52489C"],
+];

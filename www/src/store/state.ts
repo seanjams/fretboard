@@ -1,95 +1,67 @@
-import { useState, useEffect, useRef } from "react";
 import {
-    FretboardUtil,
     rebuildDiffs,
-    SCALE_BUILDER,
-    STRING_SIZE,
+    STANDARD_TUNING,
+    HIGHLIGHTED,
+    DEFAULT_STRINGSWITCH,
+    setFret,
 } from "../utils";
-import { Store } from "./store";
-import { LabelTypes, DiffType, BrushTypes } from "../types";
-import { ActionTypes } from "./actions";
+import { StringSwitchType, ProgressionStateType, StateType } from "../types";
 
-export interface StateType {
-    progressions: ProgressionStateType[];
-    invert?: boolean;
-    leftHand?: boolean;
-    stringSize: number;
-    brushMode: BrushTypes;
-    showInput: boolean;
-    currentProgressionIndex: number;
-    isDragging: boolean;
-    rehydrateSuccess: boolean;
-}
+const fretboards1: StringSwitchType[] = [
+    DEFAULT_STRINGSWITCH(),
+    DEFAULT_STRINGSWITCH(),
+    DEFAULT_STRINGSWITCH(),
+];
 
-export interface ProgressionStateType {
-    fretboards: FretboardUtil[];
-    leftDiffs: DiffType[];
-    rightDiffs: DiffType[];
-    focusedIndex: number;
-    progress: number;
-    scrollToFret: number;
-    label: LabelTypes;
-}
+setFret(fretboards1[0], 0, STANDARD_TUNING[0] + 7, HIGHLIGHTED);
+setFret(fretboards1[0], 1, STANDARD_TUNING[1] + 7, HIGHLIGHTED);
+setFret(fretboards1[0], 2, STANDARD_TUNING[2] + 7, HIGHLIGHTED);
+setFret(fretboards1[0], 3, STANDARD_TUNING[3] + 7, HIGHLIGHTED);
+setFret(fretboards1[0], 4, STANDARD_TUNING[4] + 7, HIGHLIGHTED);
+setFret(fretboards1[0], 5, STANDARD_TUNING[5] + 7, HIGHLIGHTED);
 
-const fretboards1 = [
-    new FretboardUtil(SCALE_BUILDER([0, 2, 5, 8])),
-    new FretboardUtil(SCALE_BUILDER([2, 5, 7, 11])),
-    new FretboardUtil(SCALE_BUILDER([0, 4, 7, 11])),
-];
-const fretboards2 = [
-    new FretboardUtil(SCALE_BUILDER([0, 2, 5, 8])),
-    new FretboardUtil(SCALE_BUILDER([2, 5, 7, 11])),
-    new FretboardUtil(SCALE_BUILDER([0, 4, 7, 11])),
-];
-const fretboards3 = [
-    new FretboardUtil(SCALE_BUILDER([0, 2, 5, 8])),
-    new FretboardUtil(SCALE_BUILDER([2, 5, 7, 11])),
-    new FretboardUtil(SCALE_BUILDER([0, 4, 7, 11])),
-];
+setFret(fretboards1[1], 0, STANDARD_TUNING[0] + 5, HIGHLIGHTED);
+setFret(fretboards1[1], 1, STANDARD_TUNING[1] + 7, HIGHLIGHTED);
+setFret(fretboards1[1], 2, STANDARD_TUNING[2] + 5, HIGHLIGHTED);
+setFret(fretboards1[1], 3, STANDARD_TUNING[3] + 6, HIGHLIGHTED);
+setFret(fretboards1[1], 4, STANDARD_TUNING[4] + 5, HIGHLIGHTED);
+setFret(fretboards1[1], 5, STANDARD_TUNING[5] + 5, HIGHLIGHTED);
+
+setFret(fretboards1[2], 0, STANDARD_TUNING[0] + 5, HIGHLIGHTED);
+setFret(fretboards1[2], 1, STANDARD_TUNING[1] + 5, HIGHLIGHTED);
+setFret(fretboards1[2], 2, STANDARD_TUNING[2] + 7, HIGHLIGHTED);
+setFret(fretboards1[2], 3, STANDARD_TUNING[3] + 6, HIGHLIGHTED);
+setFret(fretboards1[2], 4, STANDARD_TUNING[4] + 7, HIGHLIGHTED);
+setFret(fretboards1[2], 5, STANDARD_TUNING[5] + 5, HIGHLIGHTED);
 
 const progression1: ProgressionStateType = {
     ...rebuildDiffs(fretboards1),
     focusedIndex: 0,
-    progress: 0.5,
     scrollToFret: 0,
     label: "flat",
+    hiddenFretboardIndices: [],
 };
 const progression2: ProgressionStateType = {
-    ...rebuildDiffs(fretboards2),
+    ...rebuildDiffs(fretboards1),
     focusedIndex: 0,
-    progress: 0.5,
     scrollToFret: 0,
     label: "flat",
+    hiddenFretboardIndices: [],
 };
 const progression3: ProgressionStateType = {
-    ...rebuildDiffs(fretboards3),
+    ...rebuildDiffs(fretboards1),
     focusedIndex: 0,
-    progress: 0.5,
     scrollToFret: 0,
     label: "flat",
+    hiddenFretboardIndices: [],
 };
 export function DEFAULT_STATE(): StateType {
     return {
         progressions: [progression1, progression2, progression3],
         invert: false,
         leftHand: false,
-        stringSize: STRING_SIZE,
-        brushMode: "select",
+        brushMode: 1,
         showInput: false,
         currentProgressionIndex: 0,
-        isDragging: false,
-        rehydrateSuccess: false,
     };
-}
-
-export function getProgression(state: StateType): ProgressionStateType {
-    return state.progressions[state.currentProgressionIndex];
-}
-
-export function getFretboards(state: StateType): FretboardUtil[] {
-    return getProgression(state).fretboards;
-}
-
-export function getFretboard(state: StateType): FretboardUtil {
-    return getFretboards(state)[getProgression(state).focusedIndex];
 }

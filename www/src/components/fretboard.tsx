@@ -1,16 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import {
-    Store,
-    StateType,
-    ActionTypes,
-    useStore,
-    useCurrentProgression,
-} from "../store";
-import { String } from "./string";
+import { Store } from "../store";
+import { StateType, ArrowTypes, SliderStateType } from "../types";
+import { GuitarString } from "./string";
 // import { Legend } from "./legend";
 import {
-    getPositionActionType,
     STANDARD_TUNING,
     NATURAL_NOTE_NAMES,
     FRETBOARD_WIDTH,
@@ -18,6 +12,7 @@ import {
     B,
     C,
     F,
+    getCurrentProgression,
 } from "../utils";
 
 // CSS
@@ -44,14 +39,17 @@ const FretboardDiv = styled.div<CSSProps>`
 // Component
 interface Props {
     fretboardHeight: number;
-    store: Store<StateType, ActionTypes>;
+    store: Store<StateType>;
+    sliderStore: Store<SliderStateType>;
 }
 
-export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
-    const [getState] = useStore(store, ["invert", "leftHand"]);
-    const [getCurrentProgression] = useCurrentProgression(store, ["label"]);
-    const { invert, leftHand } = getState();
-    const { label } = getCurrentProgression();
+export const Fretboard: React.FC<Props> = ({
+    fretboardHeight,
+    store,
+    sliderStore,
+}) => {
+    const { invert, leftHand } = store.state;
+    const { label } = getCurrentProgression(store.state);
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
     const [highEBottom, setHighEBottom] = useState(invert !== leftHand);
@@ -65,24 +63,44 @@ export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
 
     const strings = STANDARD_TUNING.map((value, i) => {
         return (
-            <String
+            <GuitarString
                 stringIndex={i}
                 base={value}
                 key={`string-${i}`}
                 fretboardHeight={fretboardHeight}
                 store={store}
+                sliderStore={sliderStore}
             />
         );
     });
 
     function onKeyPress(this: Window, e: KeyboardEvent): any {
-        const { invert, leftHand } = getState();
-        const actionType = getPositionActionType(invert, leftHand, e.key);
-        if (actionType) {
+        const { invert, leftHand } = store.state;
+        const direction = e.key;
+        // Get the action direction based on orientation of fretboard
+        // could maybe move this to reducer.
+        // highEBottom
+        // 	- whether the high E string appears on the top or bottom of the fretboard,
+        // 	- depending on invert/leftHand views
+        const highEBottom = invert !== leftHand;
+        const keyMap: { [key in string]: () => StateType } = {
+            ArrowUp: highEBottom
+                ? store.reducers.decrementPositionY
+                : store.reducers.incrementPositionY,
+            ArrowDown: highEBottom
+                ? store.reducers.incrementPositionY
+                : store.reducers.decrementPositionY,
+            ArrowRight: invert
+                ? store.reducers.decrementPositionX
+                : store.reducers.incrementPositionX,
+            ArrowLeft: invert
+                ? store.reducers.incrementPositionX
+                : store.reducers.decrementPositionX,
+        };
+
+        if (keyMap[direction]) {
             e.preventDefault();
-            store.dispatch({
-                type: actionType,
-            });
+            keyMap[direction]();
         } else {
             let naturals: { [key in string]: number } = {};
             let i = 0;
@@ -102,12 +120,7 @@ export const Fretboard: React.FC<Props> = ({ fretboardHeight, store }) => {
 
             if (naturals.hasOwnProperty(e.key)) {
                 e.preventDefault();
-                store.dispatch({
-                    type: "SET_NOTE",
-                    payload: {
-                        note: naturals[e.key],
-                    },
-                });
+                store.reducers.setNote(naturals[e.key]);
             }
         }
     }

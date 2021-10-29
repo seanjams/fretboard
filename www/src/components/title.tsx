@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
+import { StateType } from "../types";
 import {
-    StateType,
-    Store,
-    ActionTypes,
-    useStore,
-    useCurrentProgression,
-    useCurrentFretboard,
-} from "../store";
+    getCurrentProgression,
+    getCurrentFretboard,
+    getName,
+    getNotes,
+} from "../utils";
+import { Store } from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -22,26 +22,29 @@ const TitleContainerDiv = styled.div<CSSProps>`
 
 // Component
 interface Props {
-    store: Store<StateType, ActionTypes>;
+    store: Store<StateType>;
 }
 
 export const Title: React.FC<Props> = ({ store }) => {
-    const [getState] = useStore(store, [
-        "showInput",
-        "currentProgressionIndex",
-    ]);
-    const [getCurrentProgression] = useCurrentProgression(store, [
-        "focusedIndex",
-        "label",
-    ]);
-    const [getCurrentFretboard] = useCurrentFretboard(store, [
-        "rootIdx",
-        "rootName",
-        "chordName",
-        "chordNotes",
-    ]);
-    const { rootName, chordName, chordNotes } = getCurrentFretboard();
-    const name = chordName || chordNotes;
+    const { label } = getCurrentProgression(store.state);
+    const fretboard = getCurrentFretboard(store.state);
+
+    const [name, setName] = useState(getName(getNotes(fretboard), label));
+    const nameRef = useRef(name);
+    nameRef.current = name;
+
+    const [rootIdx, rootName, chordName, chordNotes] = name;
+
+    useEffect(() => {
+        return store.addListener((newState) => {
+            const { label } = getCurrentProgression(newState);
+            const fretboard = getCurrentFretboard(newState);
+            const newName = getName(getNotes(fretboard), label);
+            if (newName !== nameRef.current) {
+                setName(newName);
+            }
+        });
+    }, []);
 
     // fix these parameters
 
@@ -65,17 +68,14 @@ export const Title: React.FC<Props> = ({ store }) => {
             : ((y0 - y1 + buffer) / (x0 - x1)) * (name.length - x1) + y1;
 
     const onClick = () => {
-        return store.dispatch({
-            type: "SET_SHOW_INPUT",
-            payload: { showInput: !getState().showInput },
-        });
+        return store.reducers.setShowInput(!store.state.showInput);
     };
 
     return (
         <TitleContainerDiv onClick={onClick} onTouchStart={onClick}>
             <ChordSymbol
                 rootName={rootName}
-                chordName={name}
+                chordName={chordName || chordNotes || ""}
                 fontSize={fontSize}
             />
         </TitleContainerDiv>

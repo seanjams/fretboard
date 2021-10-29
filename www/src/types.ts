@@ -11,7 +11,7 @@ export type FlatTypes = "D♭" | "E♭" | "G♭" | "A♭" | "B♭" | NaturalType
 export type NoteTypes = NaturalTypes | SharpTypes | FlatTypes;
 
 export type NoteSwitchType = {
-    [key: number]: boolean;
+    [key: number]: number;
 };
 
 export type StringSwitchType = [
@@ -23,17 +23,12 @@ export type StringSwitchType = [
     NoteSwitchType
 ];
 
-export type KeyControlTypes =
-    | "INCREMENT_POSITION_X"
-    | "DECREMENT_POSITION_X"
-    | "INCREMENT_POSITION_Y"
-    | "DECREMENT_POSITION_Y";
-
 export type ArrowTypes = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
 
 export type DiffType = { [key in number]: number };
 
-export type BrushTypes = "highlight" | "select" | "erase";
+export type BrushModes = 0 | 1 | 2;
+export type BrushTypes = "erase" | "select" | "highlight";
 
 export type ChordTypes =
     | "maj"
@@ -53,3 +48,26 @@ export type ChordTypes =
     | "Harmonic Major"
     | "Harmonic Minor"
     | "Neopolitan";
+
+export interface ProgressionStateType {
+    fretboards: StringSwitchType[];
+    leftDiffs: DiffType[];
+    rightDiffs: DiffType[];
+    focusedIndex: number;
+    scrollToFret: number;
+    label: LabelTypes;
+    hiddenFretboardIndices: number[];
+}
+
+export interface StateType {
+    progressions: ProgressionStateType[];
+    invert?: boolean;
+    leftHand?: boolean;
+    brushMode: BrushModes;
+    showInput: boolean;
+    currentProgressionIndex: number;
+}
+
+export interface SliderStateType {
+    progress: number;
+}

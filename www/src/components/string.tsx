@@ -1,7 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Store, StateType, ActionTypes, useStore } from "../store";
+import { StateType, SliderStateType } from "../types";
+import { Store } from "../store";
 import { Fret } from "./fret";
+import { STRING_SIZE } from "../utils";
 
 // CSS
 interface CSSProps {}
@@ -16,19 +18,20 @@ interface Props {
     base: number;
     stringIndex: number;
     fretboardHeight: number;
-    store: Store<StateType, ActionTypes>;
+    store: Store<StateType>;
+    sliderStore: Store<SliderStateType>;
 }
 
-export const String: React.FC<Props> = ({
+export const GuitarString: React.FC<Props> = ({
     base,
     stringIndex,
     fretboardHeight,
     store,
+    sliderStore,
 }) => {
-    const [getState] = useStore(store, ["invert", "stringSize"]);
-    const { invert, stringSize } = getState();
+    const { invert } = store.state;
 
-    const frets = Array(stringSize)
+    const frets = Array(STRING_SIZE)
         .fill(0)
         .map((_, i) => {
             const value = base + i;
@@ -40,6 +43,7 @@ export const String: React.FC<Props> = ({
                     stringIndex={stringIndex}
                     fretboardHeight={fretboardHeight}
                     store={store}
+                    sliderStore={sliderStore}
                 />
             );
         });

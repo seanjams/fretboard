@@ -1,7 +1,29 @@
-import { DEFAULT_NOTESWITCH, DEFAULT_STRINGSWITCH } from "./consts";
-import { FretboardUtil, mod } from "./fretboard";
-import { NoteSwitchType, KeyControlTypes, DiffType } from "../types";
+import {
+    NoteSwitchType,
+    DiffType,
+    NoteTypes,
+    ChordTypes,
+    LabelTypes,
+    StringSwitchType,
+    numString,
+    ProgressionStateType,
+    StateType,
+} from "../types";
 import { kCombinations } from "./combinations";
+
+import {
+    SHAPES,
+    STRING_SIZE,
+    SHARP_NAMES,
+    FLAT_NAMES,
+    DEFAULT_NOTESWITCH,
+    STANDARD_TUNING,
+    HIGHLIGHTED,
+    SELECTED,
+    NOT_SELECTED,
+} from "../utils";
+import { isEqual } from "lodash";
+import {} from "./consts";
 
 export function stopClick() {
     // can be placed within a mouseup event to prevent
@@ -13,52 +35,25 @@ export function stopClick() {
     }
 }
 
-export function getPositionActionType(
-    invert: boolean,
-    leftHand: boolean,
-    direction: string
-): KeyControlTypes | null {
-    // Get the action direction based on orientation of fretboard
-    // could maybe move this to reducer.
-    // highEBottom
-    // 	- whether the high E string appears on the top or bottom of the fretboard,
-    // 	- depending on invert/leftHand views
-    const highEBottom = invert !== leftHand;
-    const keyMap: { [key: string]: KeyControlTypes } = {
-        ArrowUp: highEBottom ? "DECREMENT_POSITION_Y" : "INCREMENT_POSITION_Y",
-        ArrowDown: highEBottom
-            ? "INCREMENT_POSITION_Y"
-            : "DECREMENT_POSITION_Y",
-        ArrowRight: invert ? "DECREMENT_POSITION_X" : "INCREMENT_POSITION_X",
-        ArrowLeft: invert ? "INCREMENT_POSITION_X" : "DECREMENT_POSITION_X",
-    };
+export class NoteUtil {
+    base: number;
+    constructor(base: number) {
+        this.base = mod(base, 12);
+    }
 
-    return keyMap[direction];
+    getName(label: LabelTypes): NoteTypes {
+        if (label === "sharp") {
+            return SHARP_NAMES[this.base];
+        } else if (label === "flat") {
+            return FLAT_NAMES[this.base];
+        }
+    }
 }
-
-// export function shuffleArray(array: any[]): void {
-//     for (let i = array.length - 1; i > 0; i--) {
-//         const j = Math.floor(Math.random() * (i + 1));
-//         [array[i], array[j]] = [array[j], array[i]];
-//     }
-// }
-
-export const COLORS = [
-    ["#C1BFB5", "#B02E0C"],
-    // ["#DBB3B1", "#6C534E"],
-    // ["#F2E3BC", "#618985"],
-    // ["#BBDFC5", "#14342B"],
-    // ["#CEDFD9", "#9B6A6C"],
-    // ["#E5D4ED", "#5941A9"],
-    // ["#D7BEA8", "#744253"],
-    // ["#CAD2C5", "#52489C"],
-];
-// shuffleArray(COLORS);
 
 export function SCALE_BUILDER(arr: number[]): NoteSwitchType {
     const noteswitch = DEFAULT_NOTESWITCH();
     for (let i of arr) {
-        noteswitch[mod(i, 12)] = true;
+        noteswitch[mod(i, 12)] = SELECTED;
     }
     return noteswitch;
 }
@@ -131,11 +126,14 @@ function _getMinDiff(
     return [minSum, minDiff];
 }
 
-export function compare(fretboardA: FretboardUtil, fretboardB: FretboardUtil) {
+export function compare(
+    fretboardA: StringSwitchType,
+    fretboardB: StringSwitchType
+) {
     // for generating diffs between fretboardA and fretboardB in both directions
+    let listA = list(fretboardA);
+    let listB = list(fretboardB);
 
-    let listA = fretboardA.list();
-    let listB = fretboardB.list();
     const listBLonger = listA.length < listB.length;
     let longer = listBLonger ? listB : listA;
     let shorter = listBLonger ? listA : listB;
@@ -177,7 +175,7 @@ export function compare(fretboardA: FretboardUtil, fretboardB: FretboardUtil) {
     return [leftDiff, rightDiff];
 }
 
-export const rebuildDiffs = (fretboards: FretboardUtil[]) => {
+export const rebuildDiffs = (fretboards: StringSwitchType[]) => {
     const leftDiffs = [];
     const rightDiffs = [];
 
@@ -203,10 +201,10 @@ export const rebuildDiffs = (fretboards: FretboardUtil[]) => {
 };
 
 export function cascadeDiffs(
-    fretboards: FretboardUtil[],
+    fretboards: StringSwitchType[],
     focusedIndex: number
 ) {
-    fretboards = fretboards.map((fretboard) => fretboard.copy());
+    fretboards = JSON.parse(JSON.stringify(fretboards));
     const diffs = rebuildDiffs(fretboards);
 
     // left
@@ -233,27 +231,318 @@ export function cascadeDiffs(
 // starting at fretboardA, check all strings for any highlighted notes,
 // and copy them to corresponding notes on fretboardB via diff
 export function cascadeHighlight(
-    fretboardA: FretboardUtil,
-    fretboardB: FretboardUtil,
+    fretboardA: StringSwitchType,
+    fretboardB: StringSwitchType,
     diff: DiffType
 ) {
     // reset fretboardB's highlighted notes
-    fretboardB.strings = DEFAULT_STRINGSWITCH();
-    for (let stringIndex in fretboardA.strings) {
-        const string = fretboardA.strings[stringIndex];
+    clearHighlight(fretboardB);
+    for (let stringIndex in fretboardA) {
+        const string = fretboardA[stringIndex];
         for (let fretValue in string) {
             const diffValue = diff[mod(+fretValue, 12)];
-            const isHighlighted = string[+fretValue];
+            const brushMode = string[+fretValue];
             const slidesInDiff =
                 diffValue !== undefined && Math.abs(diffValue) < 9999;
             if (slidesInDiff) {
                 const fretDestinationValue = +fretValue + diffValue;
-                fretboardB.setFret(
+                setFret(
+                    fretboardB,
                     stringIndex,
                     fretDestinationValue,
-                    isHighlighted
+                    brushMode
                 );
             }
         }
     }
+}
+
+export function mod(a: numString, m: number): number {
+    return ((+a % m) + m) % m;
+}
+
+export function getNotes(fretboard: StringSwitchType): NoteSwitchType {
+    const result: NoteSwitchType = DEFAULT_NOTESWITCH();
+    fretboard.forEach((string, stringIndex) => {
+        Object.keys(string).forEach((fretValue) => {
+            if (string[+fretValue]) result[mod(+fretValue, 12)] = SELECTED;
+        });
+    });
+    return result;
+}
+
+export function setFret(
+    fretboard: StringSwitchType,
+    stringIndex: numString,
+    fretValue: numString,
+    brushMode: number
+): void {
+    // set a fret and all corresponding frets on a fretboard
+    const noteValue = mod(+fretValue, 12);
+    fretboard.forEach((otherString, otherStringIndex) => {
+        Object.keys(otherString).forEach((otherFretValue) => {
+            if (mod(+otherFretValue, 12) !== noteValue) return;
+            // if HIGHLIGHTED (2), only set to SELECTED (1), hence the max
+            if (brushMode !== NOT_SELECTED) {
+                // if selecting/highlighting a note, go through other notes of matching noteValue,
+                // and set them to be at least SELECTED, if not already set higher
+                otherString[+otherFretValue] = Math.max(
+                    otherString[+otherFretValue],
+                    SELECTED
+                );
+            } else {
+                otherString[+otherFretValue] = NOT_SELECTED;
+            }
+        });
+    });
+    fretboard[mod(+stringIndex, 6)][+fretValue] = brushMode;
+}
+
+export function clearHighlight(fretboard: StringSwitchType): void {
+    fretboard.forEach((string) => {
+        Object.keys(string).forEach((fretValue) => {
+            if (string[+fretValue] === HIGHLIGHTED)
+                string[+fretValue] = SELECTED;
+        });
+    });
+}
+
+export const rotate = (arr: any[], times: number = 1) => {
+    let rotated = [...arr];
+    for (let i = 0; i < times; i++) {
+        rotated = rotated.slice(1).concat(rotated[0]);
+    }
+
+    return rotated;
+};
+
+export function getHorizontalIntervalIncrement(
+    value: number,
+    inc: number,
+    scale: number[]
+): number {
+    if (inc === 0) return value;
+
+    const currentDelta = value - mod(value, 12);
+    const currentIndex = scale.indexOf(mod(value, 12));
+    if (currentIndex < 0) return value;
+
+    const nextIndex = mod(currentIndex + inc, scale.length);
+    const nextDelta = 12 * Math.floor((currentIndex + inc) / scale.length);
+    return currentDelta + scale[nextIndex] + nextDelta;
+}
+
+export function getVerticalIntervalIncrement(
+    scale: number[],
+    inc: number
+): number {
+    let min = 12;
+    let minStep: number;
+
+    for (let scaleStep = 1; scaleStep < scale.length; scaleStep++) {
+        // get average interval between different scale steps
+        let average = 0;
+        for (let i = 0; i < scale.length; i++) {
+            const interval = mod(
+                scale[mod(i + scaleStep, scale.length)] - scale[i],
+                12
+            );
+            average += interval;
+        }
+        average = Math.abs(average / scale.length);
+
+        // Get distance from most "vertical" possible interval, the perfect 4th
+        const averageVerticalDelta = Math.abs(average - 5);
+        if (averageVerticalDelta < min) {
+            min = averageVerticalDelta;
+            minStep = scaleStep;
+        }
+    }
+
+    return (inc < 0 ? -1 : 1) * minStep;
+}
+
+export function noteSwitchToArray(notes: NoteSwitchType): number[] {
+    // turns noteswitch into [0,0,1,0,1,0,0...]
+    const notesArr: number[] = [];
+    Object.keys(notes).forEach((noteIndex) => {
+        notesArr[+noteIndex] = Math.min(notes[+noteIndex], SELECTED);
+    });
+    return notesArr;
+}
+
+export function list(fretboard: StringSwitchType): number[] {
+    // gets list of indices of notes that are on for current fretboard
+    const notes = getNotes(fretboard);
+    return Object.keys(notes)
+        .filter((i) => notes[+i])
+        .map((i) => +i)
+        .sort((a, b) => a - b);
+}
+
+export function getName(
+    notes: NoteSwitchType,
+    label: LabelTypes
+): [number, string, ChordTypes, string] {
+    const chords = Object.keys(SHAPES) as Array<ChordTypes>;
+    let rootIdx: number;
+    let rootName: NoteTypes;
+    let chordName: ChordTypes;
+    let chordNotes: string;
+
+    loop1: for (let i = 0; i < chords.length; i++) {
+        // copy notes
+        let tempNotes = noteSwitchToArray({ ...notes });
+        // build noteswitch for chord
+        let chordShape = DEFAULT_NOTESWITCH();
+        SHAPES[chords[i]].forEach((index) => {
+            chordShape[mod(index, 12)] = SELECTED;
+        });
+        let chordNotes = noteSwitchToArray(chordShape);
+
+        // rotate through notes and compare to chord to see if matches
+        for (let j = 0; j < chordNotes.length; j++) {
+            if (isEqual(tempNotes, chordNotes)) {
+                rootIdx = j;
+                chordName = chords[i];
+                break loop1;
+            } else {
+                tempNotes = rotate(tempNotes);
+            }
+        }
+    }
+
+    if (label === "sharp" && rootIdx !== undefined) {
+        rootName = SHARP_NAMES[rootIdx];
+    } else if (label === "flat" && rootIdx !== undefined) {
+        rootName = FLAT_NAMES[rootIdx];
+    }
+
+    if (
+        rootIdx === undefined &&
+        rootName === undefined &&
+        chordName === undefined
+    ) {
+        const chordNoteNames = [];
+        for (let i = 0; i < 12; i++) {
+            if (notes[i]) {
+                let note = new NoteUtil(i);
+                chordNoteNames.push(note.getName(label));
+            }
+        }
+
+        chordNotes = chordNoteNames.join(", ");
+    }
+
+    return [rootIdx, rootName, chordName, chordNotes];
+}
+
+export function getScrollToFret(fretboard: StringSwitchType) {
+    // look at highlighted frets on fretboard and get median
+
+    const highlightedFrets: number[] = [];
+    fretboard.forEach((string, stringIndex) => {
+        Object.keys(string).forEach((fretValue) => {
+            if (string[+fretValue] === HIGHLIGHTED) {
+                const highlightedFret =
+                    +fretValue - STANDARD_TUNING[stringIndex];
+                highlightedFrets.push(highlightedFret);
+            }
+        });
+    });
+
+    highlightedFrets.sort((a, b) => a - b);
+    const minFret = highlightedFrets[0];
+    const maxFret = highlightedFrets[highlightedFrets.length - 1];
+    return (maxFret + minFret) / 2;
+}
+
+export function incrementPosition(
+    fretboard: StringSwitchType,
+    inc: number,
+    vertical: boolean
+): boolean {
+    const turnOff: [numString, numString][] = [];
+    const turnOn: [numString, numString][] = [];
+    const notes = getNotes(fretboard);
+
+    const scale: number[] = Object.keys(notes)
+        .map((key) => +key)
+        .filter((key) => notes[key]);
+    let verticalIntervalIncrement = vertical
+        ? getVerticalIntervalIncrement(scale, inc)
+        : 0;
+
+    let valid = true;
+
+    loop1: for (let stringIndex in fretboard) {
+        const newStringIndex: number = vertical
+            ? +stringIndex + inc
+            : +stringIndex;
+        for (let fretValue in fretboard[stringIndex]) {
+            if (fretboard[stringIndex][fretValue] !== HIGHLIGHTED) continue;
+            let newValue: number;
+            let conditions: boolean[];
+            if (vertical) {
+                // get most vertical interval step, find new note value, and apply to next string
+                newValue = getHorizontalIntervalIncrement(
+                    +fretValue,
+                    verticalIntervalIncrement,
+                    scale
+                );
+                conditions = [
+                    newStringIndex < 0,
+                    newStringIndex >= fretboard.length,
+                    newValue < STANDARD_TUNING[newStringIndex],
+                    newValue >= STANDARD_TUNING[newStringIndex] + STRING_SIZE,
+                ];
+            } else {
+                // find new note value, and apply to same string
+                newValue = getHorizontalIntervalIncrement(
+                    +fretValue,
+                    inc,
+                    scale
+                );
+                conditions = [
+                    newValue === +fretValue,
+                    newValue < STANDARD_TUNING[stringIndex],
+                    newValue >= STANDARD_TUNING[stringIndex] + STRING_SIZE,
+                ];
+            }
+
+            if (conditions.some((_) => _)) {
+                valid = false;
+                break loop1;
+            }
+
+            turnOff.push([stringIndex, fretValue]);
+            turnOn.push([newStringIndex, newValue]);
+        }
+    }
+
+    if (valid) {
+        for (let change of turnOff) {
+            setFret(fretboard, change[0], change[1], NOT_SELECTED);
+        }
+
+        for (let change of turnOn) {
+            setFret(fretboard, change[0], change[1], HIGHLIGHTED);
+        }
+    }
+
+    return valid && !!turnOff.length && !!turnOn.length;
+}
+
+export function getCurrentProgression(state: StateType): ProgressionStateType {
+    return state.progressions[state.currentProgressionIndex];
+}
+
+export function getCurrentFretboards(state: StateType): StringSwitchType[] {
+    return getCurrentProgression(state).fretboards;
+}
+
+export function getCurrentFretboard(state: StateType): StringSwitchType {
+    return getCurrentFretboards(state)[
+        getCurrentProgression(state).focusedIndex
+    ];
 }
