@@ -8,13 +8,11 @@ interface CSSProps {
     height?: number;
 }
 
-const FlexRow = styled.div.attrs((props: CSSProps) => {
-    return {
-        style: {
-            height: `${props.height}px`,
-        },
-    };
-})<CSSProps>`
+const FlexRow = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        height: `${props.height}px`,
+    },
+}))<CSSProps>`
     display: flex;
     align-items: center;
     justify-content: start;
@@ -29,28 +27,24 @@ const Spacer = styled.div.attrs((props: CSSProps) => {
     };
 })<CSSProps>``;
 
-const SymbolSpan = styled.div.attrs((props: CSSProps) => {
-    return {
-        style: {
-            marginLeft: `${props.fontSize / -8}px`,
-            marginRight: `${props.fontSize / -8}px`,
-            height: `${props.fontSize}px`,
-        },
-    };
-})<CSSProps>`
+const SymbolSpan = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        marginLeft: `${(props.fontSize || 0) / -8}px`,
+        marginRight: `${(props.fontSize || 0) / -8}px`,
+        height: `${props.fontSize}px`,
+    },
+}))<CSSProps>`
     vertical-align: top;
     font-size: 75%;
     white-space: nowrap;
 `;
 
-const SuperScript = styled.div.attrs((props: CSSProps) => {
-    return {
-        style: {
-            fontSize: `${props.fontSize}px`,
-            height: `${props.fontSize}px`,
-        },
-    };
-})<CSSProps>`
+const SuperScript = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        fontSize: `${props.fontSize}px`,
+        height: `${props.fontSize}px`,
+    },
+}))<CSSProps>`
     vertical-align: "super";
     display: flex;
     justify-content: start;
@@ -58,13 +52,11 @@ const SuperScript = styled.div.attrs((props: CSSProps) => {
     white-space: nowrap;
 `;
 
-const StandardScript = styled.div.attrs((props: CSSProps) => {
-    return {
-        style: {
-            fontSize: `${props.fontSize}px`,
-        },
-    };
-})<CSSProps>`
+const StandardScript = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        fontSize: `${props.fontSize}px`,
+    },
+}))<CSSProps>`
     display: flex;
     justify-content: start;
     align-items: center;
@@ -73,8 +65,8 @@ const StandardScript = styled.div.attrs((props: CSSProps) => {
 `;
 
 interface Props {
-    rootName?: string;
-    chordName?: string;
+    rootName: string;
+    chordName: string;
     fontSize: number;
 }
 

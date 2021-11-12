@@ -1,31 +1,41 @@
-import { BrushModes, LabelTypes, StateType, StringSwitchType } from "../types";
+import {
+    StatusTypes,
+    ProgressionStateType,
+    StateType,
+    SliderStateType,
+} from "../types";
 import {} from "./state";
 import {
     rebuildDiffs,
     getScrollToFret,
     cascadeDiffs,
-    STANDARD_TUNING,
     DEFAULT_STRINGSWITCH,
-    incrementPosition,
+    moveHighight,
     setFret,
-    getCurrentProgression,
-    getCurrentFretboards,
-    getCurrentFretboard,
+    currentProgression,
+    currentFretboards,
     clearHighlight,
-    SELECTED,
 } from "../utils";
+
+export const sliderReducers = {
+    setProgress(state: SliderStateType, progress: number): SliderStateType {
+        // dangerous method, does not return new state object on purpose, use with caution
+        state.progress = progress;
+        return state;
+    },
+};
 
 export const reducers = {
     clearAll(state: StateType): StateType {
         let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-        let fretboards = getCurrentFretboards(state);
+        let progression = currentProgression(state);
+        let fretboards = currentFretboards(state);
 
         const newFretboards = Array(fretboards.length)
             .fill(0)
             .map(() => DEFAULT_STRINGSWITCH());
         progressions[currentProgressionIndex] = {
-            ...currentProgression,
+            ...progression,
             ...rebuildDiffs(newFretboards),
         };
 
@@ -37,85 +47,19 @@ export const reducers = {
 
     clear(state: StateType): StateType {
         let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-        let { focusedIndex, fretboards } = currentProgression;
+        let progression = currentProgression(state);
+        let { focusedIndex, fretboards } = progression;
 
         fretboards[focusedIndex] = DEFAULT_STRINGSWITCH();
         progressions[currentProgressionIndex] = {
-            ...currentProgression,
-            ...rebuildDiffs(fretboards),
+            ...progression,
+            ...rebuildDiffs([...fretboards]),
         };
 
         return {
             ...state,
             progressions,
         };
-    },
-
-    invert(state: StateType): StateType {
-        return { ...state, invert: !state.invert };
-    },
-
-    leftHand(state: StateType): StateType {
-        return { ...state, leftHand: !state.leftHand };
-    },
-
-    setProgression(state: StateType): StateType {
-        let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-        let fretboards = getCurrentFretboards(state);
-
-        progressions[currentProgressionIndex] = {
-            ...currentProgression,
-            focusedIndex: 0,
-            ...cascadeDiffs(fretboards, 0),
-        };
-        return {
-            ...state,
-            progressions,
-        };
-    },
-
-    setNotes(state: StateType, notes: number[]) {
-        let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-        let { focusedIndex, label } = currentProgression;
-        let fretboards = getCurrentFretboards(state);
-
-        let newFretboard = DEFAULT_STRINGSWITCH();
-        for (let i = 0; i < notes.length; i++) {
-            setFret(newFretboard, 0, STANDARD_TUNING[0] + i + 8, SELECTED);
-        }
-
-        // copy highlight to newFretboard
-        const oldFretboard: StringSwitchType = [...getCurrentFretboard(state)];
-        let newFretboards = cascadeDiffs(
-            [oldFretboard, newFretboard],
-            0
-        ).fretboards;
-
-        fretboards[focusedIndex] = newFretboards[1];
-        progressions[currentProgressionIndex] = {
-            ...currentProgression,
-            ...cascadeDiffs(fretboards, focusedIndex),
-        };
-
-        return {
-            ...state,
-            progressions,
-        };
-    },
-
-    setLabel(state: StateType, label: LabelTypes): StateType {
-        let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-
-        progressions[currentProgressionIndex] = {
-            ...currentProgression,
-            label,
-        };
-
-        return { ...state, progressions };
     },
 
     _incrementPosition(
@@ -124,22 +68,21 @@ export const reducers = {
         vertical: boolean
     ): StateType {
         let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-        let { focusedIndex, scrollToFret } = currentProgression;
-        let fretboards = getCurrentFretboards(state);
+        let progression = currentProgression(state);
+        let { focusedIndex, scrollToFret } = progression;
+        let fretboards = currentFretboards(state);
 
         for (let i = 0; i < fretboards.length; i++) {
             if (i === focusedIndex) {
-                incrementPosition(fretboards[i], inc, vertical);
+                moveHighight(fretboards[i], inc, vertical);
                 scrollToFret = getScrollToFret(fretboards[i]);
-
-                console.log(scrollToFret);
             } else {
                 clearHighlight(fretboards[i]);
             }
         }
+
         progressions[currentProgressionIndex] = {
-            ...currentProgression,
+            ...progression,
             ...cascadeDiffs(fretboards, focusedIndex),
             scrollToFret,
         };
@@ -170,22 +113,22 @@ export const reducers = {
         state: StateType,
         stringIndex: number,
         value: number,
-        brushMode: BrushModes
+        status: StatusTypes
     ): StateType {
         let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-        let { focusedIndex } = currentProgression;
-        let fretboards = getCurrentFretboards(state);
+        let progression = currentProgression(state);
+        let { focusedIndex } = progression;
+        let fretboards = currentFretboards(state);
 
         for (let i = 0; i < fretboards.length; i++) {
             if (i === focusedIndex) {
-                setFret(fretboards[i], stringIndex, value, brushMode);
+                setFret(fretboards[i], stringIndex, value, status);
             } else {
                 clearHighlight(fretboards[i]);
             }
         }
         progressions[currentProgressionIndex] = {
-            ...currentProgression,
+            ...progression,
             ...cascadeDiffs(fretboards, focusedIndex),
         };
 
@@ -197,15 +140,15 @@ export const reducers = {
 
     addFretboard(state: StateType) {
         let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-        let { focusedIndex } = currentProgression;
-        let fretboards = getCurrentFretboards(state);
+        let progression = currentProgression(state);
+        let { focusedIndex } = progression;
+        let fretboards = currentFretboards(state);
 
         const lastIndex = fretboards.length - 1;
-        fretboards.push({ ...fretboards[lastIndex] });
+        fretboards.push(JSON.parse(JSON.stringify(fretboards[lastIndex])));
         focusedIndex = fretboards.length - 1;
         progressions[currentProgressionIndex] = {
-            ...currentProgression,
+            ...progression,
             ...cascadeDiffs(fretboards, focusedIndex),
             focusedIndex,
         };
@@ -217,16 +160,16 @@ export const reducers = {
 
     removeFretboard(state: StateType): StateType {
         let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
-        let { focusedIndex } = currentProgression;
-        let fretboards = getCurrentFretboards(state);
+        let progression = currentProgression(state);
+        let { focusedIndex } = progression;
+        let fretboards = currentFretboards(state);
 
         if (fretboards.length > 1) fretboards.pop();
         if (focusedIndex >= fretboards.length)
             focusedIndex = fretboards.length - 1;
         progressions[currentProgressionIndex] = {
-            ...currentProgression,
-            ...rebuildDiffs(fretboards),
+            ...progression,
+            ...rebuildDiffs([...fretboards]),
             focusedIndex,
         };
 
@@ -238,10 +181,13 @@ export const reducers = {
 
     setFocusedIndex(state: StateType, focusedIndex: number): StateType {
         let { progressions, currentProgressionIndex } = state;
-        let currentProgression = getCurrentProgression(state);
+        let progression = currentProgression(state);
+        let { fretboards } = progression;
+        focusedIndex = Math.max(focusedIndex, 0);
+        focusedIndex = Math.min(focusedIndex, fretboards.length - 1);
 
         progressions[currentProgressionIndex] = {
-            ...currentProgression,
+            ...progression,
             focusedIndex,
         };
         return { ...state, progressions };
@@ -251,7 +197,17 @@ export const reducers = {
         return { ...state, showInput };
     },
 
-    setBrushMode(state: StateType, brushMode: BrushModes): StateType {
-        return { ...state, brushMode };
+    setStatus(state: StateType, status: StatusTypes): StateType {
+        return { ...state, status };
+    },
+
+    setCurrentProgression(
+        state: StateType,
+        progression: ProgressionStateType
+    ): StateType {
+        let { progressions, currentProgressionIndex } = state;
+        progressions = [...progressions];
+        progressions[currentProgressionIndex] = progression;
+        return { ...state, progressions };
     },
 };

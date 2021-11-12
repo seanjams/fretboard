@@ -6,8 +6,8 @@ import {
     StringSwitchType,
     NaturalTypes,
     ChordTypes,
-    BrushModes,
-    BrushTypes,
+    StatusTypes,
+    HighlightTypes,
 } from "../types";
 
 export const C = "C";
@@ -33,20 +33,20 @@ export const SELECTED = 1;
 export const HIGHLIGHTED = 2;
 
 export function DEFAULT_NOTESWITCH(): NoteSwitchType {
-    return {
-        0: NOT_SELECTED,
-        1: NOT_SELECTED,
-        2: NOT_SELECTED,
-        3: NOT_SELECTED,
-        4: NOT_SELECTED,
-        5: NOT_SELECTED,
-        6: NOT_SELECTED,
-        7: NOT_SELECTED,
-        8: NOT_SELECTED,
-        9: NOT_SELECTED,
-        10: NOT_SELECTED,
-        11: NOT_SELECTED,
-    };
+    return [
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+        NOT_SELECTED,
+    ];
 }
 
 export function DEFAULT_STRINGSWITCH(): StringSwitchType {
@@ -170,7 +170,7 @@ export const SHAPES: { [key in ChordTypes]: number[] } = {
 };
 
 export const BRUSH_MODES: {
-    [key in BrushModes]: BrushTypes;
+    [key in StatusTypes]: HighlightTypes;
 } = {
     [NOT_SELECTED]: "erase",
     [SELECTED]: "select",

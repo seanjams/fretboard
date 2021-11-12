@@ -2,12 +2,12 @@ import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import { StateType } from "../types";
 import {
-    getCurrentProgression,
-    getCurrentFretboard,
+    currentProgression,
+    currentFretboard,
     getName,
     getNotes,
 } from "../utils";
-import { Store } from "../store";
+import { Store, useStateRef } from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -26,27 +26,31 @@ interface Props {
 }
 
 export const Title: React.FC<Props> = ({ store }) => {
-    const { label } = getCurrentProgression(store.state);
-    const fretboard = getCurrentFretboard(store.state);
-
-    const [name, setName] = useState(getName(getNotes(fretboard), label));
-    const nameRef = useRef(name);
-    nameRef.current = name;
-
-    const [rootIdx, rootName, chordName, chordNotes] = name;
+    const [getState, setState] = useStateRef({
+        name: getName(
+            getNotes(currentFretboard(store.state)),
+            currentProgression(store.state).label
+        ),
+    });
+    const { name } = getState();
+    const { rootIdx, rootName, chordName } = name;
 
     useEffect(() => {
         return store.addListener((newState) => {
-            const { label } = getCurrentProgression(newState);
-            const fretboard = getCurrentFretboard(newState);
-            const newName = getName(getNotes(fretboard), label);
-            if (newName !== nameRef.current) {
-                setName(newName);
-            }
+            const state = getState();
+            const name = getName(
+                getNotes(currentFretboard(newState)),
+                currentProgression(newState).label
+            );
+            if (state.name !== name)
+                setState({
+                    ...state,
+                    name,
+                });
         });
     }, []);
 
-    // fix these parameters
+    // fix these parameters, used to make font size dynamic for longer names
 
     // x = 39, s = 13
     // x = 18, s = 28
@@ -61,11 +65,11 @@ export const Title: React.FC<Props> = ({ store }) => {
     const buffer = 0;
 
     const fontSize =
-        name.length < x0
+        chordName.length < x0
             ? y0
-            : name.length > x1
+            : chordName.length > x1
             ? y1
-            : ((y0 - y1 + buffer) / (x0 - x1)) * (name.length - x1) + y1;
+            : ((y0 - y1 + buffer) / (x0 - x1)) * (chordName.length - x1) + y1;
 
     const onClick = () => {
         return store.reducers.setShowInput(!store.state.showInput);
@@ -75,7 +79,7 @@ export const Title: React.FC<Props> = ({ store }) => {
         <TitleContainerDiv onClick={onClick} onTouchStart={onClick}>
             <ChordSymbol
                 rootName={rootName}
-                chordName={chordName || chordNotes || ""}
+                chordName={chordName}
                 fontSize={fontSize}
             />
         </TitleContainerDiv>

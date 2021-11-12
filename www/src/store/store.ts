@@ -1,13 +1,13 @@
 export class Store<S> {
     constructor(
         public state: S,
-        public reducers?: {
+        public reducers: {
             [key in string]: (...args: any[]) => S;
         }
     ) {
         this.reducers = {};
         if (!reducers) return;
-        Object.keys(reducers).forEach((key) => {
+        for (let key in reducers) {
             this.reducers[key] = (...args: any[]) => {
                 // console.log(`Running Reducer: ${key}`);
                 // console.log(`oldState:`, this.state);
@@ -16,7 +16,7 @@ export class Store<S> {
                 this.emit();
                 return this.state;
             };
-        });
+        }
     }
 
     public setState = (nextState: S) => {
@@ -24,6 +24,7 @@ export class Store<S> {
         this.emit();
     };
 
+    // generally should avoid this, used for slider currently
     public setKey = (key: keyof S, value: S[keyof S]) => {
         this.state[key] = value;
         this.emit();

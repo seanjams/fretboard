@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { Store } from "../store";
+import { Store, useStateRef } from "../store";
 import { StateType, ArrowTypes, SliderStateType } from "../types";
 import { GuitarString } from "./string";
 // import { Legend } from "./legend";
@@ -12,7 +12,7 @@ import {
     B,
     C,
     F,
-    getCurrentProgression,
+    currentProgression,
 } from "../utils";
 
 // CSS
@@ -48,34 +48,33 @@ export const Fretboard: React.FC<Props> = ({
     store,
     sliderStore,
 }) => {
-    const { invert, leftHand } = store.state;
-    const { label } = getCurrentProgression(store.state);
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
-    const [highEBottom, setHighEBottom] = useState(invert !== leftHand);
+    const [getState, setState] = useStateRef({
+        highEBottom: store.state.invert !== store.state.leftHand,
+    });
+    const { highEBottom } = getState();
 
     useEffect(() => {
+        const destroyListener = store.addListener(({ invert, leftHand }) => {
+            const state = getState();
+            const highEBottom = invert !== leftHand;
+            if (state.highEBottom !== highEBottom)
+                setState({
+                    ...state,
+                    highEBottom,
+                });
+        });
         window.addEventListener("keydown", onKeyPress);
         return () => {
+            destroyListener();
             window.removeEventListener("keydown", onKeyPress);
         };
     }, []);
 
-    const strings = STANDARD_TUNING.map((value, i) => {
-        return (
-            <GuitarString
-                stringIndex={i}
-                base={value}
-                key={`string-${i}`}
-                fretboardHeight={fretboardHeight}
-                store={store}
-                sliderStore={sliderStore}
-            />
-        );
-    });
-
     function onKeyPress(this: Window, e: KeyboardEvent): any {
         const { invert, leftHand } = store.state;
+        const { label } = currentProgression(store.state);
         const direction = e.key;
         // Get the action direction based on orientation of fretboard
         // could maybe move this to reducer.
@@ -124,6 +123,17 @@ export const Fretboard: React.FC<Props> = ({
             }
         }
     }
+
+    const strings = STANDARD_TUNING.map((value, i) => (
+        <GuitarString
+            stringIndex={i}
+            base={value}
+            key={`string-${i}`}
+            fretboardHeight={fretboardHeight}
+            store={store}
+            sliderStore={sliderStore}
+        />
+    ));
 
     return (
         <FretboardContainer width={FRETBOARD_WIDTH}>

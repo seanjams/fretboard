@@ -1,14 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
-import { Store } from "../store";
+import { Store, useStateRef } from "../store";
 import { ArrowTypes, StateType } from "../types";
-import {
-    COLORS,
-    getCurrentProgression,
-    HIGHLIGHTED,
-    SELECTED,
-    BRUSH_MODES,
-} from "../utils";
+import { COLORS, HIGHLIGHTED, SELECTED, BRUSH_MODES } from "../utils";
 import PlusIcon from "../assets/icons/plus.png";
 import MinusIcon from "../assets/icons/minus.png";
 import LeftIcon from "../assets/icons/left-arrow.png";
@@ -35,16 +29,14 @@ const CircleControlsContainer = styled.div<CSSProps>`
     width: 100%;
 `;
 
-const Circle = styled.div.attrs((props: CSSProps) => {
-    return {
-        style: {
-            backgroundColor: props.active
-                ? props.activeColor
-                : props.backgroundColor,
-            border: props.border,
-        },
-    };
-})<CSSProps>`
+const Circle = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        backgroundColor: props.active
+            ? props.activeColor
+            : props.backgroundColor,
+        border: props.border,
+    },
+}))<CSSProps>`
     width: 26px;
     height: 26px;
     border-radius: 100%;
@@ -104,9 +96,6 @@ export const CircleButton: React.FC<ButtonProps> = ({
             | React.MouseEvent<HTMLDivElement, MouseEvent>
             | React.TouchEvent<HTMLDivElement>
     ) => {
-        event.preventDefault();
-        event.stopPropagation();
-
         if (!activeRef.current) setActive(true);
     };
 
@@ -230,19 +219,26 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
 };
 
 export const HighlightControls: React.FC<Props> = ({ store }) => {
-    const [brushMode, setBrushMode] = useState(store.state.brushMode);
-    const brushModeRef = useRef(brushMode);
-    brushModeRef.current = brushMode;
+    const [getState, setState] = useStateRef({
+        status: store.state.status,
+    });
+    const { status } = getState();
 
     useEffect(() => {
-        return store.addListener(({ brushMode }) => {
-            if (brushMode !== brushModeRef.current) setBrushMode(brushMode);
+        return store.addListener(({ status }) => {
+            const state = getState();
+            if (state.status !== status)
+                setState({
+                    ...state,
+                    status,
+                });
         });
     }, []);
 
-    const onBrushMode = () => {
-        store.reducers.setBrushMode(
-            store.state.brushMode === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
+    const onStatusChange = () => {
+        const { status } = getState();
+        store.reducers.setStatus(
+            status === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
         );
     };
 
@@ -258,11 +254,11 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
             </div>
             <div>
                 <HighlightButton
-                    highlighted={brushMode === HIGHLIGHTED}
-                    onClick={onBrushMode}
+                    highlighted={status === HIGHLIGHTED}
+                    onClick={onStatusChange}
                 />
                 <Label>
-                    {brushMode === HIGHLIGHTED && BRUSH_MODES[HIGHLIGHTED]}
+                    {status === HIGHLIGHTED && BRUSH_MODES[HIGHLIGHTED]}
                 </Label>
             </div>
         </CircleControlsContainer>
@@ -270,21 +266,18 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
 };
 
 export const SliderControls: React.FC<Props> = ({ store }) => {
-    const onAddFretboard = () => store.reducers.addFretboard();
-    const onRemoveFretboard = () => store.reducers.removeFretboard();
-
     return (
         <CircleControlsContainer>
             <div>
                 <CircleIconButton
-                    onClick={onAddFretboard}
+                    onClick={store.reducers.addFretboard}
                     imageSrc={PlusIcon}
                 />
                 <Label>{""}</Label>
             </div>
             <div>
                 <CircleIconButton
-                    onClick={onRemoveFretboard}
+                    onClick={store.reducers.removeFretboard}
                     imageSrc={MinusIcon}
                 />
                 <Label>{""}</Label>

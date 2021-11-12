@@ -15,3 +15,12 @@ export function useStore<T>(store: Store<T>, listener?: (state: T) => void) {
 
     return [state, store.setState] as const;
 }
+
+export function useStateRef<T>(
+    value: T
+): [() => T, React.Dispatch<React.SetStateAction<T>>] {
+    const [state, setState] = useState(value);
+    const stateRef = useRef(state);
+    stateRef.current = state;
+    return [() => stateRef.current, setState];
+}

@@ -6,16 +6,9 @@ import React, {
     useCallback,
 } from "react";
 import styled from "styled-components";
-import {
-    stopClick,
-    getCurrentProgression,
-    getCurrentFretboards,
-    getCurrentFretboard,
-    getName,
-    getNotes,
-} from "../utils";
+import { stopClick, currentProgression, getName, getNotes } from "../utils";
 import { StateType, SliderStateType } from "../types";
-import { Store } from "../store";
+import { Store, useStateRef } from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -103,61 +96,79 @@ interface SliderProps {
 
 export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
     // state
-    const stateRef = useRef(store.state);
-    const { currentProgressionIndex } = stateRef.current;
-    const currentProgression = getCurrentProgression(stateRef.current);
+    const progression = currentProgression(store.state);
+    const [getState, setState] = useStateRef({
+        label: progression.label,
+        hiddenFretboardIndices: progression.hiddenFretboardIndices,
+        rehydrateSuccess: sliderStore.state.rehydrateSuccess,
+        currentProgressionIndex: store.state.currentProgressionIndex,
+        visibleFretboards: progression.fretboards.filter(
+            (_, i) => !progression.hiddenFretboardIndices.includes(i)
+        ),
+        left: 0,
+        progress: 0,
+    });
+    const {
+        label,
+        left,
+        rehydrateSuccess,
+        currentProgressionIndex,
+        visibleFretboards,
+    } = getState();
 
-    // label
-    const [label, setLabel] = useState(currentProgression.label);
-    const labelRef = useRef(label);
-    labelRef.current = label;
-
-    // fretboards
-    const [fretboards, setFretboards] = useState(currentProgression.fretboards);
-    const fretboardsRef = useRef(fretboards);
-    fretboardsRef.current = fretboards;
-
-    // hiddenFretboardIndices
-    const [hiddenFretboardIndices, setHiddenFretboardIndices] = useState(
-        currentProgression.hiddenFretboardIndices
-    );
-    const hiddenFretboardIndicesRef = useRef(hiddenFretboardIndices);
-    hiddenFretboardIndicesRef.current = hiddenFretboardIndices;
-
-    // dragging
-    const [dragging, setDragging] = useState(false);
-    const draggingRef = useRef(dragging);
-    draggingRef.current = dragging;
-
-    // left
-    const [left, setLeft] = useState(0);
-    const leftRef = useRef(left);
-    leftRef.current = left;
-
-    // delta
-    const [delta, setDelta] = useState(0);
-    const deltaRef = useRef(delta);
-    deltaRef.current = delta;
-
-    // DOM refs
-    const progressBarRef = useRef<HTMLDivElement>();
-    const sliderBarRef = useRef<HTMLDivElement>();
-
-    const visibleFretboards = fretboards.filter(
-        (_, i) => !hiddenFretboardIndices.includes(i)
-    );
-    const updating =
-        visibleFretboards.length !== currentProgression.fretboards.length;
+    // refs
+    const draggingRef = useRef(false);
+    const deltaRef = useRef(0);
+    const progressBarRef = useRef<HTMLDivElement>(null);
+    const sliderBarRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const destroy = store.addListener((newState) => {
-            const currentProgression = getCurrentProgression(newState);
+        const destroySliderListener = sliderStore.addListener(
+            (newSliderData) => {
+                // old data
+                const state = getState();
+                // new data
+                const { rehydrateSuccess, progress } = newSliderData;
+                // only update if these conditions are met
+                const updateConditions: boolean[] = [
+                    state.rehydrateSuccess !== rehydrateSuccess,
+                ];
+                //update
+                if (updateConditions.some((c) => c))
+                    setState({
+                        ...state,
+                        rehydrateSuccess,
+                    });
+            }
+        );
+
+        const destroyListener = store.addListener((newData) => {
+            // old data
+            const state = getState();
+            // new data
+            const { currentProgressionIndex } = newData;
             const { label, fretboards, hiddenFretboardIndices } =
-                currentProgression;
-            if (label !== labelRef.current) setLabel(label);
-            if (fretboards !== fretboardsRef.current) setFretboards(fretboards);
-            if (hiddenFretboardIndices !== hiddenFretboardIndicesRef.current)
-                setHiddenFretboardIndices(hiddenFretboardIndices);
+                currentProgression(newData);
+            const visibleFretboards = fretboards.filter(
+                (_, i) => !hiddenFretboardIndices.includes(i)
+            );
+            // only update if these conditions are met
+            const updateConditions: boolean[] = [
+                state.label !== label,
+                state.hiddenFretboardIndices !== hiddenFretboardIndices,
+                state.currentProgressionIndex !== currentProgressionIndex,
+                state.visibleFretboards !== visibleFretboards,
+            ];
+            //update
+            if (updateConditions.some((c) => c)) {
+                setState({
+                    ...state,
+                    label,
+                    hiddenFretboardIndices,
+                    currentProgressionIndex,
+                    visibleFretboards,
+                });
+            }
         });
 
         window.addEventListener("mousemove", onMouseMove);
@@ -165,7 +176,8 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
         window.addEventListener("touchmove", onMouseMove);
         window.addEventListener("touchend", onMouseUp);
         return () => {
-            destroy();
+            destroyListener();
+            destroySliderListener();
             window.removeEventListener("mousemove", onMouseMove);
             window.removeEventListener("mouseup", onMouseUp);
             window.removeEventListener("touchmove", onMouseMove);
@@ -173,25 +185,15 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
         };
     }, []);
 
-    const getProgressBarFragmentWidth = () => {
-        let { hiddenFretboardIndices } = getCurrentProgression(
-            stateRef.current
-        );
-        let fretboards = getCurrentFretboards(stateRef.current);
-        fretboards = fretboards.filter(
-            (_, i) => !hiddenFretboardIndices.includes(i)
-        );
-        return progressBarRef.current.offsetWidth / fretboards.length;
-    };
-
-    useLayoutEffect(() => {
+    useEffect(() => {
         // set default position to be halfway through the fragment of the current focusedIndex
         if (sliderBarRef.current && progressBarRef.current) {
-            const { hiddenFretboardIndices, focusedIndex } =
-                getCurrentProgression(stateRef.current);
-
+            const state = getState();
+            const progression = currentProgression(store.state);
+            const { focusedIndex } = progression;
             // dont update if in middle of animation
-            if (hiddenFretboardIndices.length) return;
+            const { hiddenFretboardIndices } = state;
+            if (hiddenFretboardIndices && hiddenFretboardIndices.length) return;
 
             const progressBarFragmentWidth = getProgressBarFragmentWidth();
             const origin = progressBarRef.current.offsetLeft;
@@ -199,24 +201,35 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
                 progressBarFragmentWidth * (focusedIndex + 0.5) -
                 sliderBarRef.current.offsetWidth / 2 +
                 origin;
-            setLeft(newLeft);
+
+            setState({
+                ...state,
+                left: newLeft,
+            });
         }
     }, [
-        fretboards.length, // when fretboards change length, so should the position of the slider
-        currentProgressionIndex, // when updating progression, update position of slider
-        updating,
-        // updating && rootIdx,
-        // updating && chordName,
+        rehydrateSuccess, // when state successfully imported from localStorage, reset slider
+        currentProgressionIndex, // when updating progression, reset slider
+        visibleFretboards.length, // when fretboards change length, reset slider
     ]);
 
-    const repositionSlider = useCallback((clientX: number) => {
+    const getProgressBarFragmentWidth = () => {
+        const { visibleFretboards } = getState();
+        const width = progressBarRef.current
+            ? progressBarRef.current.offsetWidth
+            : 0;
+        return width / Math.max(visibleFretboards.length, 1);
+    };
+
+    const repositionSlider = (clientX: number) => {
+        if (!progressBarRef.current || !sliderBarRef.current) return;
+
         // get widths, maxwidth is how far the left of the slider can move
         // aka full bar - width of slider
-        let { focusedIndex, fretboards, hiddenFretboardIndices } =
-            getCurrentProgression(stateRef.current);
-        fretboards = fretboards.filter(
-            (_, i) => !hiddenFretboardIndices.includes(i)
-        );
+        let state = getState();
+        const { visibleFretboards } = state;
+        const progression = currentProgression(store.state);
+        const { focusedIndex } = progression;
         const origin = progressBarRef.current.offsetLeft;
         const progressBarWidth = progressBarRef.current.offsetWidth;
         const sliderBarWidth = sliderBarRef.current.offsetWidth;
@@ -236,40 +249,36 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
                 Math.floor(sliderProgressFragment / progressBarFragmentWidth),
                 0
             ),
-            fretboards.length - 1
+            visibleFretboards.length - 1
         );
-
-        // make changes
-        setLeft(newLeft);
 
         // progress is decimal value of focusedIndex.
         // If you treat the slider bar as a number line, where the fretboard divisions
         // are the integers, progress is location on this number line.
-
-        // TODO: rewrite this to use new store for progress
-        sliderStore.setKey(
-            "progress",
+        sliderStore.reducers.setProgress(
             Math.max(sliderProgressFragment / progressBarFragmentWidth, 0)
         );
+
         if (newFocusedIndex !== focusedIndex)
             store.reducers.setFocusedIndex(newFocusedIndex || 0);
-    }, []);
+
+        // update slider position
+        setState({
+            ...state,
+            left: newLeft,
+        });
+    };
 
     // slider drag release (set ratio for resize experiment)
-    const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
+    const onMouseUp = (event: MouseEvent | TouchEvent) => {
         event.preventDefault();
         event.stopPropagation();
 
         if (draggingRef.current) {
-            setDragging(false);
+            draggingRef.current = false;
             stopClick();
         }
-        // const origin = progressBarRef.current.offsetLeft;
-        // const progressBarWidth = progressBarRef.current.offsetWidth;
-        // if (progressBarRef.current && sliderBarRef.current) {
-        // 	setRatio((leftRef.current - origin) / progressBarWidth);
-        // }
-    }, []);
+    };
 
     // slider grab
     const onMouseDown = (
@@ -290,14 +299,13 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
         }
 
         // grab slider
-        if (progressBarRef.current && sliderBarRef.current) {
-            setDelta(clientX - sliderBarRef.current.offsetLeft);
-        }
-        if (!draggingRef.current) setDragging(true);
+        if (progressBarRef.current && sliderBarRef.current)
+            deltaRef.current = clientX - sliderBarRef.current.offsetLeft;
+        if (!draggingRef.current) draggingRef.current = true;
     };
 
     // slider drag
-    const onMouseMove = useCallback((event: MouseEvent | TouchEvent) => {
+    const onMouseMove = (event: MouseEvent | TouchEvent) => {
         event.preventDefault();
         let clientX;
         if (event instanceof MouseEvent) {
@@ -316,7 +324,7 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
         ) {
             repositionSlider(clientX);
         }
-    }, []);
+    };
 
     // progress bar click
     const onSliderClick = (
@@ -356,7 +364,7 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
                     show={true}
                 />
                 {visibleFretboards.map((fretboard, i) => {
-                    const [rootIdx, rootName, chordName, chordNotes] = getName(
+                    const { rootName, chordName } = getName(
                         getNotes(fretboard),
                         label
                     );
@@ -370,7 +378,7 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
                             <ProgressBarName>
                                 <ChordSymbol
                                     rootName={rootName}
-                                    chordName={chordName || chordNotes}
+                                    chordName={chordName}
                                     fontSize={12}
                                 />
                             </ProgressBarName>

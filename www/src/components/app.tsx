@@ -1,7 +1,14 @@
 import React, { useMemo, useEffect } from "react";
 import "reset-css";
-import { DEFAULT_STATE, Store, reducers, useStore } from "../store";
+import {
+    DEFAULT_MAIN_STATE,
+    DEFAULT_SLIDER_STATE,
+    Store,
+    reducers,
+    sliderReducers,
+} from "../store";
 import { StateType, SliderStateType } from "../types";
+import { currentProgression } from "../utils";
 import { Dashboard } from "./dashboard";
 // import { Menu } from "./menu";
 
@@ -10,9 +17,9 @@ interface Props {
 }
 
 export const App: React.FC<Props> = ({ oldState }) => {
-    const store = useMemo(() => new Store(DEFAULT_STATE(), reducers), []);
+    const store = useMemo(() => new Store(DEFAULT_MAIN_STATE(), reducers), []);
     const sliderStore = useMemo(
-        () => new Store<SliderStateType>({ progress: 0.5 }),
+        () => new Store(DEFAULT_SLIDER_STATE(), sliderReducers),
         []
     );
 
@@ -30,20 +37,32 @@ export const App: React.FC<Props> = ({ oldState }) => {
     };
 
     const rehydrateState = () => {
+        // rehydrate main state
         let newState: StateType;
         if (oldState) {
             newState = {
-                ...DEFAULT_STATE(),
+                ...DEFAULT_MAIN_STATE(),
                 ...oldState,
             };
         } else {
+            let parsedState = {};
+            if (localStorage.getItem("state")) {
+                parsedState =
+                    JSON.parse(localStorage.getItem("state") || "") || {};
+            }
             newState = {
-                ...DEFAULT_STATE(),
-                ...(JSON.parse(localStorage.getItem("state")) || {}),
+                ...DEFAULT_MAIN_STATE(),
+                ...parsedState,
             };
         }
-
         store.setState(newState);
+
+        // rehydrate slider state
+        const { focusedIndex } = currentProgression(newState);
+        sliderStore.setState({
+            progress: focusedIndex + 0.5,
+            rehydrateSuccess: true,
+        });
     };
 
     return <div>{<Dashboard store={store} sliderStore={sliderStore} />}</div>;

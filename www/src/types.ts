@@ -1,5 +1,3 @@
-export type numString = number | string;
-
 export type LabelTypes = "sharp" | "flat" | "value";
 
 export type NaturalTypes = "B" | "C" | "D" | "E" | "F" | "G" | "A";
@@ -10,25 +8,40 @@ export type FlatTypes = "D♭" | "E♭" | "G♭" | "A♭" | "B♭" | NaturalType
 
 export type NoteTypes = NaturalTypes | SharpTypes | FlatTypes;
 
-export type NoteSwitchType = {
-    [key: number]: number;
+export type NoteSwitchType = [
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes,
+    StatusTypes
+];
+
+export type FretSwitchType = {
+    [key: number]: StatusTypes;
 };
 
 export type StringSwitchType = [
-    NoteSwitchType,
-    NoteSwitchType,
-    NoteSwitchType,
-    NoteSwitchType,
-    NoteSwitchType,
-    NoteSwitchType
+    FretSwitchType,
+    FretSwitchType,
+    FretSwitchType,
+    FretSwitchType,
+    FretSwitchType,
+    FretSwitchType
 ];
 
 export type ArrowTypes = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
 
 export type DiffType = { [key in number]: number };
 
-export type BrushModes = 0 | 1 | 2;
-export type BrushTypes = "erase" | "select" | "highlight";
+export type StatusTypes = 0 | 1 | 2;
+export type HighlightTypes = "erase" | "select" | "highlight";
 
 export type ChordTypes =
     | "maj"
@@ -63,11 +76,12 @@ export interface StateType {
     progressions: ProgressionStateType[];
     invert?: boolean;
     leftHand?: boolean;
-    brushMode: BrushModes;
+    status: StatusTypes;
     showInput: boolean;
     currentProgressionIndex: number;
 }
 
 export interface SliderStateType {
     progress: number;
+    rehydrateSuccess: boolean;
 }

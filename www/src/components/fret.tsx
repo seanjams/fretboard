@@ -4,7 +4,6 @@ import { Store } from "../store";
 import { DiffType, SliderStateType, StateType } from "../types";
 import {
     mod,
-    NoteUtil,
     COLORS,
     STANDARD_TUNING,
     FRETBOARD_WIDTH,
@@ -13,11 +12,13 @@ import {
     SLIDER_LEFT_WINDOW,
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
-    getCurrentProgression,
-    getCurrentFretboard,
+    currentProgression,
+    currentFretboard,
     HIGHLIGHTED,
     SELECTED,
     NOT_SELECTED,
+    SHARP_NAMES,
+    FLAT_NAMES,
 } from "../utils";
 import { ChordSymbol } from "./symbol";
 
@@ -150,8 +151,8 @@ const OctaveDot = styled.div.attrs((props: CSSProps) => ({
 
 interface LegendProps {
     stringIndex: number;
-    fretIndex?: number;
-    fretHeight?: number;
+    fretIndex: number;
+    fretHeight: number;
 }
 
 const Legend: React.FC<LegendProps> = ({
@@ -198,13 +199,6 @@ export const Fret: React.FC<Props> = ({
     store,
     sliderStore,
 }) => {
-    const stateRef = useRef(store.state);
-    const progressRef = useRef(sliderStore.state.progress);
-
-    const noteValue = mod(value, 12);
-    const note = new NoteUtil(value);
-    // const color = isHighlighted ? "white" : "#333";
-    const color = false ? "white" : "#333";
     const fretIndex = value - STANDARD_TUNING[stringIndex];
 
     // makes frets progressively smaller
@@ -217,25 +211,27 @@ export const Fret: React.FC<Props> = ({
 
     const thickness = (6 - stringIndex + 1) / 2;
     const border = openString ? "none" : "1px solid #333";
-    const { label } = getCurrentProgression(stateRef.current);
-    const fretboard = getCurrentFretboard(stateRef.current);
+    const { label } = currentProgression(store.state);
+    const fretboard = currentFretboard(store.state);
+    const noteValue = mod(value, 12);
+    const noteName =
+        label === "sharp" ? SHARP_NAMES[noteValue] : FLAT_NAMES[noteValue];
 
     // init refs
-    const shadowRef = useRef<HTMLDivElement>();
+    const progressRef = useRef(sliderStore.state.progress);
+    const shadowRef = useRef<HTMLDivElement>(null);
 
     const isHighlighted = fretboard[stringIndex][value] === HIGHLIGHTED;
     const isSelected =
         isHighlighted || fretboard[stringIndex][value] === SELECTED;
     const backgroundColor = getBackgroundColor(isSelected, isHighlighted);
     const top = getTopMargin(fretboardHeight / 6, CIRCLE_SIZE);
+    const color = "#333";
+    // const color = isHighlighted ? "white" : "#333";
 
     useEffect(() => {
-        const destroyListener = store.addListener((newState) => {
-            stateRef.current = newState;
-            move();
-        });
-
-        const destroyProgressListener = sliderStore.addListener(
+        const destroyListener = store.addListener(move);
+        const destroySliderListener = sliderStore.addListener(
             ({ progress }) => {
                 progressRef.current = progress;
                 move();
@@ -244,20 +240,19 @@ export const Fret: React.FC<Props> = ({
 
         return () => {
             destroyListener();
-            destroyProgressListener();
+            destroySliderListener();
         };
     }, []);
 
     function move() {
-        const progress = progressRef.current;
-        const { invert } = stateRef.current;
-        const { focusedIndex, leftDiffs, rightDiffs } = getCurrentProgression(
-            stateRef.current
-        );
-
         if (!shadowRef.current) return;
 
-        const fretboard = getCurrentFretboard(stateRef.current);
+        const progress = progressRef.current;
+        const { invert } = store.state;
+        const { focusedIndex, leftDiffs, rightDiffs } = currentProgression(
+            store.state
+        );
+        const fretboard = currentFretboard(store.state);
         const i = focusedIndex; // to battle verbosity
         const leftDiff = leftDiffs[i];
         const rightDiff = rightDiffs[i];
@@ -382,12 +377,12 @@ export const Fret: React.FC<Props> = ({
     function onContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         e.preventDefault();
         // highlight note on right click
-        const fretboard = getCurrentFretboard(stateRef.current);
-        const brushMode =
+        const fretboard = currentFretboard(store.state);
+        const status =
             fretboard[stringIndex][value] === HIGHLIGHTED
                 ? SELECTED
                 : HIGHLIGHTED;
-        store.reducers.setHighlightedNote(stringIndex, value, brushMode);
+        store.reducers.setHighlightedNote(stringIndex, value, status);
     }
 
     function onClick(
@@ -396,9 +391,9 @@ export const Fret: React.FC<Props> = ({
             | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) {
         // highlight note if brush mode is highlight
-        const { brushMode } = stateRef.current;
-        const fretboard = getCurrentFretboard(stateRef.current);
-        const highlightConditions = [brushMode === HIGHLIGHTED];
+        const { status } = store.state;
+        const fretboard = currentFretboard(store.state);
+        const highlightConditions = [status === HIGHLIGHTED];
 
         if (e.nativeEvent instanceof MouseEvent) {
             // highlight note if use is pressing shift + click or command + click
@@ -414,18 +409,18 @@ export const Fret: React.FC<Props> = ({
         }
 
         if (highlightConditions.some((condition) => condition)) {
-            const brushMode =
+            const status =
                 fretboard[stringIndex][value] === HIGHLIGHTED
                     ? SELECTED
                     : HIGHLIGHTED;
-            store.reducers.setHighlightedNote(stringIndex, value, brushMode);
+            store.reducers.setHighlightedNote(stringIndex, value, status);
         } else {
             // toggle selection of note if highlight conditions arent met
-            const brushMode =
+            const status =
                 fretboard[stringIndex][value] >= SELECTED
                     ? NOT_SELECTED
                     : SELECTED;
-            store.reducers.setHighlightedNote(stringIndex, value, brushMode);
+            store.reducers.setHighlightedNote(stringIndex, value, status);
         }
     }
 
@@ -444,7 +439,11 @@ export const Fret: React.FC<Props> = ({
                 {label === "value" ? (
                     noteValue
                 ) : (
-                    <ChordSymbol rootName={note.getName(label)} fontSize={16} />
+                    <ChordSymbol
+                        rootName={noteName}
+                        chordName=""
+                        fontSize={16}
+                    />
                 )}
             </CircleDiv>
             <ShadowDiv

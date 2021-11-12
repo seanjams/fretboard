@@ -3,7 +3,7 @@ import { CSSTransition } from "react-transition-group";
 import { isMobile } from "react-device-detect";
 import styled from "styled-components";
 import { SliderStateType, StateType } from "../types";
-import { Store } from "../store";
+import { Store, useStateRef } from "../store";
 import { Fretboard } from "./fretboard";
 import {
     PositionControls,
@@ -19,7 +19,7 @@ import {
     STRING_SIZE,
     SAFETY_AREA_HEIGHT,
     FRETBOARD_MARGIN_HEIGHT,
-    getCurrentProgression,
+    currentProgression,
 } from "../utils";
 
 // CSS
@@ -72,33 +72,13 @@ interface Props {
     sliderStore: Store<SliderStateType>;
 }
 
+interface DashboardStateType {
+    showInput: boolean;
+    orientation: OrientationType;
+    dimensions: [number, number];
+}
+
 export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
-    const { showInput } = store.state;
-    const [orientation, setOrientation] =
-        useState<OrientationType>("portrait-primary");
-    const fretboardContainerRef = useRef(null);
-    const scrollToFretRef = useRef(0);
-
-    useEffect(() => {
-        return store.addListener((newState: StateType) => {
-            const { scrollToFret } = getCurrentProgression(newState);
-            if (scrollToFret !== scrollToFretRef.current) {
-                const fretXPosition =
-                    (FRETBOARD_WIDTH * scrollToFret) / STRING_SIZE;
-                const halfContainerWidth =
-                    fretboardContainerRef.current.offsetWidth / 2;
-
-                fretboardContainerRef.current.scrollTo({
-                    top: 0,
-                    left: fretXPosition - halfContainerWidth,
-                    behavior: "smooth",
-                });
-                scrollToFretRef.current = scrollToFret;
-            }
-        });
-    });
-    // const [onDragStart, onDragEnd] = useDragging(store);
-
     const getScreenDimensions = (): [number, number] => {
         // hack fix for mobile dimensions
         let width: number;
@@ -113,9 +93,17 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
         return [width, height];
     };
 
-    const [[windowWidth, windowHeight], setWindowDimensions] = useState(
-        getScreenDimensions()
-    );
+    const [getState, setState] = useStateRef<DashboardStateType>({
+        showInput: store.state.showInput,
+        orientation: "portrait-primary",
+        dimensions: getScreenDimensions(),
+    });
+
+    const { showInput, orientation, dimensions } = getState();
+    const [windowWidth, windowHeight] = dimensions;
+
+    const fretboardContainerRef = useRef<HTMLDivElement>(null);
+    const scrollToFretRef = useRef(0);
 
     const width = orientation.startsWith("portrait")
         ? windowHeight
@@ -129,8 +117,41 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
     const fretboardHeight = mainHeight;
 
     useEffect(() => {
+        const destroyListener = store.addListener((newState: StateType) => {
+            // old data
+            const state = getState();
+            // new data
+            const { showInput } = newState;
+            const { scrollToFret } = currentProgression(newState);
+
+            if (state.showInput !== showInput)
+                setState({
+                    ...state,
+                    showInput,
+                });
+
+            if (
+                fretboardContainerRef.current &&
+                scrollToFretRef.current !== scrollToFret
+            ) {
+                const fretXPosition =
+                    (FRETBOARD_WIDTH * scrollToFret) / STRING_SIZE;
+                const halfContainerWidth =
+                    fretboardContainerRef.current.offsetWidth / 2;
+
+                fretboardContainerRef.current.scrollTo({
+                    top: 0,
+                    left: fretXPosition - halfContainerWidth,
+                    behavior: "smooth",
+                });
+                scrollToFretRef.current = scrollToFret;
+            }
+        });
+
         window.addEventListener("orientationchange", onOrientationChange);
+
         return () => {
+            destroyListener();
             window.removeEventListener(
                 "orientationchange",
                 onOrientationChange
@@ -139,8 +160,11 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
     }, []);
 
     const onOrientationChange = useCallback(() => {
-        setOrientation(screen.orientation.type);
-        setWindowDimensions(getScreenDimensions());
+        setState({
+            ...getState(),
+            orientation: screen.orientation.type,
+            dimensions: getScreenDimensions(),
+        });
     }, []);
 
     return (
