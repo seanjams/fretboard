@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
-import { Store, useStateRef } from "../store";
-import { ArrowTypes, StateType } from "../types";
+import { AnyReducersType, Store, useStateRef, StateType } from "../store";
+import { ArrowTypes } from "../types";
 import { COLORS, HIGHLIGHTED, SELECTED, BRUSH_MODES } from "../utils";
 import PlusIcon from "../assets/icons/plus.png";
 import MinusIcon from "../assets/icons/minus.png";
@@ -59,7 +59,7 @@ const Label = styled.div<CSSProps>`
 
 // Component
 interface Props {
-    store: Store<StateType>;
+    store: Store<StateType, AnyReducersType<StateType>>;
 }
 
 interface ButtonProps {
@@ -169,17 +169,17 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
         const highEBottom = invert !== leftHand;
         const keyMap: { [key in ArrowTypes]: () => StateType } = {
             ArrowUp: highEBottom
-                ? store.reducers.decrementPositionY
-                : store.reducers.incrementPositionY,
+                ? store.dispatch.decrementPositionY
+                : store.dispatch.incrementPositionY,
             ArrowDown: highEBottom
-                ? store.reducers.incrementPositionY
-                : store.reducers.decrementPositionY,
+                ? store.dispatch.incrementPositionY
+                : store.dispatch.decrementPositionY,
             ArrowRight: invert
-                ? store.reducers.decrementPositionX
-                : store.reducers.incrementPositionX,
+                ? store.dispatch.decrementPositionX
+                : store.dispatch.incrementPositionX,
             ArrowLeft: invert
-                ? store.reducers.incrementPositionX
-                : store.reducers.decrementPositionX,
+                ? store.dispatch.incrementPositionX
+                : store.dispatch.decrementPositionX,
         };
         if (keyMap[direction]) keyMap[direction]();
     };
@@ -226,24 +226,23 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
 
     useEffect(() => {
         return store.addListener(({ status }) => {
-            const state = getState();
-            if (state.status !== status)
-                setState({
-                    ...state,
+            if (getState().status !== status)
+                setState((prevState) => ({
+                    ...prevState,
                     status,
-                });
+                }));
         });
     }, []);
 
     const onStatusChange = () => {
         const { status } = getState();
-        store.reducers.setStatus(
+        store.dispatch.setStatus(
             status === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
         );
     };
 
     const onClearNotes = () => {
-        store.reducers.clear();
+        store.dispatch.clear();
     };
 
     return (
@@ -270,14 +269,14 @@ export const SliderControls: React.FC<Props> = ({ store }) => {
         <CircleControlsContainer>
             <div>
                 <CircleIconButton
-                    onClick={store.reducers.addFretboard}
+                    onClick={store.dispatch.addFretboard}
                     imageSrc={PlusIcon}
                 />
                 <Label>{""}</Label>
             </div>
             <div>
                 <CircleIconButton
-                    onClick={store.reducers.removeFretboard}
+                    onClick={store.dispatch.removeFretboard}
                     imageSrc={MinusIcon}
                 />
                 <Label>{""}</Label>

@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
-import { StateType } from "../types";
+import { getName, getNotes } from "../utils";
 import {
-    currentProgression,
-    currentFretboard,
-    getName,
-    getNotes,
-} from "../utils";
-import { Store, useStateRef } from "../store";
+    Store,
+    useStateRef,
+    StateType,
+    AnyReducersType,
+    current,
+} from "../store";
 import { ChordSymbol } from "./symbol";
 
 // CSS
@@ -22,31 +22,26 @@ const TitleContainerDiv = styled.div<CSSProps>`
 
 // Component
 interface Props {
-    store: Store<StateType>;
+    store: Store<StateType, AnyReducersType<StateType>>;
 }
 
 export const Title: React.FC<Props> = ({ store }) => {
+    const { fretboard, progression } = current(store.state);
     const [getState, setState] = useStateRef({
-        name: getName(
-            getNotes(currentFretboard(store.state)),
-            currentProgression(store.state).label
-        ),
+        name: getName(getNotes(fretboard), progression.label),
     });
     const { name } = getState();
-    const { rootIdx, rootName, chordName } = name;
+    const { rootName, chordName } = name;
 
     useEffect(() => {
         return store.addListener((newState) => {
-            const state = getState();
-            const name = getName(
-                getNotes(currentFretboard(newState)),
-                currentProgression(newState).label
-            );
-            if (state.name !== name)
-                setState({
-                    ...state,
+            const { fretboard, progression } = current(newState);
+            const name = getName(getNotes(fretboard), progression.label);
+            if (getState().name !== name)
+                setState((prevState) => ({
+                    ...prevState,
                     name,
-                });
+                }));
         });
     }, []);
 
@@ -72,7 +67,7 @@ export const Title: React.FC<Props> = ({ store }) => {
             : ((y0 - y1 + buffer) / (x0 - x1)) * (chordName.length - x1) + y1;
 
     const onClick = () => {
-        return store.reducers.setShowInput(!store.state.showInput);
+        return store.dispatch.setShowInput(!store.state.showInput);
     };
 
     return (

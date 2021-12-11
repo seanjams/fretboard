@@ -1,19 +1,28 @@
-export class Store<S> {
-    constructor(
-        public state: S,
-        public reducers: {
-            [key in string]: (...args: any[]) => S;
-        }
-    ) {
-        this.reducers = {};
+export type AnyReducersType<S> = {
+    [key: string]: (state: S, ...args: any[]) => S;
+};
+
+export class Store<S, R extends AnyReducersType<S>> {
+    dispatch: {
+        [key in keyof R]: (...args: any[]) => S;
+    };
+
+    constructor(public state: S, private reducers: R) {
         if (!reducers) return;
-        for (let key in reducers) {
-            this.reducers[key] = (...args: any[]) => {
-                // console.log(`Running Reducer: ${key}`);
+        let self = this;
+        this.dispatch = {} as typeof self.dispatch;
+        let key: keyof typeof reducers;
+        for (key in reducers) {
+            let k = key;
+            this.dispatch[k] = (...args: any[]): S => {
+                // console.log(`Running Reducer: ${k}`);
                 // console.log(`oldState:`, this.state);
-                this.state = reducers[key](this.state, ...args);
-                // console.log(`newState:`, this.state);
-                this.emit();
+                const reducer = reducers[k];
+                if (reducer) {
+                    this.state = reducer.call(reducers, this.state, ...args);
+                    // console.log(`newState:`, this.state);
+                    this.emit();
+                }
                 return this.state;
             };
         }

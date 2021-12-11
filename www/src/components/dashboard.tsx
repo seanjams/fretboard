@@ -2,8 +2,14 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import { isMobile } from "react-device-detect";
 import styled from "styled-components";
-import { SliderStateType, StateType } from "../types";
-import { Store, useStateRef } from "../store";
+import {
+    Store,
+    useStateRef,
+    StateType,
+    SliderStateType,
+    AnyReducersType,
+    current,
+} from "../store";
 import { Fretboard } from "./fretboard";
 import {
     PositionControls,
@@ -19,7 +25,6 @@ import {
     STRING_SIZE,
     SAFETY_AREA_HEIGHT,
     FRETBOARD_MARGIN_HEIGHT,
-    currentProgression,
 } from "../utils";
 
 // CSS
@@ -68,8 +73,8 @@ const FlexRow = styled.div<CSSProps>`
 
 // Component
 interface Props {
-    store: Store<StateType>;
-    sliderStore: Store<SliderStateType>;
+    store: Store<StateType, AnyReducersType<StateType>>;
+    sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
 }
 
 interface DashboardStateType {
@@ -117,18 +122,15 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
     const fretboardHeight = mainHeight;
 
     useEffect(() => {
-        const destroyListener = store.addListener((newState: StateType) => {
-            // old data
-            const state = getState();
-            // new data
-            const { showInput } = newState;
-            const { scrollToFret } = currentProgression(newState);
+        const destroyListener = store.addListener((newState) => {
+            const { showInput, progression } = current(newState);
+            const { scrollToFret } = progression;
 
-            if (state.showInput !== showInput)
-                setState({
-                    ...state,
+            if (getState().showInput !== showInput)
+                setState((prevState) => ({
+                    ...prevState,
                     showInput,
-                });
+                }));
 
             if (
                 fretboardContainerRef.current &&
@@ -160,11 +162,11 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
     }, []);
 
     const onOrientationChange = useCallback(() => {
-        setState({
-            ...getState(),
+        setState((prevState) => ({
+            ...prevState,
             orientation: screen.orientation.type,
             dimensions: getScreenDimensions(),
-        });
+        }));
     }, []);
 
     return (

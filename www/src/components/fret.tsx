@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { Store } from "../store";
-import { DiffType, SliderStateType, StateType } from "../types";
+import {
+    Store,
+    StateType,
+    SliderStateType,
+    AnyReducersType,
+    current,
+} from "../store";
+import { DiffType } from "../types";
 import {
     mod,
     COLORS,
@@ -12,8 +18,6 @@ import {
     SLIDER_LEFT_WINDOW,
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
-    currentProgression,
-    currentFretboard,
     HIGHLIGHTED,
     SELECTED,
     NOT_SELECTED,
@@ -181,8 +185,8 @@ interface Props {
     stringIndex: number;
     openString?: boolean;
     fretboardHeight: number;
-    store: Store<StateType>;
-    sliderStore: Store<SliderStateType>;
+    store: Store<StateType, AnyReducersType<StateType>>;
+    sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
 }
 
 const is = (diff: DiffType, key: number, val: any, negate: boolean = false) =>
@@ -211,8 +215,8 @@ export const Fret: React.FC<Props> = ({
 
     const thickness = (6 - stringIndex + 1) / 2;
     const border = openString ? "none" : "1px solid #333";
-    const { label } = currentProgression(store.state);
-    const fretboard = currentFretboard(store.state);
+    const { fretboard, progression } = current(store.state);
+    const { label } = progression;
     const noteValue = mod(value, 12);
     const noteName =
         label === "sharp" ? SHARP_NAMES[noteValue] : FLAT_NAMES[noteValue];
@@ -249,10 +253,8 @@ export const Fret: React.FC<Props> = ({
 
         const progress = progressRef.current;
         const { invert } = store.state;
-        const { focusedIndex, leftDiffs, rightDiffs } = currentProgression(
-            store.state
-        );
-        const fretboard = currentFretboard(store.state);
+        const { fretboard, progression } = current(store.state);
+        const { focusedIndex, leftDiffs, rightDiffs } = progression;
         const i = focusedIndex; // to battle verbosity
         const leftDiff = leftDiffs[i];
         const rightDiff = rightDiffs[i];
@@ -377,12 +379,12 @@ export const Fret: React.FC<Props> = ({
     function onContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         e.preventDefault();
         // highlight note on right click
-        const fretboard = currentFretboard(store.state);
+        const { fretboard } = current(store.state);
         const status =
             fretboard[stringIndex][value] === HIGHLIGHTED
                 ? SELECTED
                 : HIGHLIGHTED;
-        store.reducers.setHighlightedNote(stringIndex, value, status);
+        store.dispatch.setHighlightedNote(stringIndex, value, status);
     }
 
     function onClick(
@@ -392,7 +394,7 @@ export const Fret: React.FC<Props> = ({
     ) {
         // highlight note if brush mode is highlight
         const { status } = store.state;
-        const fretboard = currentFretboard(store.state);
+        const { fretboard } = current(store.state);
         const highlightConditions = [status === HIGHLIGHTED];
 
         if (e.nativeEvent instanceof MouseEvent) {
@@ -413,14 +415,14 @@ export const Fret: React.FC<Props> = ({
                 fretboard[stringIndex][value] === HIGHLIGHTED
                     ? SELECTED
                     : HIGHLIGHTED;
-            store.reducers.setHighlightedNote(stringIndex, value, status);
+            store.dispatch.setHighlightedNote(stringIndex, value, status);
         } else {
             // toggle selection of note if highlight conditions arent met
             const status =
                 fretboard[stringIndex][value] >= SELECTED
                     ? NOT_SELECTED
                     : SELECTED;
-            store.reducers.setHighlightedNote(stringIndex, value, status);
+            store.dispatch.setHighlightedNote(stringIndex, value, status);
         }
     }
 

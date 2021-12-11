@@ -1,80 +1,205 @@
+import { StatusTypes, StringSwitchType, DiffType, LabelTypes } from "../types";
 import {
-    DEFAULT_STRINGSWITCH,
-    STANDARD_TUNING,
-    HIGHLIGHTED,
-    SELECTED,
-    setFret,
+    rebuildDiffs,
+    getScrollToFret,
     cascadeDiffs,
+    moveHighight,
+    setFret,
+    clearHighlight,
+    DEFAULT_STRINGSWITCH,
 } from "../utils";
-import {
-    StringSwitchType,
-    ProgressionStateType,
-    StateType,
-    SliderStateType,
-} from "../types";
+import { AnyReducersType } from "./store";
 
-const fretboards1: StringSwitchType[] = [
-    DEFAULT_STRINGSWITCH(),
-    DEFAULT_STRINGSWITCH(),
-    DEFAULT_STRINGSWITCH(),
-];
+// Types
 
-setFret(fretboards1[0], 0, STANDARD_TUNING[0] + 7, SELECTED);
-setFret(fretboards1[0], 1, STANDARD_TUNING[1] + 10, HIGHLIGHTED);
-setFret(fretboards1[0], 2, STANDARD_TUNING[2] + 7, HIGHLIGHTED);
-setFret(fretboards1[0], 3, STANDARD_TUNING[3] + 9, HIGHLIGHTED);
-setFret(fretboards1[0], 4, STANDARD_TUNING[4] + 9, HIGHLIGHTED);
-setFret(fretboards1[0], 5, STANDARD_TUNING[5] + 7, SELECTED);
+export interface ProgressionStateType {
+    fretboards: StringSwitchType[];
+    leftDiffs: DiffType[];
+    rightDiffs: DiffType[];
+    focusedIndex: number;
+    scrollToFret: number;
+    label: LabelTypes;
+    hiddenFretboardIndices: number[];
+}
 
-setFret(fretboards1[1], 0, STANDARD_TUNING[0] + 5, SELECTED);
-setFret(fretboards1[1], 1, STANDARD_TUNING[1] + 7, SELECTED);
-setFret(fretboards1[1], 2, STANDARD_TUNING[2] + 5, SELECTED);
-setFret(fretboards1[1], 3, STANDARD_TUNING[3] + 6, SELECTED);
-setFret(fretboards1[1], 4, STANDARD_TUNING[4] + 5, SELECTED);
-setFret(fretboards1[1], 5, STANDARD_TUNING[5] + 5, SELECTED);
+export interface StateType {
+    progressions: ProgressionStateType[];
+    invert?: boolean;
+    leftHand?: boolean;
+    status: StatusTypes;
+    showInput: boolean;
+    currentProgressionIndex: number;
+}
 
-setFret(fretboards1[2], 0, STANDARD_TUNING[0] + 5, SELECTED);
-setFret(fretboards1[2], 1, STANDARD_TUNING[1] + 5, SELECTED);
-setFret(fretboards1[2], 2, STANDARD_TUNING[2] + 7, SELECTED);
-setFret(fretboards1[2], 3, STANDARD_TUNING[3] + 6, SELECTED);
-setFret(fretboards1[2], 4, STANDARD_TUNING[4] + 7, SELECTED);
-setFret(fretboards1[2], 5, STANDARD_TUNING[5] + 5, SELECTED);
+export interface SliderStateType {
+    progress: number;
+    rehydrateSuccess: boolean;
+}
 
-const progression1: ProgressionStateType = {
-    ...cascadeDiffs(fretboards1, 0),
-    focusedIndex: 0,
-    scrollToFret: 0,
-    label: "flat",
-    hiddenFretboardIndices: [],
-};
-const progression2: ProgressionStateType = {
-    ...cascadeDiffs(fretboards1, 0),
-    focusedIndex: 0,
-    scrollToFret: 0,
-    label: "flat",
-    hiddenFretboardIndices: [],
-};
-const progression3: ProgressionStateType = {
-    ...cascadeDiffs(fretboards1, 0),
-    focusedIndex: 0,
-    scrollToFret: 0,
-    label: "flat",
-    hiddenFretboardIndices: [],
-};
-export function DEFAULT_MAIN_STATE(): StateType {
+// Helper functions
+export function currentProgression(state: StateType): ProgressionStateType {
+    return state.progressions[state.currentProgressionIndex];
+}
+
+export function currentFretboard(state: StateType): StringSwitchType {
+    const progression = currentProgression(state);
+    return progression.fretboards[progression.focusedIndex];
+}
+
+export function current(state: StateType): StateType & {
+    progression: ProgressionStateType;
+    fretboard: StringSwitchType;
+} {
     return {
-        progressions: [progression1, progression2, progression3],
-        invert: false,
-        leftHand: false,
-        status: 1,
-        showInput: false,
-        currentProgressionIndex: 0,
+        ...state,
+        progression: currentProgression(state),
+        fretboard: currentFretboard(state),
     };
 }
 
-export function DEFAULT_SLIDER_STATE(): SliderStateType {
-    return {
-        progress: 0.5,
-        rehydrateSuccess: false,
-    };
-}
+// Reducers
+export const sliderReducers: AnyReducersType<SliderStateType> = {
+    setProgress(state, progress) {
+        // dangerous method, does not return new state object on purpose, use with caution
+        state.progress = progress;
+        return state;
+    },
+};
+
+export const reducers: AnyReducersType<StateType> = {
+    clearAll(state) {
+        let progression = current(state).progression;
+        let { fretboards } = progression;
+
+        const newFretboards = Array(fretboards.length)
+            .fill(0)
+            .map(() => DEFAULT_STRINGSWITCH());
+
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...rebuildDiffs(newFretboards),
+        });
+    },
+
+    clear(state) {
+        let progression = current(state).progression;
+        let { focusedIndex, fretboards } = progression;
+
+        fretboards[focusedIndex] = DEFAULT_STRINGSWITCH();
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...rebuildDiffs([...fretboards]),
+        });
+    },
+
+    incrementPosition(state, inc, vertical) {
+        let progression = current(state).progression;
+        let { focusedIndex, scrollToFret, fretboards } = progression;
+
+        for (let i = 0; i < fretboards.length; i++) {
+            if (i === focusedIndex) {
+                moveHighight(fretboards[i], inc, vertical);
+                scrollToFret = getScrollToFret(fretboards[i]);
+            } else {
+                clearHighlight(fretboards[i]);
+            }
+        }
+
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+            scrollToFret,
+        });
+    },
+
+    incrementPositionX(state) {
+        return this.incrementPosition(state, 1, false);
+    },
+
+    decrementPositionX(state) {
+        return this.incrementPosition(state, -1, false);
+    },
+
+    incrementPositionY(state) {
+        return this.incrementPosition(state, 1, true);
+    },
+
+    decrementPositionY(state) {
+        return this.incrementPosition(state, -1, true);
+    },
+
+    setHighlightedNote(state, stringIndex, value, status) {
+        let progression = current(state).progression;
+        let { focusedIndex, fretboards } = progression;
+
+        for (let i = 0; i < fretboards.length; i++) {
+            if (i === focusedIndex) {
+                setFret(fretboards[i], stringIndex, value, status);
+            } else {
+                clearHighlight(fretboards[i]);
+            }
+        }
+
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+        });
+    },
+
+    addFretboard(state) {
+        let progression = current(state).progression;
+        let { focusedIndex, fretboards } = progression;
+
+        const lastIndex = fretboards.length - 1;
+        fretboards.push(JSON.parse(JSON.stringify(fretboards[lastIndex])));
+        focusedIndex = fretboards.length - 1;
+
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...cascadeDiffs(fretboards, focusedIndex),
+            focusedIndex,
+        });
+    },
+
+    removeFretboard(state) {
+        let progression = current(state).progression;
+        let { focusedIndex, fretboards } = progression;
+
+        if (fretboards.length > 1) fretboards.pop();
+        if (focusedIndex >= fretboards.length)
+            focusedIndex = fretboards.length - 1;
+
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...rebuildDiffs([...fretboards]),
+            focusedIndex,
+        });
+    },
+
+    setFocusedIndex(state, focusedIndex) {
+        let progression = current(state).progression;
+        let { fretboards } = progression;
+        focusedIndex = Math.max(focusedIndex, 0);
+        focusedIndex = Math.min(focusedIndex, fretboards.length - 1);
+
+        return this.setCurrentProgression(state, {
+            ...progression,
+            focusedIndex,
+        });
+    },
+
+    setShowInput(state, showInput) {
+        return { ...state, showInput };
+    },
+
+    setStatus(state, status) {
+        return { ...state, status };
+    },
+
+    setCurrentProgression(state, progression) {
+        let { progressions, currentProgressionIndex } = state;
+        progressions = [...progressions];
+        progressions[currentProgressionIndex] = progression;
+        return { ...state, progressions };
+    },
+};

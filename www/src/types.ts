@@ -61,27 +61,3 @@ export type ChordTypes =
     | "Harmonic Major"
     | "Harmonic Minor"
     | "Neopolitan";
-
-export interface ProgressionStateType {
-    fretboards: StringSwitchType[];
-    leftDiffs: DiffType[];
-    rightDiffs: DiffType[];
-    focusedIndex: number;
-    scrollToFret: number;
-    label: LabelTypes;
-    hiddenFretboardIndices: number[];
-}
-
-export interface StateType {
-    progressions: ProgressionStateType[];
-    invert?: boolean;
-    leftHand?: boolean;
-    status: StatusTypes;
-    showInput: boolean;
-    currentProgressionIndex: number;
-}
-
-export interface SliderStateType {
-    progress: number;
-    rehydrateSuccess: boolean;
-}

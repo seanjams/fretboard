@@ -5,8 +5,6 @@ import {
     ChordTypes,
     LabelTypes,
     StringSwitchType,
-    ProgressionStateType,
-    StateType,
     StatusTypes,
 } from "../types";
 import { kCombinations } from "./combinations";
@@ -482,20 +480,18 @@ export function moveHighight(
     return valid && !!turnOff.length && !!turnOn.length;
 }
 
-export function currentProgression(state: StateType): ProgressionStateType {
-    return state.progressions[state.currentProgressionIndex];
-}
-
-export function currentFretboards(state: StateType): StringSwitchType[] {
-    return currentProgression(state).fretboards;
-}
-
-export function currentFretboard(state: StateType): StringSwitchType {
-    return currentFretboards(state)[currentProgression(state).focusedIndex];
-}
-
 export function getNotesForAnimation(rootIdx: number, chordName: ChordTypes) {
     let notes = SHAPES[chordName].map((i) => mod(i + rootIdx, 12));
     notes.sort((a, b) => a - b);
     return notes;
+}
+
+export function getVisibleFretboards(
+    fretboards: StringSwitchType[],
+    hiddenFretboardIndices: number[]
+): StringSwitchType[] {
+    if (hiddenFretboardIndices.length) {
+        return fretboards.filter((_, i) => !hiddenFretboardIndices.includes(i));
+    }
+    return fretboards;
 }
