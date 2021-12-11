@@ -1,46 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
+import React, { useEffect } from "react";
 import {
     Store,
     useStateRef,
     StateType,
     SliderStateType,
     AnyReducersType,
-    current,
-} from "../store";
-import { ArrowTypes } from "../types";
-import { GuitarString } from "./string";
-// import { Legend } from "./legend";
-import {
-    STANDARD_TUNING,
-    NATURAL_NOTE_NAMES,
-    FRETBOARD_WIDTH,
-    E,
-    B,
-    C,
-    F,
-} from "../utils";
-
-// CSS
-interface CSSProps {
-    width?: number;
-    color?: string;
-}
-
-const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        width: `${props.width}px`,
-    },
-}))<CSSProps>`
-    display: flex;
-    align-items: stretch;
-`;
-
-const FretboardDiv = styled.div<CSSProps>`
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-`;
+} from "../../store";
+import { GuitarString } from "../string";
+import { STANDARD_TUNING, FRETBOARD_WIDTH } from "../../utils";
+import { FretboardContainer, FretboardDiv } from "./style";
 
 // Component
 interface Props {
@@ -84,7 +52,7 @@ export const Fretboard: React.FC<Props> = ({
     ));
 
     return (
-        <FretboardContainer width={FRETBOARD_WIDTH}>
+        <FretboardContainer width={`${FRETBOARD_WIDTH}px`}>
             <FretboardDiv>
                 {highEBottom ? strings : strings.reverse()}
             </FretboardDiv>

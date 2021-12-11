@@ -1,6 +1,10 @@
 import React, { useEffect, useRef } from "react";
-import styled from "styled-components";
-import { stopClick, getName, getNotes, getVisibleFretboards } from "../utils";
+import {
+    stopClick,
+    getName,
+    getNotes,
+    getVisibleFretboards,
+} from "../../utils";
 import {
     Store,
     useStateRef,
@@ -8,87 +12,16 @@ import {
     SliderStateType,
     AnyReducersType,
     current,
-} from "../store";
-import { ChordSymbol } from "./symbol";
+} from "../../store";
+import { ChordSymbol } from "../symbol";
+import {
+    ContainerDiv,
+    ProgressBar,
+    ProgressBarFragment,
+    ProgressBarName,
+    SliderBar,
+} from "./style";
 
-// CSS
-interface CSSProps {
-    left?: number;
-    width?: number;
-    isFirst?: boolean;
-    isLast?: boolean;
-    show?: boolean;
-}
-
-const ContainerDiv = styled.div<CSSProps>`
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-`;
-
-const ProgressBar = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        width: `${props.width}%`,
-    },
-}))<CSSProps>`
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: none;
-`;
-
-const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        width: `calc(${props.width}% - ${
-            props.isFirst || props.isLast ? "10" : "0"
-        }px)`,
-        borderLeft: `${props.isFirst ? "1px solid #333" : "0"}`,
-        borderTopLeftRadius: `${props.isFirst ? "100000000000000px" : "0"}`,
-        borderBottomLeftRadius: `${props.isFirst ? "100000000000000px" : "0"}`,
-        borderTopRightRadius: `${props.isLast ? "100000000000000px" : "0"}`,
-        borderBottomRightRadius: `${props.isLast ? "100000000000000px" : "0"}`,
-        marginLeft: `${props.isFirst ? "10px" : "0"}`,
-        marginRight: `${props.isLast ? "10px" : "0"}`,
-    },
-}))<CSSProps>`
-    height: 10px;
-    background-color: white;
-    border: 1px solid #333;
-    color: #333;
-    touch-action: none;
-    margin: 10px 0;
-`;
-
-const SliderBar = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        left: `${props.left}px`,
-        backgroundColor: props.show ? "red" : "transparent",
-    },
-}))<CSSProps>`
-    height: 30px;
-    width: 30px;
-    position: absolute;
-    z-index: 10001;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    color: #333;
-    opacity: 0.5;
-    touch-action: none;
-    border-radius: 100000000000000px;
-`;
-
-const ProgressBarName = styled.div<CSSProps>`
-    position: relative;
-    top: 14px;
-    padding-left: 6px;
-    font-size: 12px;
-`;
-
-// Component
 interface SliderProps {
     store: Store<StateType, AnyReducersType<StateType>>;
     sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
@@ -337,14 +270,14 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
             <ProgressBar
                 id="progress-bar"
                 ref={progressBarRef}
-                width={100}
+                width="100%"
                 onClick={onSliderClick}
                 onTouchStart={onSliderClick}
             >
                 <SliderBar
                     id="slider-bar"
                     ref={sliderBarRef}
-                    left={left}
+                    left={`${left}px`}
                     onMouseDown={onMouseDown}
                     onTouchStart={onMouseDown}
                     show={true}
@@ -357,7 +290,7 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
                     return (
                         <ProgressBarFragment
                             key={`button-pad-${i}`}
-                            width={100 / visibleFretboards.length}
+                            width={`${100 / visibleFretboards.length}%`}
                             isFirst={i === 0}
                             isLast={i === visibleFretboards.length - 1}
                         >

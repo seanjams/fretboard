@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
-import styled from "styled-components";
-import { ChordSymbol } from "./symbol";
+import { ChordSymbol } from "../symbol";
 import {
     Store,
     useStateRef,
@@ -9,8 +8,8 @@ import {
     SliderStateType,
     AnyReducersType,
     current,
-} from "../store";
-import { ChordTypes, NoteTypes } from "../types";
+} from "../../store";
+import { ChordTypes, NoteTypes } from "../../types";
 import {
     FLAT_NAMES,
     SHARP_NAMES,
@@ -27,57 +26,11 @@ import {
     clearHighlight,
     STANDARD_TUNING,
     majorChord,
-} from "../utils";
-
-// CSS
-interface CSSProps {
-    width?: number;
-    backgroundColor?: string;
-    activeColor?: string;
-    highlighted?: boolean;
-    active?: boolean;
-    border?: string;
-}
-
-const ChordInputContainer = styled.div<CSSProps>`
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    width: 100%;
-`;
-
-const FlexRow = styled.div<CSSProps>`
-    display: flex;
-    align-items: start;
-    justify-content: flex-start;
-`;
-
-const Title = styled.div<CSSProps>`
-    font-size: 14px;
-`;
-
-const Tag = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        border: props.highlighted ? "2px solid #000" : "2px solid transparent",
-    },
-}))<CSSProps>`
-    margin: 4px 8px 4px 0;
-    border-radius: 4px;
-    min-width: 26px;
-    min-height: 14px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px;
-`;
+} from "../../utils";
+import { ChordInputContainer, FlexRow, Tag, Title } from "./style";
 
 interface TagButtonProps {
-    activeColor?: string;
-    backgroundColor?: string;
     highlighted?: boolean;
-    imageSrc?: string;
-    border?: string;
     onClick?: (event: MouseEvent | TouchEvent) => void;
 }
 

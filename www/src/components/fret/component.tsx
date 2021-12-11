@@ -1,19 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
+import React, { useEffect, useRef } from "react";
 import {
     Store,
     StateType,
     SliderStateType,
     AnyReducersType,
     current,
-} from "../store";
-import { DiffType } from "../types";
+} from "../../store";
+import { DiffType, StatusTypes } from "../../types";
 import {
     mod,
     COLORS,
     STANDARD_TUNING,
-    FRETBOARD_WIDTH,
-    STRING_SIZE,
     CIRCLE_SIZE,
     SLIDER_LEFT_WINDOW,
     SLIDER_RIGHT_WINDOW,
@@ -23,8 +20,16 @@ import {
     NOT_SELECTED,
     SHARP_NAMES,
     FLAT_NAMES,
-} from "../utils";
-import { ChordSymbol } from "./symbol";
+} from "../../utils";
+import { ChordSymbol } from "../symbol";
+import {
+    CircleDiv,
+    FretDiv,
+    LegendDot,
+    OctaveDot,
+    ShadowDiv,
+    StringSegmentDiv,
+} from "./style";
 
 const [secondaryColor, primaryColor] = COLORS[0];
 
@@ -41,117 +46,11 @@ const getBackgroundColor = (isSelected: boolean, isHighlighted: boolean) => {
         : "transparent";
 };
 
-// CSS
-interface CSSProps {
-    width?: number;
-    height?: number;
-    border?: string;
-    color?: string;
-    backgroundColor?: string;
-    top?: number;
-    left?: number;
-    legendTop?: boolean;
-}
+const is = (diff: DiffType, key: number, val: any, negate: boolean = false) =>
+    diff && (negate ? diff[key] !== val : diff[key] === val);
 
-const FretDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        borderLeft: props.border,
-        borderRight: props.border,
-        width: `${props.width}%`,
-        height: `${props.height}px`,
-    },
-}))<CSSProps>`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-    user-select: none; /* standard syntax */
-    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
-    -moz-user-select: none; /* mozilla browsers */
-    -khtml-user-select: none; /* webkit (konqueror) browsers */
-    -ms-user-select: none; /* IE10+ */
-`;
-
-const CircleDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        color: props.color,
-    },
-}))<CSSProps>`
-    margin-left: -13px;
-    margin-right: -13px;
-    border: 1px solid #333;
-    box-sizing: border-box;
-    color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 100%;
-    background-color: transparent;
-    z-index: 9999;
-`;
-
-const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        left: `${props.left}%`,
-        top: `${props.top}px`,
-        width: props.width,
-        backgroundColor: props.backgroundColor,
-    },
-}))<CSSProps>`
-    margin-left: -13px;
-    margin-right: -13px;
-    width: 26px;
-    height: 26px;
-    border-radius: 100%;
-    z-index: 9998;
-    position: absolute;
-`;
-
-const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        height: `${props.height}px`,
-        backgroundColor: props.backgroundColor,
-    },
-}))<CSSProps>`
-    width: calc(50% - 13px);
-    margin: auto 0;
-`;
-
-const legendDotSize = 4;
-
-const LegendDot = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        left: `calc(100% - ${(legendDotSize * 3) / 2}px)`,
-        top: props.legendTop
-            ? `${2 + legendDotSize / 2}px`
-            : `calc(${props.height}px - ${2 + legendDotSize / 2}px)`,
-    },
-}))<CSSProps>`
-    width: ${legendDotSize}px;
-    height: ${legendDotSize}px;
-    border-radius: 100%;
-    position: absolute;
-    background-color: #000;
-    margin-top: -${legendDotSize / 2}px;
-`;
-
-const OctaveDot = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        left: `calc(100% - ${(legendDotSize * 3) / 2}px)`,
-        top: props.legendTop
-            ? `${2 + 2 * legendDotSize}px`
-            : `calc(${props.height}px - ${2 + 2 * legendDotSize}px)`,
-    },
-}))<CSSProps>`
-    width: ${legendDotSize}px;
-    height: ${legendDotSize}px;
-    border-radius: 100%;
-    position: absolute;
-    background-color: #000;
-    margin-top: -${legendDotSize / 2}px;
-`;
+const isNot = (diff: DiffType, key: number, val: any) =>
+    is(diff, key, val, true);
 
 interface LegendProps {
     stringIndex: number;
@@ -169,17 +68,22 @@ const Legend: React.FC<LegendProps> = ({
         {fretIndex !== 0 &&
             (stringIndex === 0 || stringIndex === 5) &&
             [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
-                <LegendDot legendTop={stringIndex !== 0} height={fretHeight} />
+                <LegendDot
+                    legendTop={stringIndex !== 0}
+                    legendHeight={fretHeight}
+                />
             )}
         {fretIndex !== 0 &&
             (stringIndex === 0 || stringIndex === 5) &&
             mod(fretIndex, 12) === 0 && (
-                <OctaveDot legendTop={stringIndex !== 0} height={fretHeight} />
+                <OctaveDot
+                    legendTop={stringIndex !== 0}
+                    legendHeight={fretHeight}
+                />
             )}
     </>
 );
 
-// Component
 interface Props {
     value: number;
     stringIndex: number;
@@ -188,12 +92,6 @@ interface Props {
     store: Store<StateType, AnyReducersType<StateType>>;
     sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
 }
-
-const is = (diff: DiffType, key: number, val: any, negate: boolean = false) =>
-    diff && (negate ? diff[key] !== val : diff[key] === val);
-
-const isNot = (diff: DiffType, key: number, val: any) =>
-    is(diff, key, val, true);
 
 export const Fret: React.FC<Props> = ({
     value,
@@ -207,10 +105,11 @@ export const Fret: React.FC<Props> = ({
 
     // makes frets progressively smaller
     // what did I even do here. Basically its some line
-    // const fretWidth = (1 + (12 - fretIndex) / 30) * 8.333333;
-
+    const fretWidth = (1 + (12 - fretIndex) / 30) * 8.333333;
     // temporary until I scale it to no moving target
-    const fretWidth = FRETBOARD_WIDTH / STRING_SIZE;
+    // const fretWidth = FRETBOARD_WIDTH / STRING_SIZE;
+
+    // smaller if input is open?
     const fretHeight = fretboardHeight / 6;
 
     const thickness = (6 - stringIndex + 1) / 2;
@@ -393,12 +292,11 @@ export const Fret: React.FC<Props> = ({
             | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) {
         // highlight note if brush mode is highlight
-        const { status } = store.state;
-        const { fretboard } = current(store.state);
+        const { status, fretboard } = current(store.state);
         const highlightConditions = [status === HIGHLIGHTED];
 
         if (e.nativeEvent instanceof MouseEvent) {
-            // highlight note if use is pressing shift + click or command + click
+            // highlight note if user is pressing shift + click or command + click
             highlightConditions.push(
                 e.nativeEvent.metaKey,
                 e.nativeEvent.shiftKey
@@ -410,31 +308,26 @@ export const Fret: React.FC<Props> = ({
             return;
         }
 
+        // toggle selection of note
+        const fromStatus = fretboard[stringIndex][value];
+        let toStatus: StatusTypes;
         if (highlightConditions.some((condition) => condition)) {
-            const status =
-                fretboard[stringIndex][value] === HIGHLIGHTED
-                    ? SELECTED
-                    : HIGHLIGHTED;
-            store.dispatch.setHighlightedNote(stringIndex, value, status);
+            toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
         } else {
-            // toggle selection of note if highlight conditions arent met
-            const status =
-                fretboard[stringIndex][value] >= SELECTED
-                    ? NOT_SELECTED
-                    : SELECTED;
-            store.dispatch.setHighlightedNote(stringIndex, value, status);
+            toStatus = fromStatus === NOT_SELECTED ? SELECTED : NOT_SELECTED;
         }
+        store.dispatch.setHighlightedNote(stringIndex, value, toStatus);
     }
 
     return (
         <FretDiv
             border={border}
-            width={fretWidth}
-            height={fretHeight}
+            width={`${fretWidth}%`}
+            height={`${fretHeight}px`}
             onContextMenu={onContextMenu}
         >
             <StringSegmentDiv
-                height={thickness}
+                height={`${thickness}px`}
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
             <CircleDiv onClick={onClick} onTouchStart={onClick} color={color}>
@@ -451,11 +344,11 @@ export const Fret: React.FC<Props> = ({
             <ShadowDiv
                 ref={shadowRef}
                 backgroundColor={backgroundColor}
-                left={50}
-                top={top}
+                left="50}%"
+                top={`${top}px`}
             />
             <StringSegmentDiv
-                height={thickness}
+                height={`${thickness}px`}
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
             <Legend

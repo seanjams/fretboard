@@ -1,24 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
-import styled from "styled-components";
-import { getName, getNotes } from "../utils";
+import React, { useEffect } from "react";
 import {
     Store,
     useStateRef,
     StateType,
     AnyReducersType,
     current,
-} from "../store";
-import { ChordSymbol } from "./symbol";
-
-// CSS
-interface CSSProps {}
-
-const TitleContainerDiv = styled.div<CSSProps>`
-    padding: 10px 10px 0px 20px;
-    font-family: Arial;
-    height: 28px;
-    vertical-align: top;
-`;
+} from "../../store";
+import { getName, getNotes } from "../../utils";
+import { ChordSymbol } from "../symbol";
+import { TitleContainerDiv } from "./style";
 
 // Component
 interface Props {

@@ -1,16 +1,13 @@
 import * as React from "react";
-import styled from "styled-components";
-import { Store, StateType, SliderStateType, AnyReducersType } from "../store";
-import { Fret } from "./fret";
-import { STRING_SIZE } from "../utils";
-
-// CSS
-interface CSSProps {}
-
-const StringDiv = styled.div<CSSProps>`
-    display: flex;
-    width: 100%;
-`;
+import {
+    Store,
+    StateType,
+    SliderStateType,
+    AnyReducersType,
+} from "../../store";
+import { STRING_SIZE } from "../../utils";
+import { Fret } from "../fret";
+import { StringDiv } from "./style";
 
 // Component
 interface Props {

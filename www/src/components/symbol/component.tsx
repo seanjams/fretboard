@@ -1,68 +1,11 @@
 import React from "react";
-import styled from "styled-components";
-
-// CSS
-interface CSSProps {
-    fontSize?: number;
-    width?: number;
-    height?: number;
-}
-
-const FlexRow = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        height: `${props.height}px`,
-    },
-}))<CSSProps>`
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    flex-wrap: nowrap;
-`;
-
-const Spacer = styled.div.attrs((props: CSSProps) => {
-    return {
-        style: {
-            width: `${props.width}px`,
-        },
-    };
-})<CSSProps>``;
-
-const SymbolSpan = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        marginLeft: `${(props.fontSize || 0) / -8}px`,
-        marginRight: `${(props.fontSize || 0) / -8}px`,
-        height: `${props.fontSize}px`,
-    },
-}))<CSSProps>`
-    vertical-align: top;
-    font-size: 75%;
-    white-space: nowrap;
-`;
-
-const SuperScript = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        fontSize: `${props.fontSize}px`,
-        height: `${props.fontSize}px`,
-    },
-}))<CSSProps>`
-    vertical-align: "super";
-    display: flex;
-    justify-content: start;
-    align-items: center;
-    white-space: nowrap;
-`;
-
-const StandardScript = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        fontSize: `${props.fontSize}px`,
-    },
-}))<CSSProps>`
-    display: flex;
-    justify-content: start;
-    align-items: center;
-    height: 100%;
-    white-space: nowrap;
-`;
+import {
+    FlexRow,
+    Spacer,
+    StandardScript,
+    SuperScript,
+    SymbolSpan,
+} from "./style";
 
 interface Props {
     rootName: string;
@@ -83,7 +26,10 @@ const cleanSymbol = (name: string, crumbFontSize: number) => {
                 </span>
             );
             chunks.push(
-                <SymbolSpan key={`sy-${name[i]}-${i}`} fontSize={crumbFontSize}>
+                <SymbolSpan
+                    key={`sy-${name[i]}-${i}`}
+                    scriptFontSize={crumbFontSize}
+                >
                     {name[i]}
                 </SymbolSpan>
             );
@@ -110,11 +56,11 @@ const generateCrumbs = (name: string, fontSize: number) => {
 
         crumbs.push(
             j % 2 ? (
-                <SuperScript key={key} fontSize={superScriptFontSize}>
+                <SuperScript key={key} scriptFontSize={superScriptFontSize}>
                     {cleanSymbol(crumb, superScriptFontSize)}
                 </SuperScript>
             ) : (
-                <StandardScript key={key} fontSize={fontSize}>
+                <StandardScript key={key} scriptFontSize={fontSize}>
                     {cleanSymbol(crumb, fontSize)}
                 </StandardScript>
             )
@@ -135,10 +81,10 @@ export const ChordSymbol: React.FC<Props> = ({
     const chordNameCrumbs = generateCrumbs(chordName, fontSize);
 
     return (
-        <FlexRow height={fontSize}>
+        <FlexRow height={`${fontSize}px`}>
             {rootNameCrumbs}
             {rootNameCrumbs.length && chordNameCrumbs.length ? (
-                <Spacer width={fontSize / 4} />
+                <Spacer width={`${fontSize / 4}px`} />
             ) : null}
             {chordNameCrumbs}
         </FlexRow>

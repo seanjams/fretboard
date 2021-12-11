@@ -86,7 +86,7 @@ NOTE_NAMES.forEach((names, i) => {
 });
 
 // C0 = 0 in this system. Lowest string on guitar is E2 = 28
-const SP = [4, 8, 12, 16, 20, 24, 30, 32];
+export const SP = [4, 8, 12, 16, 20, 24, 30, 32];
 
 export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
 
@@ -94,13 +94,13 @@ export const FRETBOARD_WIDTH = 1700;
 
 // export const FRETBOARD_HEIGHT = 250;
 
-export const FRETBOARD_MARGIN_HEIGHT = SP[1];
+export const FRETBOARD_MARGIN = SP[1];
 
 export const STRING_SIZE = 22;
 
 export const CIRCLE_SIZE = 26;
 
-export const SAFETY_AREA_HEIGHT = SP[1];
+export const SAFETY_AREA_MARGIN = SP[1];
 
 export const SLIDER_LEFT_WINDOW = 0.25;
 

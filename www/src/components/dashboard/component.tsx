@@ -1,7 +1,6 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import { isMobile } from "react-device-detect";
-import styled from "styled-components";
 import {
     Store,
     useStateRef,
@@ -9,69 +8,30 @@ import {
     SliderStateType,
     AnyReducersType,
     current,
-} from "../store";
-import { Fretboard } from "./fretboard";
+} from "../../store";
+import {
+    FRETBOARD_WIDTH,
+    STRING_SIZE,
+    SAFETY_AREA_MARGIN,
+    FRETBOARD_MARGIN,
+} from "../../utils";
+import { Fretboard } from "../fretboard";
 import {
     PositionControls,
     HighlightControls,
     SliderControls,
-} from "./controls";
-import { ChordInput } from "./input";
-// import { Menu } from "./menu";
-import { Slider } from "./slider";
-import { Title } from "./title";
+} from "../controls";
+import { ChordInput } from "../input";
+// import { Menu } from "../menu";
+import { Slider } from "../slider";
+import { Title } from "../title";
 import {
-    FRETBOARD_WIDTH,
-    STRING_SIZE,
-    SAFETY_AREA_HEIGHT,
-    FRETBOARD_MARGIN_HEIGHT,
-} from "../utils";
+    ContainerDiv,
+    FlexContainerDiv,
+    FlexRow,
+    OverflowContainerDiv,
+} from "./style";
 
-// CSS
-interface CSSProps {
-    width?: number;
-    height?: number;
-    marginTop?: number;
-    marginBottom?: number;
-}
-
-const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        width: `${props.width}px`,
-        height: `${props.height}px`,
-    },
-}))<CSSProps>`
-    font-family: Arial;
-    overflow: hidden;
-    width: 100vw;
-`;
-
-const FlexContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        height: `${props.height}px`,
-        marginTop: props.marginTop ? `${props.marginTop}px` : 0,
-        marginBottom: props.marginBottom ? `${props.marginBottom}px` : 0,
-    },
-}))<CSSProps>``;
-
-const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        height: `${props.height}px`,
-    },
-}))<CSSProps>`
-    width: 100%;
-    overflow-x: auto;
-    margin: ${FRETBOARD_MARGIN_HEIGHT}px 0;
-`;
-
-const FlexRow = styled.div<CSSProps>`
-    display: flex;
-    align-items: start;
-    justify-content: space-evenly;
-    padding: 0 ${SAFETY_AREA_HEIGHT}px;
-`;
-
-// Component
 interface Props {
     store: Store<StateType, AnyReducersType<StateType>>;
     sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
@@ -105,20 +65,35 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
     });
 
     const { showInput, orientation, dimensions } = getState();
-    const [windowWidth, windowHeight] = dimensions;
+    // const width = orientation.startsWith("portrait")
+    //     ? windowHeight
+    //     : windowWidth;
+    // const height = orientation.startsWith("portrait")
+    //     ? windowWidth
+    //     : windowHeight;
+    const [width, height] = dimensions;
 
     const fretboardContainerRef = useRef<HTMLDivElement>(null);
     const scrollToFretRef = useRef(0);
 
-    const width = orientation.startsWith("portrait")
-        ? windowHeight
-        : windowWidth;
-    const height = orientation.startsWith("portrait")
-        ? windowWidth
-        : windowHeight;
+    // -------------------------------
+    // Safety Area
+    // -------------------------------
+    // Gutter
+    // -------------------------------
+    // Fretboard Margin
+    // -------------------------------
+    // Main Height
+    // -------------------------------
+    // Fretboard Margin
+    // -------------------------------
+    // Gutter
+    // -------------------------------
+    // Safety Area
+    // -------------------------------
 
-    const gutterHeight = windowHeight * 0.15 - FRETBOARD_MARGIN_HEIGHT;
-    const mainHeight = windowHeight * 0.7 - 2 * SAFETY_AREA_HEIGHT;
+    const gutterHeight = height * 0.15 - SAFETY_AREA_MARGIN;
+    const mainHeight = height * 0.7 - 2 * FRETBOARD_MARGIN;
     const fretboardHeight = mainHeight;
 
     useEffect(() => {
@@ -174,17 +149,17 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
             <ContainerDiv
                 // onMouseDown={onDragStart}
                 // onTouchStart={onDragEnd}
-                height={windowHeight}
-                width={windowWidth}
+                height={`${height}px`}
+                width={`${width}px`}
                 // height={height}
                 // width={width}
             >
                 <FlexContainerDiv
-                    height={gutterHeight}
-                    marginTop={SAFETY_AREA_HEIGHT}
+                    height={`${gutterHeight}px`}
+                    marginTop={`${SAFETY_AREA_MARGIN}px`}
                     marginBottom={0}
                 >
-                    <FlexRow>
+                    <FlexRow alignItems="end">
                         <div style={{ flex: 1 }}>
                             <Title store={store} />
                         </div>
@@ -206,7 +181,7 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
                     <ChordInput store={store} sliderStore={sliderStore} />
                 </CSSTransition>
                 <OverflowContainerDiv
-                    height={mainHeight}
+                    height={`${mainHeight}px`}
                     ref={fretboardContainerRef}
                 >
                     <Fretboard
@@ -216,9 +191,9 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
                     />
                 </OverflowContainerDiv>
                 <FlexContainerDiv
-                    height={gutterHeight}
-                    marginTop={0}
-                    marginBottom={SAFETY_AREA_HEIGHT}
+                    height={`${gutterHeight}px`}
+                    marginTop="0px"
+                    marginBottom={`${SAFETY_AREA_MARGIN}px`}
                 >
                     <FlexRow>
                         <div style={{ flexGrow: 1 }}>
