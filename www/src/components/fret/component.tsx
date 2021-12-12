@@ -8,6 +8,7 @@ import {
 } from "../../store";
 import { DiffType, StatusTypes } from "../../types";
 import {
+    getFretWidth,
     mod,
     COLORS,
     STANDARD_TUNING,
@@ -20,6 +21,8 @@ import {
     NOT_SELECTED,
     SHARP_NAMES,
     FLAT_NAMES,
+    FRETBOARD_WIDTH,
+    STRING_SIZE,
 } from "../../utils";
 import { ChordSymbol } from "../symbol";
 import {
@@ -104,12 +107,9 @@ export const Fret: React.FC<Props> = ({
     const fretIndex = value - STANDARD_TUNING[stringIndex];
 
     // makes frets progressively smaller
-    // what did I even do here. Basically its some line
-    const fretWidth = (1 + (12 - fretIndex) / 30) * 8.333333;
-    // temporary until I scale it to no moving target
-    // const fretWidth = FRETBOARD_WIDTH / STRING_SIZE;
+    const fretWidth = getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, fretIndex);
 
-    // smaller if input is open?
+    // should i shrink this if input is open?
     const fretHeight = fretboardHeight / 6;
 
     const thickness = (6 - stringIndex + 1) / 2;
@@ -322,7 +322,7 @@ export const Fret: React.FC<Props> = ({
     return (
         <FretDiv
             border={border}
-            width={`${fretWidth}%`}
+            width={`${fretWidth}px`}
             height={`${fretHeight}px`}
             onContextMenu={onContextMenu}
         >

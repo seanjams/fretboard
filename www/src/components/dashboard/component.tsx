@@ -10,10 +10,16 @@ import {
     current,
 } from "../../store";
 import {
+    getFretWidth,
     FRETBOARD_WIDTH,
     STRING_SIZE,
     SAFETY_AREA_MARGIN,
     FRETBOARD_MARGIN,
+    NATURAL_NOTE_NAMES,
+    B,
+    C,
+    E,
+    F,
 } from "../../utils";
 import { Fretboard } from "../fretboard";
 import {
@@ -111,8 +117,15 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
                 fretboardContainerRef.current &&
                 scrollToFretRef.current !== scrollToFret
             ) {
-                const fretXPosition =
-                    (FRETBOARD_WIDTH * scrollToFret) / STRING_SIZE;
+                let fretXPosition = 0;
+                for (let i = 0; i < scrollToFret; i++) {
+                    fretXPosition += getFretWidth(
+                        FRETBOARD_WIDTH,
+                        STRING_SIZE,
+                        i
+                    );
+                }
+
                 const halfContainerWidth =
                     fretboardContainerRef.current.offsetWidth / 2;
 
@@ -126,6 +139,7 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
         });
 
         window.addEventListener("orientationchange", onOrientationChange);
+        window.addEventListener("keydown", onKeyPress);
 
         return () => {
             destroyListener();
@@ -133,6 +147,7 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
                 "orientationchange",
                 onOrientationChange
             );
+            window.removeEventListener("keydown", onKeyPress);
         };
     }, []);
 
@@ -143,6 +158,60 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
             dimensions: getScreenDimensions(),
         }));
     }, []);
+
+    function onKeyPress(this: Window, e: KeyboardEvent): any {
+        const { invert, leftHand, progression } = current(store.state);
+        const { label } = progression;
+        const verticalDirections = ["ArrowUp", "ArrowDown"];
+        const horizontalDirections = ["ArrowLeft", "ArrowRight"];
+        const keyMap: { [key in string]: (...args: any[]) => StateType } = {
+            ArrowUp: store.dispatch.incrementPositionY,
+            ArrowDown: store.dispatch.decrementPositionY,
+            ArrowRight: store.dispatch.incrementPositionX,
+            ArrowLeft: store.dispatch.decrementPositionX,
+        };
+
+        // Get the action direction based on orientation of fretboard
+        // could maybe move this to reducer.
+        // highEBottom
+        // 	- whether the high E string appears on the top or bottom of the fretboard,
+        // 	- depending on invert/leftHand views
+        const highEBottom = invert !== leftHand;
+        let direction = e.key;
+        if (verticalDirections.includes(direction) && highEBottom) {
+            let dirs = verticalDirections;
+            direction = dirs[(dirs.indexOf(direction) + 1) % 2];
+        } else if (horizontalDirections.includes(direction) && invert) {
+            let dirs = horizontalDirections;
+            direction = dirs[(dirs.indexOf(direction) + 1) % 2];
+        }
+
+        if (keyMap[direction]) {
+            e.preventDefault();
+            keyMap[direction]();
+        } else {
+            let naturals: { [key in string]: number } = {};
+            let i = 0;
+            for (let name of NATURAL_NOTE_NAMES) {
+                if (label === "flat") {
+                    naturals[name] = i;
+                    if (name !== F && name !== C) i++;
+                    naturals[name.toLowerCase()] = i;
+                    i++;
+                } else if (label === "sharp") {
+                    naturals[name.toLowerCase()] = i;
+                    if (name !== E && name !== B) i++;
+                    naturals[name] = i;
+                    i++;
+                }
+            }
+
+            if (naturals.hasOwnProperty(e.key)) {
+                e.preventDefault();
+                store.dispatch.setNote(naturals[e.key]);
+            }
+        }
+    }
 
     return (
         <>

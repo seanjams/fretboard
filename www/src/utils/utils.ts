@@ -495,3 +495,17 @@ export function getVisibleFretboards(
     }
     return fretboards;
 }
+
+// Get width of fret at fretIndex with fretboard of given width / string size.
+// On guitars, frets get narrower as you climb the fretboard, this mimics that effect.
+export function getFretWidth(
+    fretboardWidth: number, // width in pixels of entire fretboard
+    stringSize: number, // number of frets
+    fretIndex: number, // index to calculate width
+    severity: number = 0.025 // percentage of how fast fretboard should shrink, from 0-1
+): number {
+    const severityCoefficient = (fretboardWidth * severity) / stringSize;
+    const averageFretWidth = fretboardWidth / stringSize;
+    const fretWidthAdjustment = stringSize / 2 - fretIndex;
+    return averageFretWidth + fretWidthAdjustment * severityCoefficient;
+}
