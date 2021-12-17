@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
-import { AnyReducersType, Store, useStateRef, StateType } from "../../store";
+import React, { useEffect } from "react";
+import { useStateRef, AppStore } from "../../store";
 import { ArrowTypes } from "../../types";
 import { COLORS, HIGHLIGHTED, SELECTED, BRUSH_MODES } from "../../utils";
 import { CircleControlsContainer, Label } from "./style";
@@ -15,11 +15,11 @@ import ClearIcon from "../../assets/icons/clear.png";
 const [secondaryColor, primaryColor] = COLORS[0];
 
 interface Props {
-    store: Store<StateType, AnyReducersType<StateType>>;
+    store: AppStore;
 }
 
 export const PositionControls: React.FC<Props> = ({ store }) => {
-    const onArrowPress = (direction: ArrowTypes) => () => {
+    const onArrowPress = (dir: ArrowTypes) => () => {
         const { invert, leftHand } = store.state;
 
         // Get the action direction based on orientation of fretboard
@@ -28,21 +28,20 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
         // 	- whether the high E string appears on the top or bottom of the fretboard,
         // 	- depending on invert/leftHand views
         const highEBottom = invert !== leftHand;
-        const keyMap: { [key in ArrowTypes]: () => StateType } = {
-            ArrowUp: highEBottom
-                ? store.dispatch.decrementPositionY
-                : store.dispatch.incrementPositionY,
-            ArrowDown: highEBottom
-                ? store.dispatch.incrementPositionY
-                : store.dispatch.decrementPositionY,
-            ArrowRight: invert
-                ? store.dispatch.decrementPositionX
-                : store.dispatch.incrementPositionX,
-            ArrowLeft: invert
-                ? store.dispatch.incrementPositionX
-                : store.dispatch.decrementPositionX,
-        };
-        if (keyMap[direction]) keyMap[direction]();
+        const up = (dir === "ArrowDown" && highEBottom) || dir === "ArrowUp";
+        const down = (dir === "ArrowUp" && highEBottom) || dir === "ArrowDown";
+        const right = (dir === "ArrowLeft" && invert) || dir === "ArrowRight";
+        const left = (dir === "ArrowRight" && invert) || dir === "ArrowLeft";
+
+        if (up) {
+            store.dispatch.incrementPositionY();
+        } else if (down) {
+            store.dispatch.decrementPositionY();
+        } else if (right) {
+            store.dispatch.incrementPositionX();
+        } else if (left) {
+            store.dispatch.decrementPositionX();
+        }
     };
 
     return (

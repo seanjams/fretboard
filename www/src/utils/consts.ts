@@ -8,6 +8,7 @@ import {
     ChordTypes,
     StatusTypes,
     HighlightTypes,
+    LabelTypes,
 } from "../types";
 
 export const C = "C";
@@ -77,6 +78,7 @@ export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
     [B, B],
 ];
 
+export const NATURAL_NOTE_NAMES: NaturalTypes[] = [C, D, E, F, G, A, B];
 export const SHARP_NAMES: SharpTypes[] = NOTE_NAMES.map((names) => names[0]);
 export const FLAT_NAMES: FlatTypes[] = NOTE_NAMES.map((names) => names[1]);
 export const NOTE_VALUES: { [key in NoteTypes]?: number } = {};
@@ -84,6 +86,34 @@ NOTE_NAMES.forEach((names, i) => {
     NOTE_VALUES[names[0]] = i;
     NOTE_VALUES[names[1]] = i;
 });
+
+function getNaturalNotesKeyMap(label: LabelTypes) {
+    let naturals: { [key in string]: number } = {};
+    let i = 0;
+    for (let name of NATURAL_NOTE_NAMES) {
+        if (label === "flat") {
+            naturals[name] = i;
+            if (name !== F && name !== C) i++;
+            naturals[name.toLowerCase()] = i;
+            i++;
+        } else if (label === "sharp") {
+            naturals[name.toLowerCase()] = i;
+            if (name !== E && name !== B) i++;
+            naturals[name] = i;
+            i++;
+        }
+    }
+
+    return naturals;
+}
+
+export const NATURAL_NOTE_KEYMAP: {
+    [key in LabelTypes]: ReturnType<typeof getNaturalNotesKeyMap>;
+} = {
+    value: getNaturalNotesKeyMap("flat"),
+    flat: getNaturalNotesKeyMap("flat"),
+    sharp: getNaturalNotesKeyMap("sharp"),
+};
 
 // C0 = 0 in this system. Lowest string on guitar is E2 = 28
 export const SP = [4, 8, 12, 16, 20, 24, 30, 32];
@@ -108,8 +138,6 @@ export const SLIDER_RIGHT_WINDOW = 1 - SLIDER_LEFT_WINDOW;
 
 export const SLIDER_WINDOW_LENGTH =
     1 + SLIDER_LEFT_WINDOW - SLIDER_RIGHT_WINDOW;
-
-export const NATURAL_NOTE_NAMES: NaturalTypes[] = [C, D, E, F, G, A, B];
 
 export const majorChord = "maj";
 export const minorChord = "min";

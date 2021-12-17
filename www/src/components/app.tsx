@@ -2,12 +2,10 @@ import React, { useMemo, useEffect } from "react";
 import "reset-css";
 import {
     DEFAULT_MAIN_STATE,
-    DEFAULT_SLIDER_STATE,
-    Store,
-    reducers,
-    sliderReducers,
     StateType,
     currentProgression,
+    AppStore,
+    SliderStore,
 } from "../store";
 import { Dashboard } from "./dashboard";
 // import { Menu } from "./menu";
@@ -17,11 +15,8 @@ interface Props {
 }
 
 export const App: React.FC<Props> = ({ oldState }) => {
-    const store = useMemo(() => new Store(DEFAULT_MAIN_STATE(), reducers), []);
-    const sliderStore = useMemo(
-        () => new Store(DEFAULT_SLIDER_STATE(), sliderReducers),
-        []
-    );
+    const store = useMemo(() => new AppStore(), []);
+    const sliderStore = useMemo(() => new SliderStore(), []);
 
     useEffect(() => {
         rehydrateState();

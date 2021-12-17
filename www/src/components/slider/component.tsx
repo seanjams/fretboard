@@ -1,18 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import {
     stopClick,
     getName,
     getNotes,
     getVisibleFretboards,
 } from "../../utils";
-import {
-    Store,
-    useStateRef,
-    StateType,
-    SliderStateType,
-    AnyReducersType,
-    current,
-} from "../../store";
+import { useStateRef, AppStore, SliderStore, current } from "../../store";
 import { ChordSymbol } from "../symbol";
 import {
     ContainerDiv,
@@ -23,25 +16,30 @@ import {
 } from "./style";
 
 interface SliderProps {
-    store: Store<StateType, AnyReducersType<StateType>>;
-    sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
+    store: AppStore;
+    sliderStore: SliderStore;
 }
 
 export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
     // state
     const { progression } = current(store.state);
-    const [getState, setState] = useStateRef({
-        label: progression.label,
-        hiddenFretboardIndices: progression.hiddenFretboardIndices,
-        rehydrateSuccess: sliderStore.state.rehydrateSuccess,
-        currentProgressionIndex: store.state.currentProgressionIndex,
-        visibleFretboards: getVisibleFretboards(
-            progression.fretboards,
-            progression.hiddenFretboardIndices
-        ),
-        left: 0,
-        progress: 0,
-    });
+    const [getState, setState] = useStateRef(
+        useMemo(
+            () => ({
+                label: progression.label,
+                hiddenFretboardIndices: progression.hiddenFretboardIndices,
+                rehydrateSuccess: sliderStore.state.rehydrateSuccess,
+                currentProgressionIndex: store.state.currentProgressionIndex,
+                visibleFretboards: getVisibleFretboards(
+                    progression.fretboards,
+                    progression.hiddenFretboardIndices
+                ),
+                left: 0,
+                progress: 0,
+            }),
+            []
+        )
+    );
     const {
         label,
         left,
@@ -286,7 +284,7 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
                     const { rootName, chordName } = getName(
                         getNotes(fretboard),
                         label
-                    );
+                    )[0];
                     return (
                         <ProgressBarFragment
                             key={`button-pad-${i}`}

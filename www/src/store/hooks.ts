@@ -16,6 +16,7 @@ import { Store } from "./store";
 //     return [state, store.setState] as const;
 // }
 
+// pass function instead of value and useMemo on the object it returns
 export function useStateRef<T>(
     value: T
 ): [() => T, React.Dispatch<React.SetStateAction<T>>] {

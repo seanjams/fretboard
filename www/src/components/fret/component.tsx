@@ -1,11 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import {
-    Store,
-    StateType,
-    SliderStateType,
-    AnyReducersType,
-    current,
-} from "../../store";
+import { AppStore, SliderStore, current } from "../../store";
 import { DiffType, StatusTypes } from "../../types";
 import {
     getFretWidth,
@@ -92,8 +86,8 @@ interface Props {
     stringIndex: number;
     openString?: boolean;
     fretboardHeight: number;
-    store: Store<StateType, AnyReducersType<StateType>>;
-    sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
+    store: AppStore;
+    sliderStore: SliderStore;
 }
 
 export const Fret: React.FC<Props> = ({

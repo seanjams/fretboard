@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
-import {
-    Store,
-    useStateRef,
-    StateType,
-    SliderStateType,
-    AnyReducersType,
-} from "../../store";
+import { useStateRef, AppStore, SliderStore } from "../../store";
 import { GuitarString } from "../string";
 import { STANDARD_TUNING, FRETBOARD_WIDTH } from "../../utils";
 import { FretboardContainer, FretboardDiv } from "./style";
@@ -13,8 +7,8 @@ import { FretboardContainer, FretboardDiv } from "./style";
 // Component
 interface Props {
     fretboardHeight: number;
-    store: Store<StateType, AnyReducersType<StateType>>;
-    sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
+    store: AppStore;
+    sliderStore: SliderStore;
 }
 
 export const Fretboard: React.FC<Props> = ({

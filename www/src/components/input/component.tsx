@@ -1,14 +1,13 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, {
+    useRef,
+    useEffect,
+    useState,
+    useCallback,
+    useMemo,
+} from "react";
 import { CSSTransition } from "react-transition-group";
 import { ChordSymbol } from "../symbol";
-import {
-    Store,
-    useStateRef,
-    StateType,
-    SliderStateType,
-    AnyReducersType,
-    current,
-} from "../../store";
+import { useStateRef, AppStore, SliderStore, current } from "../../store";
 import { ChordTypes, NoteTypes } from "../../types";
 import {
     FLAT_NAMES,
@@ -84,18 +83,23 @@ export const TagButton: React.FC<TagButtonProps> = ({
 };
 
 interface Props {
-    store: Store<StateType, AnyReducersType<StateType>>;
-    sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
+    store: AppStore;
+    sliderStore: SliderStore;
 }
 
 export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
     // state
     const { fretboard, progression } = current(store.state);
-    const [getState, setState] = useStateRef({
-        label: progression.label,
-        name: getName(getNotes(fretboard), progression.label),
-        showInput: store.state.showInput,
-    });
+    const [getState, setState] = useStateRef(
+        useMemo(
+            () => ({
+                label: progression.label,
+                name: getName(getNotes(fretboard), progression.label)[0],
+                showInput: store.state.showInput,
+            }),
+            []
+        )
+    );
     const { label, name, showInput } = getState();
     const { rootIdx, chordName } = name;
     const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
@@ -107,7 +111,7 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
         return store.addListener((newState) => {
             const { showInput } = newState;
             const { fretboard, progression } = current(newState);
-            const name = getName(getNotes(fretboard), progression.label);
+            const name = getName(getNotes(fretboard), progression.label)[0];
 
             if (
                 getState().name !== name ||

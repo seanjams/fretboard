@@ -8,7 +8,8 @@ import {
     clearHighlight,
     DEFAULT_STRINGSWITCH,
 } from "../utils";
-import { AnyReducersType } from "./store";
+import { Store } from "./store";
+import { DEFAULT_MAIN_STATE, DEFAULT_SLIDER_STATE } from "./defaultState";
 
 // Types
 
@@ -58,16 +59,22 @@ export function current(state: StateType): StateType & {
 }
 
 // Reducers
-export const sliderReducers: AnyReducersType<SliderStateType> = {
-    setProgress(state, progress) {
+export const sliderReducers = {
+    setProgress(state: SliderStateType, progress: number): SliderStateType {
         // dangerous method, does not return new state object on purpose, use with caution
         state.progress = progress;
         return state;
     },
 };
 
-export const reducers: AnyReducersType<StateType> = {
-    clearAll(state) {
+export class SliderStore extends Store<SliderStateType, typeof sliderReducers> {
+    constructor() {
+        super(DEFAULT_SLIDER_STATE(), sliderReducers);
+    }
+}
+
+export const reducers = {
+    clearAll(state: StateType) {
         let progression = current(state).progression;
         let { fretboards } = progression;
 
@@ -81,7 +88,7 @@ export const reducers: AnyReducersType<StateType> = {
         });
     },
 
-    clear(state) {
+    clear(state: StateType) {
         let progression = current(state).progression;
         let { focusedIndex, fretboards } = progression;
 
@@ -92,7 +99,7 @@ export const reducers: AnyReducersType<StateType> = {
         });
     },
 
-    incrementPosition(state, inc, vertical) {
+    incrementPosition(state: StateType, inc: number, vertical: boolean) {
         let progression = current(state).progression;
         let { focusedIndex, scrollToFret, fretboards } = progression;
 
@@ -112,23 +119,28 @@ export const reducers: AnyReducersType<StateType> = {
         });
     },
 
-    incrementPositionX(state) {
+    incrementPositionX(state: StateType) {
         return this.incrementPosition(state, 1, false);
     },
 
-    decrementPositionX(state) {
+    decrementPositionX(state: StateType) {
         return this.incrementPosition(state, -1, false);
     },
 
-    incrementPositionY(state) {
+    incrementPositionY(state: StateType) {
         return this.incrementPosition(state, 1, true);
     },
 
-    decrementPositionY(state) {
+    decrementPositionY(state: StateType) {
         return this.incrementPosition(state, -1, true);
     },
 
-    setHighlightedNote(state, stringIndex, value, status) {
+    setHighlightedNote(
+        state: StateType,
+        stringIndex: number,
+        value: number,
+        status: StatusTypes
+    ) {
         let progression = current(state).progression;
         let { focusedIndex, fretboards } = progression;
 
@@ -146,7 +158,7 @@ export const reducers: AnyReducersType<StateType> = {
         });
     },
 
-    addFretboard(state) {
+    addFretboard(state: StateType) {
         let progression = current(state).progression;
         let { focusedIndex, fretboards } = progression;
 
@@ -161,7 +173,7 @@ export const reducers: AnyReducersType<StateType> = {
         });
     },
 
-    removeFretboard(state) {
+    removeFretboard(state: StateType) {
         let progression = current(state).progression;
         let { focusedIndex, fretboards } = progression;
 
@@ -176,7 +188,7 @@ export const reducers: AnyReducersType<StateType> = {
         });
     },
 
-    setFocusedIndex(state, focusedIndex) {
+    setFocusedIndex(state: StateType, focusedIndex: number) {
         let progression = current(state).progression;
         let { fretboards } = progression;
         focusedIndex = Math.max(focusedIndex, 0);
@@ -188,18 +200,27 @@ export const reducers: AnyReducersType<StateType> = {
         });
     },
 
-    setShowInput(state, showInput) {
+    setShowInput(state: StateType, showInput: boolean) {
         return { ...state, showInput };
     },
 
-    setStatus(state, status) {
+    setStatus(state: StateType, status: StatusTypes) {
         return { ...state, status };
     },
 
-    setCurrentProgression(state, progression) {
+    setCurrentProgression(
+        state: StateType,
+        progression: ProgressionStateType
+    ): StateType {
         let { progressions, currentProgressionIndex } = state;
         progressions = [...progressions];
         progressions[currentProgressionIndex] = progression;
         return { ...state, progressions };
     },
 };
+
+export class AppStore extends Store<StateType, typeof reducers> {
+    constructor() {
+        super(DEFAULT_MAIN_STATE(), reducers);
+    }
+}

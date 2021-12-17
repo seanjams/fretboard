@@ -1,12 +1,10 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
-import { Store, AnyReducersType, StateType, useStateRef } from "../../store";
-import {} from "../../utils";
-import {} from "../../types";
+import React, { useEffect } from "react";
+import { AppStore, useStateRef } from "../../store";
 import { ContainerDiv } from "./style";
 
 // Component
 interface Props {
-    store: Store<StateType, AnyReducersType<StateType>>;
+    store: AppStore;
 }
 
 export const Template: React.FC<Props> = ({ store }) => {

@@ -1,24 +1,18 @@
 import React, { useEffect } from "react";
-import {
-    Store,
-    useStateRef,
-    StateType,
-    AnyReducersType,
-    current,
-} from "../../store";
+import { AppStore, current, useStateRef } from "../../store";
 import { getName, getNotes } from "../../utils";
 import { ChordSymbol } from "../symbol";
 import { TitleContainerDiv } from "./style";
 
 // Component
 interface Props {
-    store: Store<StateType, AnyReducersType<StateType>>;
+    store: AppStore;
 }
 
 export const Title: React.FC<Props> = ({ store }) => {
     const { fretboard, progression } = current(store.state);
     const [getState, setState] = useStateRef({
-        name: getName(getNotes(fretboard), progression.label),
+        name: getName(getNotes(fretboard), progression.label)[0],
     });
     const { name } = getState();
     const { rootName, chordName } = name;
@@ -26,7 +20,7 @@ export const Title: React.FC<Props> = ({ store }) => {
     useEffect(() => {
         return store.addListener((newState) => {
             const { fretboard, progression } = current(newState);
-            const name = getName(getNotes(fretboard), progression.label);
+            const name = getName(getNotes(fretboard), progression.label)[0];
             if (getState().name !== name)
                 setState((prevState) => ({
                     ...prevState,

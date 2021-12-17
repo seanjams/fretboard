@@ -2,19 +2,23 @@ export type AnyReducersType<S> = {
     [key: string]: (state: S, ...args: any[]) => S;
 };
 
+export type TupleRest<T extends unknown[]> = T extends [any, ...infer U]
+    ? U
+    : never;
+
 export class Store<S, R extends AnyReducersType<S>> {
     dispatch: {
-        [key in keyof R]: (...args: any[]) => S;
+        [K in keyof R]: (...args: TupleRest<Parameters<R[K]>>) => void;
     };
 
     constructor(public state: S, private reducers: R) {
         if (!reducers) return;
         let self = this;
-        this.dispatch = {} as typeof self.dispatch;
+        const dispatch = {} as any;
         let key: keyof typeof reducers;
         for (key in reducers) {
             let k = key;
-            this.dispatch[k] = (...args: any[]): S => {
+            dispatch[k] = (...args: any[]): S => {
                 // console.log(`Running Reducer: ${k}`);
                 // console.log(`oldState:`, this.state);
                 const reducer = reducers[k];
@@ -26,6 +30,8 @@ export class Store<S, R extends AnyReducersType<S>> {
                 return this.state;
             };
         }
+
+        this.dispatch = dispatch; 
     }
 
     public setState = (nextState: S) => {

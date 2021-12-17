@@ -1,25 +1,15 @@
 import React, { useRef, useEffect, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import { isMobile } from "react-device-detect";
-import {
-    Store,
-    useStateRef,
-    StateType,
-    SliderStateType,
-    AnyReducersType,
-    current,
-} from "../../store";
+import { useStateRef, current, AppStore, SliderStore } from "../../store";
 import {
     getFretWidth,
     FRETBOARD_WIDTH,
     STRING_SIZE,
     SAFETY_AREA_MARGIN,
     FRETBOARD_MARGIN,
-    NATURAL_NOTE_NAMES,
-    B,
-    C,
-    E,
-    F,
+    NATURAL_NOTE_KEYMAP,
+    SELECTED,
 } from "../../utils";
 import { Fretboard } from "../fretboard";
 import {
@@ -39,8 +29,8 @@ import {
 } from "./style";
 
 interface Props {
-    store: Store<StateType, AnyReducersType<StateType>>;
-    sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
+    store: AppStore;
+    sliderStore: SliderStore;
 }
 
 interface DashboardStateType {
@@ -162,53 +152,35 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
     function onKeyPress(this: Window, e: KeyboardEvent): any {
         const { invert, leftHand, progression } = current(store.state);
         const { label } = progression;
-        const verticalDirections = ["ArrowUp", "ArrowDown"];
-        const horizontalDirections = ["ArrowLeft", "ArrowRight"];
-        const keyMap: { [key in string]: (...args: any[]) => StateType } = {
-            ArrowUp: store.dispatch.incrementPositionY,
-            ArrowDown: store.dispatch.decrementPositionY,
-            ArrowRight: store.dispatch.incrementPositionX,
-            ArrowLeft: store.dispatch.decrementPositionX,
-        };
+        const highEBottom = invert !== leftHand;
 
         // Get the action direction based on orientation of fretboard
         // could maybe move this to reducer.
         // highEBottom
         // 	- whether the high E string appears on the top or bottom of the fretboard,
         // 	- depending on invert/leftHand views
-        const highEBottom = invert !== leftHand;
-        let direction = e.key;
-        if (verticalDirections.includes(direction) && highEBottom) {
-            let dirs = verticalDirections;
-            direction = dirs[(dirs.indexOf(direction) + 1) % 2];
-        } else if (horizontalDirections.includes(direction) && invert) {
-            let dirs = horizontalDirections;
-            direction = dirs[(dirs.indexOf(direction) + 1) % 2];
-        }
-
-        if (keyMap[direction]) {
-            e.preventDefault();
-            keyMap[direction]();
+        let dir = e.key;
+        const up = (dir === "ArrowDown" && highEBottom) || dir === "ArrowUp";
+        const down = (dir === "ArrowUp" && highEBottom) || dir === "ArrowDown";
+        const right = (dir === "ArrowLeft" && invert) || dir === "ArrowRight";
+        const left = (dir === "ArrowRight" && invert) || dir === "ArrowLeft";
+        if (up) {
+            store.dispatch.incrementPositionY();
+        } else if (down) {
+            store.dispatch.decrementPositionY();
+        } else if (right) {
+            store.dispatch.incrementPositionX();
+        } else if (left) {
+            store.dispatch.decrementPositionX();
         } else {
-            let naturals: { [key in string]: number } = {};
-            let i = 0;
-            for (let name of NATURAL_NOTE_NAMES) {
-                if (label === "flat") {
-                    naturals[name] = i;
-                    if (name !== F && name !== C) i++;
-                    naturals[name.toLowerCase()] = i;
-                    i++;
-                } else if (label === "sharp") {
-                    naturals[name.toLowerCase()] = i;
-                    if (name !== E && name !== B) i++;
-                    naturals[name] = i;
-                    i++;
-                }
-            }
-
-            if (naturals.hasOwnProperty(e.key)) {
+            const naturalNotesKeyMap = NATURAL_NOTE_KEYMAP[label];
+            if (naturalNotesKeyMap.hasOwnProperty(e.key)) {
                 e.preventDefault();
-                store.dispatch.setNote(naturals[e.key]);
+                store.dispatch.setHighlightedNote(
+                    0,
+                    naturalNotesKeyMap[e.key],
+                    SELECTED
+                );
             }
         }
     }

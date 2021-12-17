@@ -1,10 +1,5 @@
 import * as React from "react";
-import {
-    Store,
-    StateType,
-    SliderStateType,
-    AnyReducersType,
-} from "../../store";
+import { AppStore, SliderStore } from "../../store";
 import { STRING_SIZE } from "../../utils";
 import { Fret } from "../fret";
 import { StringDiv } from "./style";
@@ -14,8 +9,8 @@ interface Props {
     base: number;
     stringIndex: number;
     fretboardHeight: number;
-    store: Store<StateType, AnyReducersType<StateType>>;
-    sliderStore: Store<SliderStateType, AnyReducersType<SliderStateType>>;
+    store: AppStore;
+    sliderStore: SliderStore;
 }
 
 export const GuitarString: React.FC<Props> = ({

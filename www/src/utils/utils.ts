@@ -21,7 +21,6 @@ import {
     NOT_SELECTED,
 } from "../utils";
 import { isEqual } from "lodash";
-import { majorChord } from "./consts";
 
 export function stopClick() {
     // can be placed within a mouseup event to prevent
@@ -342,7 +341,7 @@ export function getName(
     rootName: NoteTypes | "";
     chordName: string;
     foundChordName: ChordTypes | "";
-} {
+}[] {
     function getNoteName(idx: number): NoteTypes {
         return label === "sharp" ? SHARP_NAMES[idx] : FLAT_NAMES[idx];
     }
@@ -356,17 +355,21 @@ export function getName(
         let tempNotes = notes.map((note) => +!!note); // convert to only 0 or 1
 
         // rotate through notes and compare to chord to see if matches
+        const matchingChordShapes: ReturnType<typeof getName> = [];
         for (let chordNote in chordShape) {
             if (isEqual(tempNotes, chordShape)) {
-                return {
+                matchingChordShapes.push({
                     rootIdx: +chordNote,
                     rootName: getNoteName(+chordNote),
                     chordName: shapeName,
                     foundChordName: shapeName,
-                };
-            } else {
-                tempNotes = tempNotes.slice(1).concat(tempNotes[0]);
+                });
             }
+            tempNotes = tempNotes.slice(1).concat(tempNotes[0]);
+        }
+
+        if (matchingChordShapes.length) {
+            return matchingChordShapes;
         }
     }
 
@@ -376,12 +379,14 @@ export function getName(
         if (notes[i]) noteNames.push(getNoteName(+i));
     }
 
-    return {
-        rootIdx: -1,
-        rootName: "",
-        chordName: noteNames.join(", "),
-        foundChordName: "",
-    };
+    return [
+        {
+            rootIdx: -1,
+            rootName: "",
+            chordName: noteNames.join(", "),
+            foundChordName: "",
+        },
+    ];
 }
 
 export function getScrollToFret(fretboard: StringSwitchType) {
