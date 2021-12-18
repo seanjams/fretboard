@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Store } from "./store";
 
 // export function useStore<T>(store: Store<T>, listener?: (state: T) => void) {
@@ -18,12 +18,17 @@ import { Store } from "./store";
 
 // pass function instead of value and useMemo on the object it returns
 export function useStateRef<T>(
-    value: T
-): [() => T, React.Dispatch<React.SetStateAction<T>>] {
-    const [state, setState] = useState(value);
+    defaultState: () => T
+): [() => T, React.Dispatch<React.SetStateAction<Partial<T>>>] {
+    const [state, setState] = useState(useMemo(defaultState, []));
     const stateRef = useRef(state);
     stateRef.current = state;
-    return [() => stateRef.current, setState];
+    return [
+        () => stateRef.current,
+        (newState) => {
+            setState((prevState) => ({ ...prevState, ...newState }));
+        },
+    ];
 }
 
 export function useWindowListener<K extends keyof WindowEventMap>(

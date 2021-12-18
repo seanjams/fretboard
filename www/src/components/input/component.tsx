@@ -1,10 +1,4 @@
-import React, {
-    useRef,
-    useEffect,
-    useState,
-    useCallback,
-    useMemo,
-} from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import { ChordSymbol } from "../symbol";
 import { useStateRef, AppStore, SliderStore, current } from "../../store";
@@ -26,7 +20,14 @@ import {
     STANDARD_TUNING,
     majorChord,
 } from "../../utils";
-import { ChordInputContainer, FlexRow, Tag, Title } from "./style";
+import {
+    AnimationWrapper,
+    ChordInputContainer,
+    FlexRow,
+    OverflowContainerDiv,
+    Tag,
+    Title,
+} from "./style";
 
 interface TagButtonProps {
     highlighted?: boolean;
@@ -90,16 +91,11 @@ interface Props {
 export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
     // state
     const { fretboard, progression } = current(store.state);
-    const [getState, setState] = useStateRef(
-        useMemo(
-            () => ({
-                label: progression.label,
-                name: getName(getNotes(fretboard), progression.label)[0],
-                showInput: store.state.showInput,
-            }),
-            []
-        )
-    );
+    const [getState, setState] = useStateRef(() => ({
+        label: progression.label,
+        name: getName(getNotes(fretboard), progression.label)[0],
+        showInput: store.state.showInput,
+    }));
     const { label, name, showInput } = getState();
     const { rootIdx, chordName } = name;
     const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
@@ -117,11 +113,10 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
                 getState().name !== name ||
                 getState().showInput !== showInput
             ) {
-                setState((prevState) => ({
-                    ...prevState,
+                setState({
                     name,
                     showInput,
-                }));
+                });
             }
         });
     }, []);
@@ -142,10 +137,6 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
         const { progression } = current(store.state);
         const { focusedIndex, fretboards } = progression;
         let nextProgress = focusedIndex + SLIDER_RIGHT_WINDOW;
-
-        let frameCount = 0;
-        let animationDuration = 0.25; // 0.25 seconds roughly comes out to 15 frames
-        let totalFrames = Math.ceil(animationDuration * 60);
 
         // create new fretboard from notes, set all on E string arbitrarily
         let newFretboard = DEFAULT_STRINGSWITCH();
@@ -170,6 +161,11 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
         });
         sliderStore.dispatch.setProgress(nextProgress);
 
+        let frameCount = 0;
+        let animationDuration = 0.15; // 0.25 seconds roughly comes out to 15 frames
+        let totalFrames = Math.ceil(animationDuration * 60);
+        let animationSlideLength = SLIDER_WINDOW_LENGTH;
+
         const performAnimation = () => {
             animationRef.current = requestAnimationFrame(performAnimation);
 
@@ -177,7 +173,7 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
             frameCount++;
 
             // linear animation
-            nextProgress += SLIDER_WINDOW_LENGTH / totalFrames;
+            nextProgress += animationSlideLength / totalFrames;
 
             // sinusoidal animation
             // nextProgress +=
@@ -240,59 +236,46 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
     };
 
     return (
-        <ChordInputContainer onClick={onClick} onTouchStart={onClick}>
-            {showInput && (
-                <CSSTransition
-                    in={showInput}
-                    timeout={300}
-                    classNames="input-fade"
-                    // onEnter={() => setShowButton(false)}
-                    // onExited={() => setShowButton(true)}
+        <AnimationWrapper>
+            <CSSTransition
+                in={showInput}
+                timeout={300}
+                classNames="input-fade"
+                // onEnter={() => setShowButton(false)}
+                // onExited={() => setShowButton(true)}
+            >
+                <ChordInputContainer
+                    onClick={onClick}
+                    onTouchStart={onClick}
+                    className="input-form"
                 >
-                    <>
-                        <div
-                            onClick={preventDefault}
-                            onTouchStart={preventDefault}
-                        >
-                            {/* <Title>Root</Title> */}
+                    <div onClick={preventDefault} onTouchStart={preventDefault}>
+                        <Title>Root</Title>
+                        <FlexRow>
+                            {noteNames.map((name, j) => (
+                                <TagButton
+                                    key={`${name}-key`}
+                                    onClick={onRootChange(j)}
+                                    highlighted={rootIdx === j}
+                                >
+                                    <ChordSymbol
+                                        rootName={name}
+                                        chordName=""
+                                        fontSize={12}
+                                    />
+                                </TagButton>
+                            ))}
+                        </FlexRow>
+                    </div>
+                    <div
+                        style={{ width: "100%" }}
+                        onClick={preventDefault}
+                        onTouchStart={preventDefault}
+                    >
+                        <Title>Chord/Scale</Title>
+                        <OverflowContainerDiv>
                             <FlexRow>
-                                {noteNames.slice(0, 6).map((name, j) => (
-                                    <TagButton
-                                        key={`${name}-key`}
-                                        onClick={onRootChange(j)}
-                                        highlighted={rootIdx === j}
-                                    >
-                                        <ChordSymbol
-                                            rootName={name}
-                                            chordName=""
-                                            fontSize={12}
-                                        />
-                                    </TagButton>
-                                ))}
-                            </FlexRow>
-                            <FlexRow>
-                                {noteNames.slice(6).map((name, j) => (
-                                    <TagButton
-                                        key={`${name}-key`}
-                                        onClick={onRootChange(j + 6)}
-                                        highlighted={rootIdx === j + 6}
-                                    >
-                                        <ChordSymbol
-                                            rootName={name}
-                                            chordName=""
-                                            fontSize={12}
-                                        />
-                                    </TagButton>
-                                ))}
-                            </FlexRow>
-                        </div>
-                        <div
-                            onClick={preventDefault}
-                            onTouchStart={preventDefault}
-                        >
-                            {/* <Title>Chord/Scale</Title> */}
-                            <FlexRow>
-                                {CHORD_NAMES.slice(0, 11).map((name) => (
+                                {CHORD_NAMES.map((name) => (
                                     <TagButton
                                         key={`${name}-key`}
                                         onClick={onChordChange(name)}
@@ -306,25 +289,10 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
                                     </TagButton>
                                 ))}
                             </FlexRow>
-                            <FlexRow>
-                                {CHORD_NAMES.slice(11).map((name) => (
-                                    <TagButton
-                                        key={`${name}-key`}
-                                        onClick={onChordChange(name)}
-                                        highlighted={chordName === name}
-                                    >
-                                        <ChordSymbol
-                                            rootName=""
-                                            chordName={name}
-                                            fontSize={12}
-                                        />
-                                    </TagButton>
-                                ))}
-                            </FlexRow>
-                        </div>
-                    </>
-                </CSSTransition>
-            )}
-        </ChordInputContainer>
+                        </OverflowContainerDiv>
+                    </div>
+                </ChordInputContainer>
+            </CSSTransition>
+        </AnimationWrapper>
     );
 };

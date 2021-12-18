@@ -8,7 +8,6 @@ import { StringDiv } from "./style";
 interface Props {
     base: number;
     stringIndex: number;
-    fretboardHeight: number;
     store: AppStore;
     sliderStore: SliderStore;
 }
@@ -16,7 +15,6 @@ interface Props {
 export const GuitarString: React.FC<Props> = ({
     base,
     stringIndex,
-    fretboardHeight,
     store,
     sliderStore,
 }) => {
@@ -32,7 +30,6 @@ export const GuitarString: React.FC<Props> = ({
                     openString={i === 0}
                     key={`fret-${value}`}
                     stringIndex={stringIndex}
-                    fretboardHeight={fretboardHeight}
                     store={store}
                     sliderStore={sliderStore}
                 />

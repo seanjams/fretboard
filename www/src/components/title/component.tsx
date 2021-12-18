@@ -11,9 +11,9 @@ interface Props {
 
 export const Title: React.FC<Props> = ({ store }) => {
     const { fretboard, progression } = current(store.state);
-    const [getState, setState] = useStateRef({
+    const [getState, setState] = useStateRef(() => ({
         name: getName(getNotes(fretboard), progression.label)[0],
-    });
+    }));
     const { name } = getState();
     const { rootName, chordName } = name;
 
@@ -21,11 +21,7 @@ export const Title: React.FC<Props> = ({ store }) => {
         return store.addListener((newState) => {
             const { fretboard, progression } = current(newState);
             const name = getName(getNotes(fretboard), progression.label)[0];
-            if (getState().name !== name)
-                setState((prevState) => ({
-                    ...prevState,
-                    name,
-                }));
+            if (getState().name !== name) setState({ name });
         });
     }, []);
 

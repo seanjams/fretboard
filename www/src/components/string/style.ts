@@ -6,4 +6,5 @@ interface CSSProps extends CSS.Properties {}
 export const StringDiv = styled.div<CSSProps>`
     display: flex;
     width: 100%;
+    height: 100%;
 `;

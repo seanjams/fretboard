@@ -79,18 +79,14 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
 };
 
 export const HighlightControls: React.FC<Props> = ({ store }) => {
-    const [getState, setState] = useStateRef({
+    const [getState, setState] = useStateRef(() => ({
         status: store.state.status,
-    });
+    }));
     const { status } = getState();
 
     useEffect(() => {
         return store.addListener(({ status }) => {
-            if (getState().status !== status)
-                setState((prevState) => ({
-                    ...prevState,
-                    status,
-                }));
+            if (getState().status !== status) setState({ status });
         });
     }, []);
 

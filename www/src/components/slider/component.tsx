@@ -4,6 +4,9 @@ import {
     getName,
     getNotes,
     getVisibleFretboards,
+    SLIDER_WINDOW_LENGTH,
+    SLIDER_RIGHT_WINDOW,
+    SLIDER_LEFT_WINDOW,
 } from "../../utils";
 import { useStateRef, AppStore, SliderStore, current } from "../../store";
 import { ChordSymbol } from "../symbol";
@@ -23,23 +26,18 @@ interface SliderProps {
 export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
     // state
     const { progression } = current(store.state);
-    const [getState, setState] = useStateRef(
-        useMemo(
-            () => ({
-                label: progression.label,
-                hiddenFretboardIndices: progression.hiddenFretboardIndices,
-                rehydrateSuccess: sliderStore.state.rehydrateSuccess,
-                currentProgressionIndex: store.state.currentProgressionIndex,
-                visibleFretboards: getVisibleFretboards(
-                    progression.fretboards,
-                    progression.hiddenFretboardIndices
-                ),
-                left: 0,
-                progress: 0,
-            }),
-            []
-        )
-    );
+    const [getState, setState] = useStateRef(() => ({
+        label: progression.label,
+        hiddenFretboardIndices: progression.hiddenFretboardIndices,
+        rehydrateSuccess: sliderStore.state.rehydrateSuccess,
+        currentProgressionIndex: store.state.currentProgressionIndex,
+        visibleFretboards: getVisibleFretboards(
+            progression.fretboards,
+            progression.hiddenFretboardIndices
+        ),
+        left: 0,
+        progress: 0,
+    }));
     const {
         label,
         left,
@@ -53,16 +51,14 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
     const deltaRef = useRef(0);
     const progressBarRef = useRef<HTMLDivElement>(null);
     const sliderBarRef = useRef<HTMLDivElement>(null);
+    const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
 
     useEffect(() => {
         const destroySliderListener = sliderStore.addListener(
             (newSliderData) => {
                 const { rehydrateSuccess } = newSliderData;
                 if (getState().rehydrateSuccess !== rehydrateSuccess)
-                    setState((prevState) => ({
-                        ...prevState,
-                        rehydrateSuccess,
-                    }));
+                    setState({ rehydrateSuccess });
             }
         );
 
@@ -81,13 +77,12 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
                     currentProgressionIndex ||
                 getState().visibleFretboards !== visibleFretboards
             ) {
-                setState((prevState) => ({
-                    ...prevState,
+                setState({
                     label,
                     hiddenFretboardIndices,
                     currentProgressionIndex,
                     visibleFretboards,
-                }));
+                });
             }
         });
 
@@ -121,10 +116,9 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
                 sliderBarRef.current.offsetWidth / 2 +
                 origin;
 
-            setState((prevState) => ({
-                ...prevState,
+            setState({
                 left: newLeft,
-            }));
+            });
         }
     }, [
         rehydrateSuccess, // when state successfully imported from localStorage, reset slider
@@ -180,10 +174,74 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
             store.dispatch.setFocusedIndex(newFocusedIndex || 0);
 
         // update slider position
-        setState((prevState) => ({
-            ...prevState,
+        setState({
             left: newLeft,
-        }));
+        });
+    };
+
+    const snapToGridAnimation = () => {
+        if (!progressBarRef.current || !sliderBarRef.current) return;
+
+        // cancel past animation if pressed quickly
+        if (animationRef.current) cancelAnimationFrame(animationRef.current);
+
+        const { progression } = current(store.state);
+        const { focusedIndex } = progression;
+        const origin = progressBarRef.current.offsetLeft;
+        const sliderBarWidth = sliderBarRef.current.offsetWidth;
+
+        // aliases for
+        const leftSlideWindow = focusedIndex + SLIDER_LEFT_WINDOW;
+        const rightSlideWindow = focusedIndex + SLIDER_RIGHT_WINDOW;
+        const halfSlideWindow = focusedIndex + 0.5;
+
+        // only go to edge of slider window to make animation smoother
+        let nextProgress = sliderStore.state.progress;
+        let lastProgress =
+            nextProgress > rightSlideWindow
+                ? rightSlideWindow
+                : nextProgress < leftSlideWindow
+                ? leftSlideWindow
+                : halfSlideWindow;
+
+        let nextLeft = getState().left;
+        let lastLeft =
+            origin +
+            getProgressBarFragmentWidth() * halfSlideWindow -
+            sliderBarWidth / 2;
+
+        let frameCount = 0;
+        let animationDuration = 0.15; // 0.15 seconds roughly comes out to 9 frames
+        let totalFrames = Math.ceil(animationDuration * 60);
+        let animationLeftLength = lastLeft - nextLeft;
+        let animationProgressLength = lastProgress - nextProgress;
+
+        const performAnimation = () => {
+            animationRef.current = requestAnimationFrame(performAnimation);
+
+            frameCount++;
+
+            // linear animation
+            nextLeft += animationLeftLength / totalFrames;
+            nextProgress += animationProgressLength / totalFrames;
+
+            // sinusoidal animation
+            // nextProgress +=
+            //     2 *
+            //     (SLIDER_WINDOW_LENGTH / totalFrames) *
+            //     Math.sin((Math.PI * frameCount) / totalFrames) ** 2;
+
+            // increment progress and left on each frame
+            setState({ left: nextLeft });
+            sliderStore.dispatch.setProgress(nextProgress);
+            if (frameCount === totalFrames) {
+                // clear interval
+                cancelAnimationFrame(animationRef.current);
+                setState({ left: lastLeft });
+                sliderStore.dispatch.setProgress(halfSlideWindow);
+            }
+        };
+        requestAnimationFrame(performAnimation);
     };
 
     // slider drag release (set ratio for resize experiment)
@@ -195,6 +253,8 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
             draggingRef.current = false;
             stopClick();
         }
+
+        snapToGridAnimation();
     };
 
     // slider grab
@@ -223,7 +283,7 @@ export const Slider: React.FC<SliderProps> = ({ store, sliderStore }) => {
 
     // slider drag
     const onMouseMove = (event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
+        // event.preventDefault();
         let clientX;
         if (event instanceof MouseEvent) {
             clientX = event.clientX;

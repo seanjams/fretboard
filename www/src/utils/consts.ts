@@ -124,7 +124,7 @@ export const FRETBOARD_WIDTH = 1700;
 
 // export const FRETBOARD_HEIGHT = 250;
 
-export const FRETBOARD_MARGIN = SP[1];
+export const FRETBOARD_MARGIN = SP[3];
 
 export const STRING_SIZE = 22;
 

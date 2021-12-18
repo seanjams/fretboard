@@ -5,7 +5,8 @@ import { SP } from "../../utils";
 // CSS
 interface CSSProps extends CSS.Properties {
     legendTop?: boolean;
-    legendHeight?: number;
+    minFretHeight?: number;
+    maxFretHeight?: number;
 }
 
 export const FretDiv = styled.div.attrs((props: CSSProps) => ({
@@ -78,7 +79,7 @@ export const LegendDot = styled.div.attrs((props: CSSProps) => ({
     style: {
         top: props.legendTop
             ? `${2 + SP[0] / 2}px`
-            : `calc(${props.legendHeight}px - ${2 + SP[0] / 2}px)`,
+            : `calc(100% - ${2 + SP[0] / 2}px)`,
     },
 }))<CSSProps>`
     left: calc(100% - ${(SP[0] * 3) / 2}px);
@@ -95,7 +96,7 @@ export const OctaveDot = styled.div.attrs((props: CSSProps) => ({
         left: `calc(100% - ${(SP[0] * 3) / 2}px)`,
         top: props.legendTop
             ? `${2 + 2 * SP[0]}px`
-            : `calc(${props.legendHeight}px - ${2 + 2 * SP[0]}px)`,
+            : `calc(100% - ${2 + 2 * SP[0]}px)`,
     },
 }))<CSSProps>`
     width: ${SP[0]}px;
@@ -104,4 +105,31 @@ export const OctaveDot = styled.div.attrs((props: CSSProps) => ({
     position: absolute;
     background-color: #000;
     margin-top: -${SP[0] / 2}px;
+`;
+
+export const AnimationWrapper = styled.div<CSSProps>`
+    height: 100%;
+
+    .fret-container {
+        max-height: ${(props) => props.maxFretHeight}px;
+        height: 100%;
+    }
+
+    .fret-shrink-enter {
+        max-height: ${(props) => props.maxFretHeight}px;
+    }
+    .fret-shrink-enter-active {
+        max-height: ${(props) => props.minFretHeight}px;
+        transition: max-height 150ms;
+    }
+    .fret-shrink-enter-done {
+        max-height: ${(props) => props.minFretHeight}px;
+    }
+    .fret-shrink-exit {
+        max-height: ${(props) => props.minFretHeight}px;
+    }
+    .fret-shrink-exit-active {
+        max-height: ${(props) => props.maxFretHeight}px;
+        transition: max-height 150ms;
+    }
 `;

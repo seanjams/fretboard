@@ -8,6 +8,7 @@ import {
     StatusTypes,
 } from "../types";
 import { kCombinations } from "./combinations";
+import { isMobile } from "react-device-detect";
 
 import {
     SHAPES,
@@ -19,6 +20,8 @@ import {
     HIGHLIGHTED,
     SELECTED,
     NOT_SELECTED,
+    SAFETY_AREA_MARGIN,
+    FRETBOARD_MARGIN,
 } from "../utils";
 import { isEqual } from "lodash";
 
@@ -514,3 +517,58 @@ export function getFretWidth(
     const fretWidthAdjustment = stringSize / 2 - fretIndex;
     return averageFretWidth + fretWidthAdjustment * severityCoefficient;
 }
+
+export const getScreenDimensions = (): [number, number] => {
+    // hack fix for mobile dimensions
+    let width: number;
+    let height: number;
+    if (isMobile) {
+        width = Math.max(screen.width, screen.height);
+        height = Math.min(screen.width, screen.height);
+    } else {
+        width = window.innerWidth;
+        height = window.innerHeight;
+    }
+    return [width, height];
+};
+
+export const getFretboardDimensions = () => {
+    // -------------------------------
+    // Safety Area
+    // -------------------------------
+    // Gutter
+    // -------------------------------
+    // Input
+    // -------------------------------
+    // Fretboard Margin
+    // -------------------------------
+    // Fretboard Height
+    // -------------------------------
+    // Fretboard Margin
+    // -------------------------------
+    // Input
+    // -------------------------------
+    // Gutter
+    // -------------------------------
+    // Safety Area
+    // -------------------------------
+
+    const height = getScreenDimensions()[1];
+    const gutterHeight = height * 0.15 - SAFETY_AREA_MARGIN;
+
+    // input open
+    const minInputHeight = height * 0;
+    const maxFretboardHeight = height * 0.7 - 2 * FRETBOARD_MARGIN;
+
+    // input closed
+    const maxInputHeight = height * 0.28;
+    const minFretboardHeight = height * 0.57 - 2 * FRETBOARD_MARGIN;
+
+    return {
+        gutterHeight,
+        minInputHeight,
+        maxInputHeight,
+        minFretboardHeight,
+        maxFretboardHeight,
+    };
+};

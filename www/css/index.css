@@ -29,39 +29,3 @@ body {
 ::-webkit-scrollbar {
     display: none;
 }
-
-.input-grow-enter {
-    height: 0px;
-}
-.input-grow-enter-active {
-    height: 15%;
-    transition: height 150ms;
-}
-.input-grow-enter-done {
-    height: 15%;
-}
-.input-grow-exit {
-    height: 15%;
-}
-.input-grow-exit-active {
-    height: 0px;
-    transition: height 150ms;
-}
-
-.input-fade-enter {
-    color: transparent;
-}
-.input-fade-enter-active {
-    color: #000;
-    transition: color 150ms ease;
-}
-.input-fade-enter-done {
-    color: #000;
-}
-.input-fade-exit {
-    color: #000;
-}
-.input-fade-exit-active {
-    color: transparent;
-    transition: color 150ms ease;
-}

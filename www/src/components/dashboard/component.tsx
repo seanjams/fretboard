@@ -1,15 +1,15 @@
 import React, { useRef, useEffect, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
-import { isMobile } from "react-device-detect";
 import { useStateRef, current, AppStore, SliderStore } from "../../store";
 import {
     getFretWidth,
     FRETBOARD_WIDTH,
     STRING_SIZE,
     SAFETY_AREA_MARGIN,
-    FRETBOARD_MARGIN,
     NATURAL_NOTE_KEYMAP,
     SELECTED,
+    getScreenDimensions,
+    getFretboardDimensions,
 } from "../../utils";
 import { Fretboard } from "../fretboard";
 import {
@@ -22,6 +22,8 @@ import { ChordInput } from "../input";
 import { Slider } from "../slider";
 import { Title } from "../title";
 import {
+    InputAnimationWrapper,
+    FretboardAnimationWrapper,
     ContainerDiv,
     FlexContainerDiv,
     FlexRow,
@@ -40,25 +42,11 @@ interface DashboardStateType {
 }
 
 export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
-    const getScreenDimensions = (): [number, number] => {
-        // hack fix for mobile dimensions
-        let width: number;
-        let height: number;
-        if (isMobile) {
-            width = Math.max(screen.width, screen.height);
-            height = Math.min(screen.width, screen.height);
-        } else {
-            width = window.innerWidth;
-            height = window.innerHeight;
-        }
-        return [width, height];
-    };
-
-    const [getState, setState] = useStateRef<DashboardStateType>({
+    const [getState, setState] = useStateRef<DashboardStateType>(() => ({
         showInput: store.state.showInput,
         orientation: "portrait-primary",
         dimensions: getScreenDimensions(),
-    });
+    }));
 
     const { showInput, orientation, dimensions } = getState();
     // const width = orientation.startsWith("portrait")
@@ -72,36 +60,20 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
     const fretboardContainerRef = useRef<HTMLDivElement>(null);
     const scrollToFretRef = useRef(0);
 
-    // -------------------------------
-    // Safety Area
-    // -------------------------------
-    // Gutter
-    // -------------------------------
-    // Fretboard Margin
-    // -------------------------------
-    // Main Height
-    // -------------------------------
-    // Fretboard Margin
-    // -------------------------------
-    // Gutter
-    // -------------------------------
-    // Safety Area
-    // -------------------------------
-
-    const gutterHeight = height * 0.15 - SAFETY_AREA_MARGIN;
-    const mainHeight = height * 0.7 - 2 * FRETBOARD_MARGIN;
-    const fretboardHeight = mainHeight;
+    const {
+        gutterHeight,
+        minInputHeight,
+        maxInputHeight,
+        minFretboardHeight,
+        maxFretboardHeight,
+    } = getFretboardDimensions();
 
     useEffect(() => {
         const destroyListener = store.addListener((newState) => {
             const { showInput, progression } = current(newState);
             const { scrollToFret } = progression;
 
-            if (getState().showInput !== showInput)
-                setState((prevState) => ({
-                    ...prevState,
-                    showInput,
-                }));
+            if (getState().showInput !== showInput) setState({ showInput });
 
             if (
                 fretboardContainerRef.current &&
@@ -142,11 +114,10 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
     }, []);
 
     const onOrientationChange = useCallback(() => {
-        setState((prevState) => ({
-            ...prevState,
+        setState({
             orientation: screen.orientation.type,
             dimensions: getScreenDimensions(),
-        }));
+        });
     }, []);
 
     function onKeyPress(this: Window, e: KeyboardEvent): any {
@@ -212,25 +183,49 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
                         </div>
                     </FlexRow>
                 </FlexContainerDiv>
-                <CSSTransition
-                    in={showInput}
-                    timeout={300}
-                    classNames="input-grow"
-                    // onEnter={() => setShowButton(false)}
-                    // onExited={() => setShowButton(true)}
+                <InputAnimationWrapper
+                    minInputHeight={minInputHeight}
+                    maxInputHeight={maxInputHeight}
                 >
-                    <ChordInput store={store} sliderStore={sliderStore} />
-                </CSSTransition>
-                <OverflowContainerDiv
-                    height={`${mainHeight}px`}
-                    ref={fretboardContainerRef}
+                    <CSSTransition
+                        in={showInput}
+                        timeout={300}
+                        classNames="input-grow"
+                        // onEnter={() => setShowButton(false)}
+                        // onExited={() => setShowButton(true)}
+                    >
+                        <div className="input-container">
+                            <ChordInput
+                                store={store}
+                                sliderStore={sliderStore}
+                            />
+                        </div>
+                    </CSSTransition>
+                </InputAnimationWrapper>
+                <FretboardAnimationWrapper
+                    maxFretboardHeight={maxFretboardHeight}
+                    minFretboardHeight={minFretboardHeight}
                 >
-                    <Fretboard
-                        fretboardHeight={fretboardHeight}
-                        store={store}
-                        sliderStore={sliderStore}
-                    />
-                </OverflowContainerDiv>
+                    <CSSTransition
+                        in={showInput}
+                        timeout={300}
+                        classNames="fretboard-shrink"
+                        // onEnter={() => setShowButton(false)}
+                        // onExited={() => setShowButton(true)}
+                    >
+                        <OverflowContainerDiv
+                            height={`${maxFretboardHeight}px`}
+                            ref={fretboardContainerRef}
+                        >
+                            <div className="fretboard-container">
+                                <Fretboard
+                                    store={store}
+                                    sliderStore={sliderStore}
+                                />
+                            </div>
+                        </OverflowContainerDiv>
+                    </CSSTransition>
+                </FretboardAnimationWrapper>
                 <FlexContainerDiv
                     height={`${gutterHeight}px`}
                     marginTop="0px"

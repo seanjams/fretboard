@@ -8,10 +8,10 @@ interface Props {
 }
 
 export const Template: React.FC<Props> = ({ store }) => {
-    const [getState, setState] = useStateRef({
+    const [getState, setState] = useStateRef(() => ({
         // custom state for component
         message: "hello",
-    });
+    }));
     const { message } = getState();
 
     useEffect(() => {

@@ -10,6 +10,7 @@ export const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     display: flex;
     align-items: stretch;
+    height: 100%;
 `;
 
 export const FretboardDiv = styled.div<CSSProps>`
