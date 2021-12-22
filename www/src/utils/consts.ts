@@ -122,15 +122,13 @@ export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
 
 export const FRETBOARD_WIDTH = 1700;
 
-// export const FRETBOARD_HEIGHT = 250;
-
 export const FRETBOARD_MARGIN = SP[3];
 
-export const STRING_SIZE = 22;
+export const STRING_SIZE = 23;
 
 export const CIRCLE_SIZE = 26;
 
-export const SAFETY_AREA_MARGIN = SP[1];
+export const SAFETY_AREA_MARGIN = SP[3];
 
 export const SLIDER_LEFT_WINDOW = 0.25;
 
@@ -204,6 +202,11 @@ export const BRUSH_MODES: {
     [SELECTED]: "select",
     [HIGHLIGHTED]: "highlight",
 };
+
+export const STRUM_LOW_TO_HIGH = "strumLowToHigh";
+export const STRUM_HIGH_TO_LOW = "strumHighToLow";
+export const ARPEGGIATE_LOW_TO_HIGH = "arpeggiateLowToHigh";
+export const ARPEGGIATE_HIGH_TO_LOW = "arpeggiateHighToLow";
 
 export const COLORS = [
     ["#C1BFB5", "#B02E0C"],

@@ -1,6 +1,12 @@
 import React, { useRef, useEffect, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
-import { useStateRef, current, AppStore, SliderStore } from "../../store";
+import {
+    useStateRef,
+    current,
+    AppStore,
+    SliderStore,
+    AudioStore,
+} from "../../store";
 import {
     getFretWidth,
     FRETBOARD_WIDTH,
@@ -10,6 +16,7 @@ import {
     SELECTED,
     getScreenDimensions,
     getFretboardDimensions,
+    STRUM_LOW_TO_HIGH,
 } from "../../utils";
 import { Fretboard } from "../fretboard";
 import {
@@ -33,6 +40,7 @@ import {
 interface Props {
     store: AppStore;
     sliderStore: SliderStore;
+    audioStore: AudioStore;
 }
 
 interface DashboardStateType {
@@ -41,7 +49,11 @@ interface DashboardStateType {
     dimensions: [number, number];
 }
 
-export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
+export const Dashboard: React.FC<Props> = ({
+    store,
+    sliderStore,
+    audioStore,
+}) => {
     const [getState, setState] = useStateRef<DashboardStateType>(() => ({
         showInput: store.state.showInput,
         orientation: "portrait-primary",
@@ -120,7 +132,7 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
         });
     }, []);
 
-    function onKeyPress(this: Window, e: KeyboardEvent): any {
+    function onKeyPress(this: Window, event: KeyboardEvent): any {
         const { invert, leftHand, progression } = current(store.state);
         const { label } = progression;
         const highEBottom = invert !== leftHand;
@@ -130,11 +142,13 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
         // highEBottom
         // 	- whether the high E string appears on the top or bottom of the fretboard,
         // 	- depending on invert/leftHand views
-        let dir = e.key;
+        let dir = event.key;
         const up = (dir === "ArrowDown" && highEBottom) || dir === "ArrowUp";
         const down = (dir === "ArrowUp" && highEBottom) || dir === "ArrowDown";
         const right = (dir === "ArrowLeft" && invert) || dir === "ArrowRight";
         const left = (dir === "ArrowRight" && invert) || dir === "ArrowLeft";
+        let playSound = up || down || left || right;
+
         if (up) {
             store.dispatch.incrementPositionY();
         } else if (down) {
@@ -145,13 +159,22 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
             store.dispatch.decrementPositionX();
         } else {
             const naturalNotesKeyMap = NATURAL_NOTE_KEYMAP[label];
-            if (naturalNotesKeyMap.hasOwnProperty(e.key)) {
-                e.preventDefault();
+            if (naturalNotesKeyMap.hasOwnProperty(event.key)) {
+                event.preventDefault();
                 store.dispatch.setHighlightedNote(
                     0,
-                    naturalNotesKeyMap[e.key],
+                    naturalNotesKeyMap[event.key],
                     SELECTED
                 );
+            }
+        }
+
+        if (playSound) {
+            const { fretboard, strumMode } = current(store.state);
+            if (strumMode === STRUM_LOW_TO_HIGH)
+                audioStore.dispatch.strumChord(fretboard);
+            else {
+                audioStore.dispatch.arpeggiateChord(fretboard);
             }
         }
     }
@@ -171,12 +194,19 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
                     marginTop={`${SAFETY_AREA_MARGIN}px`}
                     marginBottom={0}
                 >
-                    <FlexRow alignItems="end">
+                    <FlexRow
+                        alignItems="end"
+                        padding={`0 ${SAFETY_AREA_MARGIN}px`}
+                    >
                         <div style={{ flex: 1 }}>
                             <Title store={store} />
                         </div>
                         <div style={{ flex: 2 }}>
-                            <Slider store={store} sliderStore={sliderStore} />
+                            <Slider
+                                store={store}
+                                sliderStore={sliderStore}
+                                audioStore={audioStore}
+                            />
                         </div>
                         <div style={{ flexShrink: 1 }}>
                             <SliderControls store={store} />
@@ -221,6 +251,7 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
                                 <Fretboard
                                     store={store}
                                     sliderStore={sliderStore}
+                                    audioStore={audioStore}
                                 />
                             </div>
                         </OverflowContainerDiv>
@@ -231,12 +262,18 @@ export const Dashboard: React.FC<Props> = ({ store, sliderStore }) => {
                     marginTop="0px"
                     marginBottom={`${SAFETY_AREA_MARGIN}px`}
                 >
-                    <FlexRow>
+                    <FlexRow
+                        alignItems="start"
+                        padding={`0 ${SAFETY_AREA_MARGIN}px`}
+                    >
                         <div style={{ flexGrow: 1 }}>
                             <HighlightControls store={store} />
                         </div>
                         <div style={{ flexShrink: 1 }}>
-                            <PositionControls store={store} />
+                            <PositionControls
+                                store={store}
+                                audioStore={audioStore}
+                            />
                         </div>
                     </FlexRow>
                 </FlexContainerDiv>

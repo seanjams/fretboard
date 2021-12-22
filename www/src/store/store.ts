@@ -13,25 +13,32 @@ export class Store<S, R extends AnyReducersType<S>> {
 
     constructor(public state: S, private reducers: R) {
         if (!reducers) return;
-        let self = this;
         const dispatch = {} as any;
         let key: keyof typeof reducers;
         for (key in reducers) {
             let k = key;
             dispatch[k] = (...args: any[]): S => {
-                // console.log(`Running Reducer: ${k}`);
-                // console.log(`oldState:`, this.state);
+                // if (k !== "setProgress") console.log(`Running Reducer: ${k}`);
+                // if (k !== "setProgress")
+                //     console.log(
+                //         `oldState:`,
+                //         JSON.parse(JSON.stringify(this.state))
+                //     );
                 const reducer = reducers[k];
                 if (reducer) {
                     this.state = reducer.call(reducers, this.state, ...args);
-                    // console.log(`newState:`, this.state);
+                    // if (k !== "setProgress")
+                    //     console.log(
+                    //         `newState:`,
+                    //         JSON.parse(JSON.stringify(this.state))
+                    //     );
                     this.emit();
                 }
                 return this.state;
             };
         }
 
-        this.dispatch = dispatch; 
+        this.dispatch = dispatch;
     }
 
     public setState = (nextState: S) => {

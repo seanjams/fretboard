@@ -39,6 +39,7 @@ export const CircleButton: React.FC<ButtonProps> = ({
             | React.MouseEvent<HTMLDivElement, MouseEvent>
             | React.TouchEvent<HTMLDivElement>
     ) => {
+        // event.preventDefault();
         if (!activeRef.current) setActive(true);
     };
 

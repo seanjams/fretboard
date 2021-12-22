@@ -19,6 +19,7 @@ import {
     clearHighlight,
     STANDARD_TUNING,
     majorChord,
+    SP,
 } from "../../utils";
 import {
     AnimationWrapper,
@@ -231,8 +232,14 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
             );
         };
 
-    const onClick = () => {
-        store.dispatch.setShowInput(false);
+    const onClick = (
+        event:
+            | React.MouseEvent<HTMLDivElement, MouseEvent>
+            | React.TouchEvent<HTMLDivElement>
+    ) => {
+        // event.preventDefault();
+        // event.stopPropagation();
+        if (store.state.showInput) store.dispatch.setShowInput(false);
     };
 
     return (
@@ -249,9 +256,28 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
                     onTouchStart={onClick}
                     className="input-form"
                 >
-                    <div onClick={preventDefault} onTouchStart={preventDefault}>
-                        <Title>Root</Title>
-                        <FlexRow>
+                    <FlexRow
+                        // onClick={preventDefault}
+                        // onTouchStart={preventDefault}
+                        width="100%"
+                        justifyContent="start"
+                    >
+                        <Title
+                            marginLeft={`${SP[2]}px`}
+                            width={`calc(15% - ${SP[2]}px)`}
+                            flexShrink={0}
+                            textAlign="right"
+                            fontWeight="bold"
+                            // marginTop={`${SP[2]}px`}
+                        >
+                            Root:
+                        </Title>
+                        <FlexRow
+                            marginLeft={`${SP[2]}px`}
+                            marginRight={`${SP[2]}px`}
+                            width={`calc(85% - ${2 * SP[2]}px)`}
+                            justifyContent="start"
+                        >
                             {noteNames.map((name, j) => (
                                 <TagButton
                                     key={`${name}-key`}
@@ -266,31 +292,51 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
                                 </TagButton>
                             ))}
                         </FlexRow>
-                    </div>
-                    <div
-                        style={{ width: "100%" }}
-                        onClick={preventDefault}
-                        onTouchStart={preventDefault}
+                    </FlexRow>
+                    <FlexRow
+                        // onClick={preventDefault}
+                        // onTouchStart={preventDefault}
+                        width="100%"
+                        justifyContent="start"
                     >
-                        <Title>Chord/Scale</Title>
-                        <OverflowContainerDiv>
-                            <FlexRow>
-                                {CHORD_NAMES.map((name) => (
-                                    <TagButton
-                                        key={`${name}-key`}
-                                        onClick={onChordChange(name)}
-                                        highlighted={chordName === name}
-                                    >
-                                        <ChordSymbol
-                                            rootName=""
-                                            chordName={name}
-                                            fontSize={12}
-                                        />
-                                    </TagButton>
-                                ))}
-                            </FlexRow>
+                        <Title
+                            marginLeft={`${SP[2]}px`}
+                            width={`calc(15% - ${SP[2]}px)`}
+                            textAlign="right"
+                            fontWeight="bold"
+                            // marginTop={`${SP[2]}px`}
+                        >
+                            Chord/Scale:
+                        </Title>
+                        <OverflowContainerDiv
+                            marginLeft={`${SP[2]}px`}
+                            marginRight={`${SP[2]}px`}
+                            width={`calc(85% - ${2 * SP[2]}px)`}
+                        >
+                            <div>
+                                <FlexRow
+                                    width="100%"
+                                    height="100%"
+                                    paddingLeft={`calc(30% + ${SP[3]}px)`}
+                                    paddingRight={`calc(30% + ${SP[3]}px)`}
+                                >
+                                    {CHORD_NAMES.map((name) => (
+                                        <TagButton
+                                            key={`${name}-key`}
+                                            onClick={onChordChange(name)}
+                                            highlighted={chordName === name}
+                                        >
+                                            <ChordSymbol
+                                                rootName=""
+                                                chordName={name}
+                                                fontSize={12}
+                                            />
+                                        </TagButton>
+                                    ))}
+                                </FlexRow>
+                            </div>
                         </OverflowContainerDiv>
-                    </div>
+                    </FlexRow>
                 </ChordInputContainer>
             </CSSTransition>
         </AnimationWrapper>

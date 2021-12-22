@@ -7,9 +7,7 @@ interface CSSProps extends CSS.Properties {
 }
 
 export const FlexRow = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        height: props.height,
-    },
+    style: { ...props },
 }))<CSSProps>`
     display: flex;
     align-items: center;
@@ -17,16 +15,13 @@ export const FlexRow = styled.div.attrs((props: CSSProps) => ({
     flex-wrap: nowrap;
 `;
 
-export const Spacer = styled.div.attrs((props: CSSProps) => {
-    return {
-        style: {
-            width: props.width,
-        },
-    };
-})<CSSProps>``;
+export const Spacer = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>``;
 
 export const SymbolSpan = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         marginLeft: `${(props.scriptFontSize || 0) / -8}px`,
         marginRight: `${(props.scriptFontSize || 0) / -8}px`,
         height: `${props.scriptFontSize}px`,
@@ -39,6 +34,7 @@ export const SymbolSpan = styled.div.attrs((props: CSSProps) => ({
 
 export const SuperScript = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         fontSize: `${props.scriptFontSize}px`,
         height: `${props.scriptFontSize}px`,
     },
@@ -52,6 +48,7 @@ export const SuperScript = styled.div.attrs((props: CSSProps) => ({
 
 export const StandardScript = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         fontSize: `${props.scriptFontSize}px`,
     },
 }))<CSSProps>`

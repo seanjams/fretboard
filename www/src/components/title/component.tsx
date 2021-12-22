@@ -46,7 +46,12 @@ export const Title: React.FC<Props> = ({ store }) => {
             ? y1
             : ((y0 - y1 + buffer) / (x0 - x1)) * (chordName.length - x1) + y1;
 
-    const onClick = () => {
+    const onClick = (
+        event:
+            | React.MouseEvent<HTMLDivElement, MouseEvent>
+            | React.TouchEvent<HTMLDivElement>
+    ) => {
+        // event.preventDefault();
         return store.dispatch.setShowInput(!store.state.showInput);
     };
 

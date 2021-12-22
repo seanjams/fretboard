@@ -43,6 +43,12 @@ export type DiffType = { [key in number]: number };
 export type StatusTypes = 0 | 1 | 2;
 export type HighlightTypes = "erase" | "select" | "highlight";
 
+export type StrumTypes =
+    | "strumLowToHigh"
+    | "strumHighToLow"
+    | "arpeggiateLowToHigh"
+    | "arpeggiateHighToLow";
+
 export type ChordTypes =
     | "maj"
     | "min"

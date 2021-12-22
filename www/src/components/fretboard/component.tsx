@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useStateRef, AppStore, SliderStore } from "../../store";
+import { useStateRef, AppStore, SliderStore, AudioStore } from "../../store";
 import { GuitarString } from "../string";
 import { STANDARD_TUNING, FRETBOARD_WIDTH } from "../../utils";
 import { FretboardContainer, FretboardDiv } from "./style";
@@ -8,9 +8,14 @@ import { FretboardContainer, FretboardDiv } from "./style";
 interface Props {
     store: AppStore;
     sliderStore: SliderStore;
+    audioStore: AudioStore;
 }
 
-export const Fretboard: React.FC<Props> = ({ store, sliderStore }) => {
+export const Fretboard: React.FC<Props> = ({
+    store,
+    sliderStore,
+    audioStore,
+}) => {
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
     const [getState, setState] = useStateRef(() => ({
@@ -33,6 +38,7 @@ export const Fretboard: React.FC<Props> = ({ store, sliderStore }) => {
             key={`string-${i}`}
             store={store}
             sliderStore={sliderStore}
+            audioStore={audioStore}
         />
     ));
 

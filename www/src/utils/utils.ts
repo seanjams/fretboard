@@ -29,8 +29,8 @@ export function stopClick() {
     // can be placed within a mouseup event to prevent
     // the subsequent click event
     window.addEventListener("click", captureClick, true);
-    function captureClick(e: MouseEvent | TouchEvent) {
-        e.stopPropagation();
+    function captureClick(event: MouseEvent | TouchEvent) {
+        event.stopPropagation();
         window.removeEventListener("click", captureClick, true);
     }
 }
@@ -501,7 +501,7 @@ export function getVisibleFretboards(
     if (hiddenFretboardIndices.length) {
         return fretboards.filter((_, i) => !hiddenFretboardIndices.includes(i));
     }
-    return fretboards;
+    return [...fretboards];
 }
 
 // Get width of fret at fretIndex with fretboard of given width / string size.
@@ -561,8 +561,8 @@ export const getFretboardDimensions = () => {
     const maxFretboardHeight = height * 0.7 - 2 * FRETBOARD_MARGIN;
 
     // input closed
-    const maxInputHeight = height * 0.28;
-    const minFretboardHeight = height * 0.57 - 2 * FRETBOARD_MARGIN;
+    const maxInputHeight = height * 0.15;
+    const minFretboardHeight = height * 0.7 - 2 * FRETBOARD_MARGIN;
 
     return {
         gutterHeight,

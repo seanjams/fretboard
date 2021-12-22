@@ -1,6 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import { CSSTransition } from "react-transition-group";
-import { AppStore, SliderStore, current, useStateRef } from "../../store";
+import {
+    AppStore,
+    SliderStore,
+    current,
+    useStateRef,
+    AudioStore,
+} from "../../store";
 import { DiffType, StatusTypes } from "../../types";
 import {
     getFretWidth,
@@ -22,7 +28,6 @@ import {
 } from "../../utils";
 import { ChordSymbol } from "../symbol";
 import {
-    AnimationWrapper,
     CircleDiv,
     FretDiv,
     LegendDot,
@@ -79,6 +84,7 @@ interface Props {
     openString?: boolean;
     store: AppStore;
     sliderStore: SliderStore;
+    audioStore: AudioStore;
 }
 
 export const Fret: React.FC<Props> = ({
@@ -87,11 +93,16 @@ export const Fret: React.FC<Props> = ({
     stringIndex,
     store,
     sliderStore,
+    audioStore,
 }) => {
+    const noteValue = mod(value, 12);
     const fretIndex = value - STANDARD_TUNING[stringIndex];
 
     // makes frets progressively smaller
     const fretWidth = getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, fretIndex);
+
+    const { fretboard, progression } = current(store.state);
+    const { label } = progression;
 
     const [getState, setState] = useStateRef(() => ({
         showInput: store.state.showInput,
@@ -104,27 +115,47 @@ export const Fret: React.FC<Props> = ({
 
     const thickness = (6 - stringIndex + 1) / 2;
     const border = openString ? "none" : "1px solid #333";
-    const { fretboard, progression } = current(store.state);
-    const { label } = progression;
-    const noteValue = mod(value, 12);
     const noteName =
         label === "sharp" ? SHARP_NAMES[noteValue] : FLAT_NAMES[noteValue];
 
     // init refs
     const progressRef = useRef(sliderStore.state.progress);
     const shadowRef = useRef<HTMLDivElement>(null);
+    const isHighlightedRef = useRef(
+        fretboard[stringIndex][value] === HIGHLIGHTED
+    );
+    const isSelectedRef = useRef(
+        [SELECTED, HIGHLIGHTED].includes(fretboard[stringIndex][value])
+    );
 
-    const isHighlighted = fretboard[stringIndex][value] === HIGHLIGHTED;
-    const isSelected =
-        isHighlighted || fretboard[stringIndex][value] === SELECTED;
-    const backgroundColor = getBackgroundColor(isSelected, isHighlighted);
+    const backgroundColor = getBackgroundColor(
+        isSelectedRef.current,
+        isHighlightedRef.current
+    );
     const top = getTopMargin(CIRCLE_SIZE);
     const color = "#333";
     // const color = isHighlighted ? "white" : "#333";
 
     useEffect(() => {
-        const destroyListener = store.addListener(({ showInput }) => {
+        const destroyListener = store.addListener((newState) => {
+            const { showInput, fretboard } = current(newState);
             if (getState().showInput !== showInput) setState({ showInput });
+
+            const isHighlighted = fretboard[stringIndex][value] === HIGHLIGHTED;
+            const isSelected = [SELECTED, HIGHLIGHTED].includes(
+                fretboard[stringIndex][value]
+            );
+            if (
+                isHighlightedRef.current !== isHighlighted ||
+                isSelectedRef.current !== isSelected
+            ) {
+                // check if switching from not highlighted to highlighted
+                const highlightEnabled =
+                    !isHighlightedRef.current && isHighlighted;
+                isHighlightedRef.current = isHighlighted;
+                isSelectedRef.current = isSelected;
+                // if (highlightEnabled) playNoteAudio();
+            }
             move();
         });
         const destroySliderListener = sliderStore.addListener(
@@ -151,8 +182,9 @@ export const Fret: React.FC<Props> = ({
         const leftDiff = leftDiffs[i];
         const rightDiff = rightDiffs[i];
         const isHighlighted = fretboard[stringIndex][value] === HIGHLIGHTED;
-        const isSelected =
-            isHighlighted || fretboard[stringIndex][value] === SELECTED;
+        const isSelected = [HIGHLIGHTED, SELECTED].includes(
+            fretboard[stringIndex][value]
+        );
         let direction = invert ? -1 : 1;
 
         let newLeft;
@@ -268,8 +300,14 @@ export const Fret: React.FC<Props> = ({
         shadowRef.current.style.backgroundColor = backgroundColor;
     }
 
-    function onContextMenu(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-        e.preventDefault();
+    function playNoteAudio() {
+        audioStore.dispatch.playNote(stringIndex, fretIndex);
+    }
+
+    function onContextMenu(
+        event: React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) {
+        event.preventDefault();
         // highlight note on right click
         const { fretboard } = current(store.state);
         const status =
@@ -280,7 +318,7 @@ export const Fret: React.FC<Props> = ({
     }
 
     function onClick(
-        e:
+        event:
             | React.TouchEvent<HTMLDivElement>
             | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) {
@@ -288,15 +326,15 @@ export const Fret: React.FC<Props> = ({
         const { status, fretboard } = current(store.state);
         const highlightConditions = [status === HIGHLIGHTED];
 
-        if (e.nativeEvent instanceof MouseEvent) {
+        if (event.nativeEvent instanceof MouseEvent) {
             // highlight note if user is pressing shift + click or command + click
             highlightConditions.push(
-                e.nativeEvent.metaKey,
-                e.nativeEvent.shiftKey
+                event.nativeEvent.metaKey,
+                event.nativeEvent.shiftKey
             );
-        } else if (e.nativeEvent instanceof TouchEvent) {
+        } else if (event.nativeEvent instanceof TouchEvent) {
             // highlight note if using touch device and press with two fingers
-            highlightConditions.push(e.nativeEvent.touches.length > 1);
+            highlightConditions.push(event.nativeEvent.touches.length > 1);
         } else {
             return;
         }
@@ -310,59 +348,43 @@ export const Fret: React.FC<Props> = ({
             toStatus = fromStatus === NOT_SELECTED ? SELECTED : NOT_SELECTED;
         }
         store.dispatch.setHighlightedNote(stringIndex, value, toStatus);
+        // if (toStatus !== NOT_SELECTED) playNoteAudio();
+        playNoteAudio();
     }
 
     return (
-        <AnimationWrapper
-            maxFretHeight={maxFretHeight}
-            minFretHeight={minFretHeight}
+        <FretDiv
+            fretBorder={border}
+            width={`${fretWidth}px`}
+            height="100%"
+            onContextMenu={onContextMenu}
         >
-            <CSSTransition
-                in={showInput}
-                timeout={300}
-                classNames="fret-shrink"
-                // onEnter={() => setShowButton(false)}
-                // onExited={() => setShowButton(true)}
-            >
-                <FretDiv
-                    border={border}
-                    width={`${fretWidth}px`}
-                    height="100%"
-                    onContextMenu={onContextMenu}
-                    className="fret-container"
-                >
-                    <StringSegmentDiv
-                        height={`${thickness}px`}
-                        backgroundColor={!!fretIndex ? "#333" : "transparent"}
+            <StringSegmentDiv
+                height={`${thickness}px`}
+                backgroundColor={!!fretIndex ? "#333" : "transparent"}
+            />
+            <CircleDiv onClick={onClick} onTouchStart={onClick} color={color}>
+                {label === "value" ? (
+                    noteValue
+                ) : (
+                    <ChordSymbol
+                        rootName={noteName}
+                        chordName=""
+                        fontSize={16}
                     />
-                    <CircleDiv
-                        onClick={onClick}
-                        onTouchStart={onClick}
-                        color={color}
-                    >
-                        {label === "value" ? (
-                            noteValue
-                        ) : (
-                            <ChordSymbol
-                                rootName={noteName}
-                                chordName=""
-                                fontSize={16}
-                            />
-                        )}
-                    </CircleDiv>
-                    <ShadowDiv
-                        ref={shadowRef}
-                        backgroundColor={backgroundColor}
-                        left="50}%"
-                        top={`${top}`}
-                    />
-                    <StringSegmentDiv
-                        height={`${thickness}px`}
-                        backgroundColor={!!fretIndex ? "#333" : "transparent"}
-                    />
-                    <Legend stringIndex={stringIndex} fretIndex={fretIndex} />
-                </FretDiv>
-            </CSSTransition>
-        </AnimationWrapper>
+                )}
+            </CircleDiv>
+            <ShadowDiv
+                ref={shadowRef}
+                backgroundColor={backgroundColor}
+                left="50}%"
+                top={`${top}`}
+            />
+            <StringSegmentDiv
+                height={`${thickness}px`}
+                backgroundColor={!!fretIndex ? "#333" : "transparent"}
+            />
+            <Legend stringIndex={stringIndex} fretIndex={fretIndex} />
+        </FretDiv>
     );
 };

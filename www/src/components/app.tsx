@@ -2,21 +2,23 @@ import React, { useMemo, useEffect } from "react";
 import "reset-css";
 import {
     DEFAULT_MAIN_STATE,
-    StateType,
+    AppStateType,
     currentProgression,
     AppStore,
     SliderStore,
+    AudioStore,
 } from "../store";
 import { Dashboard } from "./dashboard";
 // import { Menu } from "./menu";
 
 interface Props {
-    oldState?: StateType;
+    oldState?: AppStateType;
 }
 
 export const App: React.FC<Props> = ({ oldState }) => {
     const store = useMemo(() => new AppStore(), []);
     const sliderStore = useMemo(() => new SliderStore(), []);
+    const audioStore = useMemo(() => new AudioStore(), []);
 
     useEffect(() => {
         rehydrateState();
@@ -33,7 +35,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
 
     const rehydrateState = () => {
         // rehydrate main state
-        let newState: StateType;
+        let newState: AppStateType;
         if (oldState) {
             newState = {
                 ...DEFAULT_MAIN_STATE(),
@@ -60,5 +62,13 @@ export const App: React.FC<Props> = ({ oldState }) => {
         });
     };
 
-    return <div>{<Dashboard store={store} sliderStore={sliderStore} />}</div>;
+    return (
+        <div>
+            <Dashboard
+                store={store}
+                sliderStore={sliderStore}
+                audioStore={audioStore}
+            />
+        </div>
+    );
 };

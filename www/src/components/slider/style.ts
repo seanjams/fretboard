@@ -7,9 +7,13 @@ interface CSSProps extends CSS.Properties {
     isLast?: boolean;
     show?: boolean;
     fragmentWidth?: number;
+    minSliderSize?: number;
+    maxSliderSize?: number;
 }
 
-export const ContainerDiv = styled.div<CSSProps>`
+export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
     width: 100%;
     display: flex;
     align-items: center;
@@ -17,9 +21,7 @@ export const ContainerDiv = styled.div<CSSProps>`
 `;
 
 export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        width: props.width,
-    },
+    style: { ...props },
 }))<CSSProps>`
     height: 30px;
     display: flex;
@@ -30,6 +32,7 @@ export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
 
 export const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         width: `calc(${props.width} - ${
             props.isFirst || props.isLast ? "10" : "0"
         }px)`,
@@ -52,27 +55,62 @@ export const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
 
 export const SliderBar = styled.div.attrs((props: CSSProps) => ({
     style: {
-        left: props.left,
+        ...props,
         backgroundColor: props.show ? "red" : "transparent",
     },
 }))<CSSProps>`
-    height: 30px;
-    width: 30px;
     position: absolute;
     z-index: 10001;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
     color: #333;
     opacity: 0.5;
     touch-action: none;
     border-radius: 100000000000000px;
 `;
 
-export const ProgressBarName = styled.div<CSSProps>`
+export const ProgressBarName = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
     position: relative;
-    top: 14px;
+    bottom: 16px;
     padding-left: 6px;
     font-size: 12px;
+`;
+
+export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    height: ${(props) => props.maxSliderSize}px;
+    display: flex;
+    align-items: center;
+
+    .slider-bar {
+        height: ${(props) => props.minSliderSize}px;
+        width: ${(props) => props.minSliderSize}px;
+    }
+
+    .slider-grow-enter {
+        height: ${(props) => props.minSliderSize}px;
+        width: ${(props) => props.minSliderSize}px;
+    }
+    .slider-grow-enter-active {
+        height: ${(props) => props.maxSliderSize}px;
+        width: ${(props) => props.maxSliderSize}px;
+        transition: height 150ms ease, width 150ms ease;
+    }
+    .slider-grow-enter-done {
+        height: ${(props) => props.maxSliderSize}px;
+        width: ${(props) => props.maxSliderSize}px;
+    }
+    .slider-grow-exit {
+        height: ${(props) => props.maxSliderSize}px;
+        width: ${(props) => props.maxSliderSize}px;
+    }
+    .slider-grow-exit-active {
+        height: ${(props) => props.minSliderSize}px;
+        width: ${(props) => props.minSliderSize}px;
+        transition: height 150ms ease, width 150ms ease;
+    }
 `;

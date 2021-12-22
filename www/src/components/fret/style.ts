@@ -5,14 +5,14 @@ import { SP } from "../../utils";
 // CSS
 interface CSSProps extends CSS.Properties {
     legendTop?: boolean;
-    minFretHeight?: number;
-    maxFretHeight?: number;
+    fretBorder?: string;
 }
 
 export const FretDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
-        borderLeft: props.border,
-        borderRight: props.border,
+        ...props,
+        borderLeft: props.fretBorder,
+        borderRight: props.fretBorder,
         width: props.width,
         height: props.height,
     },
@@ -30,6 +30,7 @@ export const FretDiv = styled.div.attrs((props: CSSProps) => ({
 
 export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         color: props.color,
     },
 }))<CSSProps>`
@@ -50,6 +51,7 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
 
 export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         left: props.left,
         top: props.top,
         width: props.width,
@@ -67,6 +69,7 @@ export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
 
 export const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         height: props.height,
         backgroundColor: props.backgroundColor,
     },
@@ -77,6 +80,7 @@ export const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
 
 export const LegendDot = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         top: props.legendTop
             ? `${2 + SP[0] / 2}px`
             : `calc(100% - ${2 + SP[0] / 2}px)`,
@@ -93,6 +97,7 @@ export const LegendDot = styled.div.attrs((props: CSSProps) => ({
 
 export const OctaveDot = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         left: `calc(100% - ${(SP[0] * 3) / 2}px)`,
         top: props.legendTop
             ? `${2 + 2 * SP[0]}px`
@@ -105,31 +110,4 @@ export const OctaveDot = styled.div.attrs((props: CSSProps) => ({
     position: absolute;
     background-color: #000;
     margin-top: -${SP[0] / 2}px;
-`;
-
-export const AnimationWrapper = styled.div<CSSProps>`
-    height: 100%;
-
-    .fret-container {
-        max-height: ${(props) => props.maxFretHeight}px;
-        height: 100%;
-    }
-
-    .fret-shrink-enter {
-        max-height: ${(props) => props.maxFretHeight}px;
-    }
-    .fret-shrink-enter-active {
-        max-height: ${(props) => props.minFretHeight}px;
-        transition: max-height 150ms;
-    }
-    .fret-shrink-enter-done {
-        max-height: ${(props) => props.minFretHeight}px;
-    }
-    .fret-shrink-exit {
-        max-height: ${(props) => props.minFretHeight}px;
-    }
-    .fret-shrink-exit-active {
-        max-height: ${(props) => props.maxFretHeight}px;
-        transition: max-height 150ms;
-    }
 `;

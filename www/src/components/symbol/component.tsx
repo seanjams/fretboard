@@ -81,7 +81,7 @@ export const ChordSymbol: React.FC<Props> = ({
     const chordNameCrumbs = generateCrumbs(chordName, fontSize);
 
     return (
-        <FlexRow height={`${fontSize}px`}>
+        <FlexRow>
             {rootNameCrumbs}
             {rootNameCrumbs.length && chordNameCrumbs.length ? (
                 <Spacer width={`${fontSize / 4}px`} />

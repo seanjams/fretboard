@@ -8,10 +8,10 @@ interface CSSProps extends CSS.Properties {
 
 export const Circle = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         backgroundColor: props.active
             ? props.activeColor
             : props.backgroundColor,
-        border: props.border,
     },
 }))<CSSProps>`
     width: 26px;

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AppStore, SliderStore } from "../../store";
+import { AppStore, AudioStore, SliderStore } from "../../store";
 import { STRING_SIZE } from "../../utils";
 import { Fret } from "../fret";
 import { StringDiv } from "./style";
@@ -10,6 +10,7 @@ interface Props {
     stringIndex: number;
     store: AppStore;
     sliderStore: SliderStore;
+    audioStore: AudioStore;
 }
 
 export const GuitarString: React.FC<Props> = ({
@@ -17,6 +18,7 @@ export const GuitarString: React.FC<Props> = ({
     stringIndex,
     store,
     sliderStore,
+    audioStore,
 }) => {
     const { invert } = store.state;
 
@@ -32,6 +34,7 @@ export const GuitarString: React.FC<Props> = ({
                     stringIndex={stringIndex}
                     store={store}
                     sliderStore={sliderStore}
+                    audioStore={audioStore}
                 />
             );
         });

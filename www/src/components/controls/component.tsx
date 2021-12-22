@@ -1,7 +1,14 @@
 import React, { useEffect } from "react";
-import { useStateRef, AppStore } from "../../store";
+import { useStateRef, AppStore, AudioStore, current } from "../../store";
 import { ArrowTypes } from "../../types";
-import { COLORS, HIGHLIGHTED, SELECTED, BRUSH_MODES } from "../../utils";
+import {
+    COLORS,
+    HIGHLIGHTED,
+    SELECTED,
+    BRUSH_MODES,
+    STRUM_LOW_TO_HIGH,
+    ARPEGGIATE_LOW_TO_HIGH,
+} from "../../utils";
 import { CircleControlsContainer, Label } from "./style";
 import { CircleIconButton, HighlightButton } from "../buttons";
 import PlusIcon from "../../assets/icons/plus.png";
@@ -18,9 +25,16 @@ interface Props {
     store: AppStore;
 }
 
-export const PositionControls: React.FC<Props> = ({ store }) => {
+interface PositionControlProps extends Props {
+    audioStore: AudioStore;
+}
+
+export const PositionControls: React.FC<PositionControlProps> = ({
+    store,
+    audioStore,
+}) => {
     const onArrowPress = (dir: ArrowTypes) => () => {
-        const { invert, leftHand } = store.state;
+        const { invert, leftHand, strumMode } = store.state;
 
         // Get the action direction based on orientation of fretboard
         // could maybe move this to reducer.
@@ -32,6 +46,7 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
         const down = (dir === "ArrowUp" && highEBottom) || dir === "ArrowDown";
         const right = (dir === "ArrowLeft" && invert) || dir === "ArrowRight";
         const left = (dir === "ArrowRight" && invert) || dir === "ArrowLeft";
+        let playSound = up || down || left || right;
 
         if (up) {
             store.dispatch.incrementPositionY();
@@ -41,6 +56,15 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
             store.dispatch.incrementPositionX();
         } else if (left) {
             store.dispatch.decrementPositionX();
+        }
+
+        if (playSound) {
+            const { fretboard } = current(store.state);
+            if (strumMode === STRUM_LOW_TO_HIGH)
+                audioStore.dispatch.strumChord(fretboard);
+            else {
+                audioStore.dispatch.arpeggiateChord(fretboard);
+            }
         }
     };
 
@@ -81,12 +105,17 @@ export const PositionControls: React.FC<Props> = ({ store }) => {
 export const HighlightControls: React.FC<Props> = ({ store }) => {
     const [getState, setState] = useStateRef(() => ({
         status: store.state.status,
+        strumMode: store.state.strumMode,
     }));
-    const { status } = getState();
+    const { status, strumMode } = getState();
 
     useEffect(() => {
-        return store.addListener(({ status }) => {
-            if (getState().status !== status) setState({ status });
+        return store.addListener(({ status, strumMode }) => {
+            if (
+                getState().status !== status ||
+                getState().strumMode !== strumMode
+            )
+                setState({ status, strumMode });
         });
     }, []);
 
@@ -97,8 +126,21 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
         );
     };
 
+    const onStrumModeChange = () => {
+        const { strumMode } = getState();
+        store.dispatch.setStrumMode(
+            strumMode === STRUM_LOW_TO_HIGH
+                ? ARPEGGIATE_LOW_TO_HIGH
+                : STRUM_LOW_TO_HIGH
+        );
+    };
+
     const onClearNotes = () => {
         store.dispatch.clear();
+    };
+
+    const onClearHighlight = () => {
+        store.dispatch.clearHighlight();
     };
 
     return (
@@ -108,12 +150,28 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
                 <Label>{""}</Label>
             </div>
             <div>
+                <CircleIconButton
+                    onClick={onClearHighlight}
+                    imageSrc={ClearIcon}
+                />
+                <Label>{"clear highlight"}</Label>
+            </div>
+            <div>
                 <HighlightButton
                     highlighted={status === HIGHLIGHTED}
                     onClick={onStatusChange}
                 />
                 <Label>
                     {status === HIGHLIGHTED && BRUSH_MODES[HIGHLIGHTED]}
+                </Label>
+            </div>
+            <div>
+                <CircleIconButton
+                    onClick={onStrumModeChange}
+                    imageSrc={ClearIcon}
+                />
+                <Label>
+                    {strumMode === STRUM_LOW_TO_HIGH ? "strum" : "arpeggiate"}
                 </Label>
             </div>
         </CircleControlsContainer>

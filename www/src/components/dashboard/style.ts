@@ -9,7 +9,9 @@ interface CSSProps extends CSS.Properties {
     minFretboardHeight?: number;
 }
 
-export const InputAnimationWrapper = styled.div<CSSProps>`
+export const InputAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
     .input-container {
         max-height: ${(props) => props.minInputHeight}px;
     }
@@ -30,10 +32,15 @@ export const InputAnimationWrapper = styled.div<CSSProps>`
     .input-grow-exit-active {
         max-height: ${(props) => props.minInputHeight}px;
         transition: max-height 150ms;
+        transition-delay: 75ms;
     }
 `;
 
-export const FretboardAnimationWrapper = styled.div<CSSProps>`
+export const FretboardAnimationWrapper = styled.div.attrs(
+    (props: CSSProps) => ({
+        style: { ...props },
+    })
+)<CSSProps>`
     .fretboard-container {
         max-height: ${(props) => props.maxFretboardHeight}px;
         height: 100%;
@@ -55,11 +62,13 @@ export const FretboardAnimationWrapper = styled.div<CSSProps>`
     .fretboard-shrink-exit-active {
         max-height: ${(props) => props.maxFretboardHeight}px;
         transition: max-height 150ms;
+        transition-delay: 75ms;
     }
 `;
 
 export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         width: props.width,
         height: props.height,
     },
@@ -71,6 +80,7 @@ export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
 
 export const FlexContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         height: props.height,
         marginTop: props.marginTop || 0,
         marginBottom: props.marginBottom || 0,
@@ -79,6 +89,7 @@ export const FlexContainerDiv = styled.div.attrs((props: CSSProps) => ({
 
 export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         height: props.height,
     },
 }))<CSSProps>`
@@ -88,11 +99,9 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
 `;
 
 export const FlexRow = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        alignItems: props.alignItems || "start",
-    },
+    style: { ...props },
 }))<CSSProps>`
     display: flex;
     justify-content: space-evenly;
-    padding: 0 ${SAFETY_AREA_MARGIN}px;
+    align-items: ${(props) => props.alignItems};
 `;

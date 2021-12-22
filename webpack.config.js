@@ -37,6 +37,13 @@ module.exports = (env, argv) => ({
                     name: "assets/icons/[name].[ext]",
                 },
             },
+            {
+                test: /\.(mp3|wav|ogg)$/i,
+                loader: "file-loader",
+                options: {
+                    name: "assets/audio/[name].[ext]",
+                },
+            },
         ],
     },
 

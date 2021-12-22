@@ -5,6 +5,7 @@ interface CSSProps extends CSS.Properties {}
 
 export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
+        ...props,
         // add style props here and style below
     },
 }))<CSSProps>`
