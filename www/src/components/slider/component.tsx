@@ -50,8 +50,7 @@ export const Slider: React.FC<SliderProps> = ({
             progression.fretboards,
             progression.hiddenFretboardIndices
         ),
-        left: 0,
-        progress: 0,
+        left: -1000000,
         dragging: false,
     }));
     const {
@@ -105,7 +104,7 @@ export const Slider: React.FC<SliderProps> = ({
                     hiddenFretboardIndices,
                     currentProgressionIndex,
                 });
-                if (visibleFretboardsChanged) snapToGridAnimation();
+                // if (visibleFretboardsChanged) snapToGridAnimation(true);
             }
         });
 
@@ -113,6 +112,16 @@ export const Slider: React.FC<SliderProps> = ({
         window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("touchmove", onMouseMove);
         window.addEventListener("touchend", onMouseUp);
+
+        // set initial slider position in case rehydrateSuccess doesn't succeed
+        if (progressBarRef.current && sliderBarRef.current) {
+            const origin = progressBarRef.current.offsetLeft;
+            const sliderBarWidth = sliderBarRef.current.offsetWidth;
+            const fragmentWidth =
+                getProgressBarFragmentWidth(visibleFretboards);
+            setState({ left: origin + fragmentWidth / 2 - sliderBarWidth / 2 });
+        }
+
         return () => {
             destroyListener();
             destroySliderListener();
@@ -299,7 +308,6 @@ export const Slider: React.FC<SliderProps> = ({
 
     // slider drag release (set ratio for resize experiment)
     const onMouseUp = (event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
         event.stopPropagation();
 
         if (getState().dragging) {

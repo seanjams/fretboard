@@ -17,6 +17,7 @@ import {
     getScreenDimensions,
     getFretboardDimensions,
     STRUM_LOW_TO_HIGH,
+    stopClick,
 } from "../../utils";
 import { Fretboard } from "../fretboard";
 import {
@@ -47,6 +48,7 @@ interface DashboardStateType {
     showInput: boolean;
     orientation: OrientationType;
     dimensions: [number, number];
+    isDragging: boolean;
 }
 
 export const Dashboard: React.FC<Props> = ({
@@ -54,13 +56,15 @@ export const Dashboard: React.FC<Props> = ({
     sliderStore,
     audioStore,
 }) => {
+    const { progression } = current(store.state);
     const [getState, setState] = useStateRef<DashboardStateType>(() => ({
         showInput: store.state.showInput,
         orientation: "portrait-primary",
         dimensions: getScreenDimensions(),
+        isDragging: progression.isDragging,
     }));
 
-    const { showInput, orientation, dimensions } = getState();
+    const { showInput, orientation, dimensions, isDragging } = getState();
     // const width = orientation.startsWith("portrait")
     //     ? windowHeight
     //     : windowWidth;
@@ -71,6 +75,7 @@ export const Dashboard: React.FC<Props> = ({
 
     const fretboardContainerRef = useRef<HTMLDivElement>(null);
     const scrollToFretRef = useRef(0);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const {
         gutterHeight,
@@ -83,9 +88,13 @@ export const Dashboard: React.FC<Props> = ({
     useEffect(() => {
         const destroyListener = store.addListener((newState) => {
             const { showInput, progression } = current(newState);
-            const { scrollToFret } = progression;
+            const { scrollToFret, isDragging } = progression;
 
-            if (getState().showInput !== showInput) setState({ showInput });
+            if (
+                getState().showInput !== showInput ||
+                getState().isDragging !== isDragging
+            )
+                setState({ showInput, isDragging });
 
             if (
                 fretboardContainerRef.current &&
@@ -114,6 +123,8 @@ export const Dashboard: React.FC<Props> = ({
 
         window.addEventListener("orientationchange", onOrientationChange);
         window.addEventListener("keydown", onKeyPress);
+        window.addEventListener("mouseup", onMouseUp);
+        window.addEventListener("touchend", onMouseUp);
 
         return () => {
             destroyListener();
@@ -122,6 +133,8 @@ export const Dashboard: React.FC<Props> = ({
                 onOrientationChange
             );
             window.removeEventListener("keydown", onKeyPress);
+            window.removeEventListener("mouseup", onMouseUp);
+            window.removeEventListener("touchend", onMouseUp);
         };
     }, []);
 
@@ -132,7 +145,7 @@ export const Dashboard: React.FC<Props> = ({
         });
     }, []);
 
-    function onKeyPress(this: Window, event: KeyboardEvent): any {
+    const onKeyPress = useCallback((event: KeyboardEvent) => {
         const { invert, leftHand, progression } = current(store.state);
         const { label } = progression;
         const highEBottom = invert !== leftHand;
@@ -177,112 +190,134 @@ export const Dashboard: React.FC<Props> = ({
                 audioStore.dispatch.arpeggiateChord(fretboard);
             }
         }
-    }
+    }, []);
+
+    const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
+        event.preventDefault();
+        const { progression } = current(store.state);
+        const { isDragging } = progression;
+
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+        if (isDragging) {
+            store.dispatch.setIsDragging(false);
+            stopClick();
+        }
+    }, []);
+
+    const onMouseDown = (
+        event:
+            | React.MouseEvent<HTMLDivElement, MouseEvent>
+            | React.TouchEvent<HTMLDivElement>
+    ) => {
+        // event.stopPropagation();
+
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+            const { progression } = current(store.state);
+            const { isDragging } = progression;
+            if (!isDragging) store.dispatch.setIsDragging(true);
+            timeoutRef.current = null;
+        }, 100);
+    };
 
     return (
-        <>
-            <ContainerDiv
-                // onMouseDown={onDragStart}
-                // onTouchStart={onDragEnd}
-                height={`${height}px`}
-                width={`${width}px`}
-                // height={height}
-                // width={width}
+        <ContainerDiv
+            height={`${height}px`}
+            width={`${width}px`}
+            onMouseDown={onMouseDown}
+            onTouchStart={onMouseDown}
+            lockScroll={isDragging}
+        >
+            <FlexContainerDiv
+                height={`${gutterHeight}px`}
+                marginTop={`${SAFETY_AREA_MARGIN}px`}
+                marginBottom={0}
             >
-                <FlexContainerDiv
-                    height={`${gutterHeight}px`}
-                    marginTop={`${SAFETY_AREA_MARGIN}px`}
-                    marginBottom={0}
+                <FlexRow alignItems="end" padding={`0 ${SAFETY_AREA_MARGIN}px`}>
+                    <div style={{ flex: 1 }}>
+                        <Title store={store} />
+                    </div>
+                    <div style={{ flex: 2 }}>
+                        <Slider
+                            store={store}
+                            sliderStore={sliderStore}
+                            audioStore={audioStore}
+                        />
+                    </div>
+                    <div style={{ flexShrink: 1 }}>
+                        <SliderControls store={store} />
+                    </div>
+                </FlexRow>
+            </FlexContainerDiv>
+            <InputAnimationWrapper
+                minInputHeight={minInputHeight}
+                maxInputHeight={maxInputHeight}
+            >
+                <CSSTransition
+                    in={showInput}
+                    timeout={300}
+                    classNames="input-grow"
+                    // onEnter={() => setShowButton(false)}
+                    // onExited={() => setShowButton(true)}
                 >
-                    <FlexRow
-                        alignItems="end"
-                        padding={`0 ${SAFETY_AREA_MARGIN}px`}
+                    <div className="input-container">
+                        <ChordInput
+                            store={store}
+                            sliderStore={sliderStore}
+                            audioStore={audioStore}
+                        />
+                    </div>
+                </CSSTransition>
+            </InputAnimationWrapper>
+            <FretboardAnimationWrapper
+                maxFretboardHeight={maxFretboardHeight}
+                minFretboardHeight={minFretboardHeight}
+            >
+                <CSSTransition
+                    in={showInput}
+                    timeout={300}
+                    classNames="fretboard-shrink"
+                    // onEnter={() => setShowButton(false)}
+                    // onExited={() => setShowButton(true)}
+                >
+                    <OverflowContainerDiv
+                        height={`${maxFretboardHeight}px`}
+                        lockScroll={isDragging}
+                        ref={fretboardContainerRef}
                     >
-                        <div style={{ flex: 1 }}>
-                            <Title store={store} />
-                        </div>
-                        <div style={{ flex: 2 }}>
-                            <Slider
+                        <div className="fretboard-container">
+                            <Fretboard
                                 store={store}
                                 sliderStore={sliderStore}
                                 audioStore={audioStore}
                             />
                         </div>
-                        <div style={{ flexShrink: 1 }}>
-                            <SliderControls store={store} />
-                        </div>
-                    </FlexRow>
-                </FlexContainerDiv>
-                <InputAnimationWrapper
-                    minInputHeight={minInputHeight}
-                    maxInputHeight={maxInputHeight}
+                    </OverflowContainerDiv>
+                </CSSTransition>
+            </FretboardAnimationWrapper>
+            <FlexContainerDiv
+                height={`${gutterHeight}px`}
+                marginTop="0px"
+                marginBottom={`${SAFETY_AREA_MARGIN}px`}
+            >
+                <FlexRow
+                    alignItems="start"
+                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 >
-                    <CSSTransition
-                        in={showInput}
-                        timeout={300}
-                        classNames="input-grow"
-                        // onEnter={() => setShowButton(false)}
-                        // onExited={() => setShowButton(true)}
-                    >
-                        <div className="input-container">
-                            <ChordInput
-                                store={store}
-                                sliderStore={sliderStore}
-                            />
-                        </div>
-                    </CSSTransition>
-                </InputAnimationWrapper>
-                <FretboardAnimationWrapper
-                    maxFretboardHeight={maxFretboardHeight}
-                    minFretboardHeight={minFretboardHeight}
-                >
-                    <CSSTransition
-                        in={showInput}
-                        timeout={300}
-                        classNames="fretboard-shrink"
-                        // onEnter={() => setShowButton(false)}
-                        // onExited={() => setShowButton(true)}
-                    >
-                        <OverflowContainerDiv
-                            height={`${maxFretboardHeight}px`}
-                            ref={fretboardContainerRef}
-                        >
-                            <div className="fretboard-container">
-                                <Fretboard
-                                    store={store}
-                                    sliderStore={sliderStore}
-                                    audioStore={audioStore}
-                                />
-                            </div>
-                        </OverflowContainerDiv>
-                    </CSSTransition>
-                </FretboardAnimationWrapper>
-                <FlexContainerDiv
-                    height={`${gutterHeight}px`}
-                    marginTop="0px"
-                    marginBottom={`${SAFETY_AREA_MARGIN}px`}
-                >
-                    <FlexRow
-                        alignItems="start"
-                        padding={`0 ${SAFETY_AREA_MARGIN}px`}
-                    >
-                        <div style={{ flexGrow: 1 }}>
-                            <HighlightControls store={store} />
-                        </div>
-                        <div style={{ flexShrink: 1 }}>
-                            <PositionControls
-                                store={store}
-                                audioStore={audioStore}
-                            />
-                        </div>
-                    </FlexRow>
-                </FlexContainerDiv>
-            </ContainerDiv>
-            {/* {orientation.startsWith("portrait") && (
-                <ContainerDiv>
-                    <Menu store={store} />
-                </ContainerDiv>
-            )} */}
-        </>
+                    <div style={{ flexGrow: 1 }}>
+                        <HighlightControls store={store} />
+                    </div>
+                    <div style={{ flexShrink: 1 }}>
+                        <PositionControls
+                            store={store}
+                            audioStore={audioStore}
+                        />
+                    </div>
+                </FlexRow>
+            </FlexContainerDiv>
+        </ContainerDiv>
     );
 };

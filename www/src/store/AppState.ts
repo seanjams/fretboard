@@ -17,6 +17,7 @@ import {
     SELECTED,
     HIGHLIGHTED,
     STRUM_LOW_TO_HIGH,
+    getNotes,
 } from "../utils";
 import { Store } from "./store";
 
@@ -30,6 +31,7 @@ export interface ProgressionStateType {
     scrollToFret: number;
     label: LabelTypes;
     hiddenFretboardIndices: number[];
+    isDragging: boolean;
 }
 
 export interface AppStateType {
@@ -73,10 +75,13 @@ export const reducers = {
             .fill(0)
             .map(() => DEFAULT_STRINGSWITCH());
 
-        return this.setCurrentProgression(state, {
-            ...progression,
-            ...rebuildDiffs(newFretboards),
-        });
+        return this.setCurrentProgression(
+            { ...state, status: SELECTED },
+            {
+                ...progression,
+                ...rebuildDiffs(newFretboards),
+            }
+        );
     },
 
     clear(state: AppStateType) {
@@ -84,10 +89,13 @@ export const reducers = {
         let { focusedIndex, fretboards } = progression;
 
         fretboards[focusedIndex] = DEFAULT_STRINGSWITCH();
-        return this.setCurrentProgression(state, {
-            ...progression,
-            ...rebuildDiffs([...fretboards]),
-        });
+        return this.setCurrentProgression(
+            { ...state, status: SELECTED },
+            {
+                ...progression,
+                ...rebuildDiffs([...fretboards]),
+            }
+        );
     },
 
     clearHighlight(state: AppStateType) {
@@ -154,10 +162,19 @@ export const reducers = {
             }
         }
 
-        return this.setCurrentProgression(state, {
-            ...progression,
-            ...cascadeDiffs(fretboards, focusedIndex),
-        });
+        const notes = getNotes(fretboards[focusedIndex]);
+        let empty = !notes.some((note) => note === SELECTED);
+
+        return this.setCurrentProgression(
+            {
+                ...state,
+                status: empty ? SELECTED : state.status,
+            },
+            {
+                ...progression,
+                ...cascadeDiffs(fretboards, focusedIndex),
+            }
+        );
     },
 
     addFretboard(state: AppStateType) {
@@ -215,6 +232,14 @@ export const reducers = {
         return { ...state, strumMode };
     },
 
+    setIsDragging(state: AppStateType, isDragging: boolean) {
+        let progression = current(state).progression;
+        return this.setCurrentProgression(state, {
+            ...progression,
+            isDragging,
+        });
+    },
+
     setCurrentProgression(
         state: AppStateType,
         progression: ProgressionStateType
@@ -267,6 +292,7 @@ const progression1: ProgressionStateType = {
     scrollToFret: 0,
     label: "flat",
     hiddenFretboardIndices: [],
+    isDragging: false,
 };
 const progression2: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
@@ -274,6 +300,7 @@ const progression2: ProgressionStateType = {
     scrollToFret: 0,
     label: "flat",
     hiddenFretboardIndices: [],
+    isDragging: false,
 };
 const progression3: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
@@ -281,6 +308,7 @@ const progression3: ProgressionStateType = {
     scrollToFret: 0,
     label: "flat",
     hiddenFretboardIndices: [],
+    isDragging: false,
 };
 
 export function DEFAULT_MAIN_STATE(): AppStateType {

@@ -1,7 +1,13 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import { ChordSymbol } from "../symbol";
-import { useStateRef, AppStore, SliderStore, current } from "../../store";
+import {
+    useStateRef,
+    AppStore,
+    SliderStore,
+    current,
+    AudioStore,
+} from "../../store";
 import { ChordTypes, NoteTypes } from "../../types";
 import {
     FLAT_NAMES,
@@ -20,6 +26,7 @@ import {
     STANDARD_TUNING,
     majorChord,
     SP,
+    getScrollToFret,
 } from "../../utils";
 import {
     AnimationWrapper,
@@ -87,9 +94,14 @@ export const TagButton: React.FC<TagButtonProps> = ({
 interface Props {
     store: AppStore;
     sliderStore: SliderStore;
+    audioStore: AudioStore;
 }
 
-export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
+export const ChordInput: React.FC<Props> = ({
+    store,
+    sliderStore,
+    audioStore,
+}) => {
     // state
     const { fretboard, progression } = current(store.state);
     const [getState, setState] = useStateRef(() => ({
@@ -146,13 +158,15 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
             while (fretValue < STANDARD_TUNING[0]) fretValue += 12;
             setFret(newFretboard, 0, fretValue, SELECTED);
         }
+        newFretboard = cascadeDiffs([fretboards[focusedIndex], newFretboard], 0)
+            .fretboards[1];
 
         // add new fretboard to the right of current
         fretboards.splice(focusedIndex + 1, 0, newFretboard);
 
         // set current fretboard to hidden for slider
         const hiddenFretboardIndices = [focusedIndex];
-        clearHighlight(fretboards[focusedIndex]);
+        // clearHighlight(fretboards[focusedIndex]);
 
         // update diffs
         store.dispatch.setCurrentProgression({
@@ -166,6 +180,8 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
         let animationDuration = 0.15; // 0.25 seconds roughly comes out to 15 frames
         let totalFrames = Math.ceil(animationDuration * 60);
         let animationSlideLength = SLIDER_WINDOW_LENGTH;
+        let currentFocusedIndex = focusedIndex;
+        let i = 0;
 
         const performAnimation = () => {
             animationRef.current = requestAnimationFrame(performAnimation);
@@ -184,22 +200,29 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
 
             // set progress, and check if we should update focusedIndex
             sliderStore.dispatch.setProgress(nextProgress);
-            if (nextProgress > focusedIndex + 1)
-                store.dispatch.setFocusedIndex(focusedIndex + 1);
+            if (Math.floor(nextProgress) > currentFocusedIndex + i) {
+                store.dispatch.setFocusedIndex(currentFocusedIndex + i + 1);
+                i++;
+            }
             // when done animating, remove extra fretboard and reset progress
             if (frameCount === totalFrames) {
                 // clear interval
                 cancelAnimationFrame(animationRef.current);
 
                 // remove old fretboard, update diffs, reset progress and focusedIndex
-                fretboards.splice(focusedIndex, 1);
+                fretboards.splice(currentFocusedIndex, 1);
                 store.dispatch.setCurrentProgression({
                     ...progression,
-                    ...cascadeDiffs(fretboards, focusedIndex),
+                    ...cascadeDiffs(fretboards, currentFocusedIndex),
                     hiddenFretboardIndices: [],
-                    focusedIndex: focusedIndex,
+                    focusedIndex: currentFocusedIndex,
+                    // scrollToFret: getScrollToFret(
+                    //     fretboards[currentFocusedIndex]
+                    // ),
                 });
-                sliderStore.dispatch.setProgress(focusedIndex + 0.5);
+                sliderStore.dispatch.setProgress(currentFocusedIndex + 0.5);
+                const { fretboard } = current(store.state);
+                audioStore.dispatch.strumChord(fretboard);
             }
         };
         requestAnimationFrame(performAnimation);
@@ -239,7 +262,7 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
     ) => {
         // event.preventDefault();
         // event.stopPropagation();
-        if (store.state.showInput) store.dispatch.setShowInput(false);
+        // if (store.state.showInput) store.dispatch.setShowInput(false);
     };
 
     return (
@@ -276,7 +299,7 @@ export const ChordInput: React.FC<Props> = ({ store, sliderStore }) => {
                             marginLeft={`${SP[2]}px`}
                             marginRight={`${SP[2]}px`}
                             width={`calc(85% - ${2 * SP[2]}px)`}
-                            justifyContent="start"
+                            justifyContent="center"
                         >
                             {noteNames.map((name, j) => (
                                 <TagButton

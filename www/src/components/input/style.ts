@@ -91,12 +91,13 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
         top: 0;
         left: 0;
         bottom: 0;
-        width: ${2 * SP[2]}px;
+        width: ${3 * SP[7]}px;
         background-image: linear-gradient(
             to left,
             rgba(255, 255, 255, 0),
             white 85%
         );
+        pointer-events: none;
     }
     ::after {
         content: "";
@@ -104,11 +105,12 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
         bottom: 0;
         top: 0;
         right: 0;
-        width: ${2 * SP[2]}px;
+        width: ${3 * SP[7]}px;
         background-image: linear-gradient(
             to right,
             rgba(255, 255, 255, 0),
             white 85%
         );
+        pointer-events: none;
     }
 `;

@@ -1,5 +1,4 @@
-import React, { useEffect, useRef } from "react";
-import { CSSTransition } from "react-transition-group";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
     AppStore,
     SliderStore,
@@ -120,6 +119,7 @@ export const Fret: React.FC<Props> = ({
 
     // init refs
     const progressRef = useRef(sliderStore.state.progress);
+    const circleRef = useRef<HTMLDivElement>(null);
     const shadowRef = useRef<HTMLDivElement>(null);
     const isHighlightedRef = useRef(
         fretboard[stringIndex][value] === HIGHLIGHTED
@@ -127,6 +127,8 @@ export const Fret: React.FC<Props> = ({
     const isSelectedRef = useRef(
         [SELECTED, HIGHLIGHTED].includes(fretboard[stringIndex][value])
     );
+    const isMouseOverRef = useRef(false);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const backgroundColor = getBackgroundColor(
         isSelectedRef.current,
@@ -165,9 +167,13 @@ export const Fret: React.FC<Props> = ({
             }
         );
 
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("touchmove", onMouseMove);
         return () => {
             destroyListener();
             destroySliderListener();
+            window.removeEventListener("mousemove", onMouseMove);
+            window.removeEventListener("touchmove", onMouseMove);
         };
     }, []);
 
@@ -308,13 +314,14 @@ export const Fret: React.FC<Props> = ({
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
     ) {
         event.preventDefault();
+        event.stopPropagation();
         // highlight note on right click
-        const { fretboard } = current(store.state);
-        const status =
-            fretboard[stringIndex][value] === HIGHLIGHTED
-                ? SELECTED
-                : HIGHLIGHTED;
-        store.dispatch.setHighlightedNote(stringIndex, value, status);
+        // const { fretboard } = current(store.state);
+        // const status =
+        //     fretboard[stringIndex][value] === HIGHLIGHTED
+        //         ? SELECTED
+        //         : HIGHLIGHTED;
+        // store.dispatch.setHighlightedNote(stringIndex, value, status);
     }
 
     function onClick(
@@ -324,33 +331,106 @@ export const Fret: React.FC<Props> = ({
     ) {
         // highlight note if brush mode is highlight
         const { status, fretboard } = current(store.state);
-        const highlightConditions = [status === HIGHLIGHTED];
+        // const highlightConditions = [status === HIGHLIGHTED];
 
-        if (event.nativeEvent instanceof MouseEvent) {
-            // highlight note if user is pressing shift + click or command + click
-            highlightConditions.push(
-                event.nativeEvent.metaKey,
-                event.nativeEvent.shiftKey
-            );
-        } else if (event.nativeEvent instanceof TouchEvent) {
-            // highlight note if using touch device and press with two fingers
-            highlightConditions.push(event.nativeEvent.touches.length > 1);
+        // if (event.nativeEvent instanceof MouseEvent) {
+        //     // highlight note if user is pressing shift + click or command + click
+        //     highlightConditions.push(
+        //         event.nativeEvent.metaKey,
+        //         event.nativeEvent.shiftKey
+        //     );
+        // } else if (event.nativeEvent instanceof TouchEvent) {
+        //     // highlight note if using touch device and press with two fingers
+        //     highlightConditions.push(event.nativeEvent.touches.length > 1);
+        // } else {
+        //     return;
+        // }
+
+        // toggle selection of note
+        let toStatus: StatusTypes;
+        const fromStatus = fretboard[stringIndex][value];
+        if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
+            toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
+            store.dispatch.setHighlightedNote(stringIndex, value, toStatus);
+            playNoteAudio();
+        } else if (status === SELECTED) {
+            toStatus = fromStatus === NOT_SELECTED ? SELECTED : NOT_SELECTED;
+            store.dispatch.setHighlightedNote(stringIndex, value, toStatus);
+            playNoteAudio();
+        }
+        isMouseOverRef.current = true;
+    }
+
+    // const onMouseMove = (
+    //     event:
+    //         | React.MouseEvent<HTMLDivElement, MouseEvent>
+    //         | React.TouchEvent<HTMLDivElement>
+    // ) => {
+    const onMouseMove = useCallback((event: MouseEvent | TouchEvent) => {
+        // event.preventDefault();
+        const { progression } = current(store.state);
+        const { isDragging } = progression;
+
+        if (!isDragging || !circleRef.current) return;
+
+        let clientX;
+        let clientY;
+        if (event instanceof MouseEvent) {
+            clientX = event.clientX;
+            clientY = event.clientY;
+        } else if (event instanceof TouchEvent) {
+            clientX = event.touches[0].clientX;
+            clientY = event.touches[0].clientY;
         } else {
             return;
         }
 
-        // toggle selection of note
-        const fromStatus = fretboard[stringIndex][value];
-        let toStatus: StatusTypes;
-        if (highlightConditions.some((condition) => condition)) {
-            toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
+        // could speed up by cacheing this
+        const { top, left, bottom, right } =
+            circleRef.current.getBoundingClientRect();
+
+        if (
+            clientX <= right &&
+            clientX >= left &&
+            clientY <= bottom &&
+            clientY >= top
+        ) {
+            if (!isMouseOverRef.current) {
+                const { fretboard, status } = current(store.state);
+                let toStatus: StatusTypes;
+                const fromStatus = fretboard[stringIndex][value];
+
+                if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
+                    toStatus =
+                        fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
+                    store.dispatch.setHighlightedNote(
+                        stringIndex,
+                        value,
+                        toStatus
+                    );
+                    playNoteAudio();
+                } else if (status === SELECTED) {
+                    toStatus =
+                        fromStatus === NOT_SELECTED ? SELECTED : NOT_SELECTED;
+                    store.dispatch.setHighlightedNote(
+                        stringIndex,
+                        value,
+                        toStatus
+                    );
+                    playNoteAudio();
+                }
+
+                isMouseOverRef.current = true;
+            }
         } else {
-            toStatus = fromStatus === NOT_SELECTED ? SELECTED : NOT_SELECTED;
+            if (!timeoutRef.current && isMouseOverRef.current) {
+                timeoutRef.current = setTimeout(() => {
+                    isMouseOverRef.current = false;
+                    timeoutRef.current = null;
+                }, 50);
+            }
         }
-        store.dispatch.setHighlightedNote(stringIndex, value, toStatus);
-        // if (toStatus !== NOT_SELECTED) playNoteAudio();
-        playNoteAudio();
-    }
+    }, []);
 
     return (
         <FretDiv
@@ -363,7 +443,12 @@ export const Fret: React.FC<Props> = ({
                 height={`${thickness}px`}
                 backgroundColor={!!fretIndex ? "#333" : "transparent"}
             />
-            <CircleDiv onClick={onClick} onTouchStart={onClick} color={color}>
+            <CircleDiv
+                onClick={onClick}
+                onTouchStart={onClick}
+                color={color}
+                ref={circleRef}
+            >
                 {label === "value" ? (
                     noteValue
                 ) : (
@@ -377,7 +462,7 @@ export const Fret: React.FC<Props> = ({
             <ShadowDiv
                 ref={shadowRef}
                 backgroundColor={backgroundColor}
-                left="50}%"
+                left="50%"
                 top={`${top}`}
             />
             <StringSegmentDiv

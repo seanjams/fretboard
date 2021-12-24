@@ -7,6 +7,7 @@ interface CSSProps extends CSS.Properties {
     minInputHeight?: number;
     maxFretboardHeight?: number;
     minFretboardHeight?: number;
+    lockScroll?: boolean;
 }
 
 export const InputAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
@@ -91,6 +92,7 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
         height: props.height,
+        overflowX: props.lockScroll ? "hidden" : "auto",
     },
 }))<CSSProps>`
     width: 100%;

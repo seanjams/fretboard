@@ -228,6 +228,7 @@ export function mod(a: number, m: number): number {
     return ((a % m) + m) % m;
 }
 
+// return array of [1,0,1,0,1,1,0,1,0,1,0] representing notes of fretboard
 export function getNotes(fretboard: StringSwitchType): NoteSwitchType {
     const result: NoteSwitchType = DEFAULT_NOTESWITCH();
     for (let string of fretboard) {

@@ -44,7 +44,6 @@ export const CircleButton: React.FC<ButtonProps> = ({
     };
 
     const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
         event.stopPropagation();
 
         if (activeRef.current) {

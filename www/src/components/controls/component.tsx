@@ -114,20 +114,23 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
             if (
                 getState().status !== status ||
                 getState().strumMode !== strumMode
-            )
+            ) {
                 setState({ status, strumMode });
+            }
         });
     }, []);
 
-    const onStatusChange = () => {
-        const { status } = getState();
+    const onStatusChange = (event: MouseEvent | TouchEvent) => {
+        event.preventDefault();
+        const { status } = store.state;
         store.dispatch.setStatus(
             status === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
         );
     };
 
-    const onStrumModeChange = () => {
-        const { strumMode } = getState();
+    const onStrumModeChange = (event: MouseEvent | TouchEvent) => {
+        event.preventDefault();
+        const { strumMode } = store.state;
         store.dispatch.setStrumMode(
             strumMode === STRUM_LOW_TO_HIGH
                 ? ARPEGGIATE_LOW_TO_HIGH

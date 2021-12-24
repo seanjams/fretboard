@@ -33,6 +33,8 @@ export const NOT_SELECTED = 0;
 export const SELECTED = 1;
 export const HIGHLIGHTED = 2;
 
+export const STATUSES: StatusTypes[] = [NOT_SELECTED, SELECTED, HIGHLIGHTED];
+
 export function DEFAULT_NOTESWITCH(): NoteSwitchType {
     return [
         NOT_SELECTED,
