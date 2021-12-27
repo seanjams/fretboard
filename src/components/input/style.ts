@@ -17,7 +17,7 @@ export const AnimationWrapper = styled.div`
     .input-fade-enter-active {
         opacity: 1;
         transition: opacity 150ms ease;
-        transition-delay: 75ms;
+        transition-delay: 150ms;
     }
     .input-fade-enter-done {
         opacity: 1;

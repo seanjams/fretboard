@@ -9,5 +9,5 @@
         "target": "es6",
         "jsx": "react"
     },
-    "include": ["www/src", "www/js", "index.d.ts"]
+    "include": ["src", "www/js", "index.d.ts"]
 }

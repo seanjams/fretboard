@@ -558,11 +558,11 @@ export const getFretboardDimensions = () => {
     const gutterHeight = height * 0.15 - SAFETY_AREA_MARGIN;
 
     // input open
-    const minInputHeight = height * 0;
-    const maxFretboardHeight = height * 0.7 - 2 * FRETBOARD_MARGIN;
+    const maxInputHeight = height * 0.2;
+    const maxFretboardHeight = height * 0.65 - 2 * FRETBOARD_MARGIN;
 
     // input closed
-    const maxInputHeight = height * 0.15;
+    const minInputHeight = height * 0;
     const minFretboardHeight = height * 0.7 - 2 * FRETBOARD_MARGIN;
 
     return {

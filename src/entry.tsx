@@ -6,6 +6,8 @@ function init() {
     // set to landscape on mobile
     if (screen) screen.orientation.lock("landscape");
 
+    console.log("INIT");
+
     const root = document.createElement("div");
     root.setAttribute("id", "root");
     document.body.appendChild(root);
@@ -22,5 +24,5 @@ function init() {
 }
 
 // comment out for mobile builds
-document.addEventListener("DOMContentLoaded", init);
+// document.addEventListener("DsOMContentLoaded", init);
 document.addEventListener("deviceready", init);

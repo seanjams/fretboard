@@ -6,7 +6,7 @@ import {
     useStateRef,
     AudioStore,
 } from "../../store";
-import { DiffType, StatusTypes } from "../../types";
+import { DiffType, DragStatusTypes, StatusTypes } from "../../types";
 import {
     getFretWidth,
     mod,
@@ -330,7 +330,7 @@ export const Fret: React.FC<Props> = ({
             | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) {
         // highlight note if brush mode is highlight
-        const { status, fretboard } = current(store.state);
+        const { status, fretboard, dragStatus } = current(store.state);
         // const highlightConditions = [status === HIGHLIGHTED];
 
         // if (event.nativeEvent instanceof MouseEvent) {
@@ -347,17 +347,24 @@ export const Fret: React.FC<Props> = ({
         // }
 
         // toggle selection of note
-        let toStatus: StatusTypes;
         const fromStatus = fretboard[stringIndex][value];
+        let toStatus = fromStatus;
+        let toDragStatus = dragStatus;
         if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
             toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
-            store.dispatch.setHighlightedNote(stringIndex, value, toStatus);
-            playNoteAudio();
+            toDragStatus = fromStatus === HIGHLIGHTED ? "off" : "on";
         } else if (status === SELECTED) {
             toStatus = fromStatus === NOT_SELECTED ? SELECTED : NOT_SELECTED;
+            toDragStatus = fromStatus === NOT_SELECTED ? "on" : "off";
+        }
+
+        if (toStatus !== fromStatus) {
             store.dispatch.setHighlightedNote(stringIndex, value, toStatus);
             playNoteAudio();
         }
+        if (toDragStatus !== dragStatus)
+            store.dispatch.setDragStatus(toDragStatus);
+
         isMouseOverRef.current = true;
     }
 
@@ -368,9 +375,9 @@ export const Fret: React.FC<Props> = ({
     // ) => {
     const onMouseMove = useCallback((event: MouseEvent | TouchEvent) => {
         // event.preventDefault();
-        const { progression } = current(store.state);
-        const { isDragging } = progression;
-
+        const { fretboard, status, isDragging, dragStatus } = current(
+            store.state
+        );
         if (!isDragging || !circleRef.current) return;
 
         let clientX;
@@ -396,27 +403,50 @@ export const Fret: React.FC<Props> = ({
             clientY >= top
         ) {
             if (!isMouseOverRef.current) {
-                const { fretboard, status } = current(store.state);
-                let toStatus: StatusTypes;
                 const fromStatus = fretboard[stringIndex][value];
+                let toStatus = fromStatus;
+                let toDragStatus = dragStatus;
 
                 if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
+                    // case when dragging over a selected/highlighted note in highlight mode
                     toStatus =
-                        fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
+                        dragStatus === "off"
+                            ? SELECTED
+                            : dragStatus === "on"
+                            ? HIGHLIGHTED
+                            : fromStatus === HIGHLIGHTED
+                            ? SELECTED
+                            : HIGHLIGHTED;
+
+                    // if this is the first note in the drag sequence, set dragStatus based off what we just did
+                    if (dragStatus === null)
+                        toDragStatus = toStatus === SELECTED ? "off" : "on";
+                } else if (status === SELECTED) {
+                    // case when dragging over any note in standard mode
+                    toStatus =
+                        dragStatus === "on"
+                            ? SELECTED
+                            : dragStatus === "off"
+                            ? NOT_SELECTED
+                            : fromStatus === NOT_SELECTED
+                            ? SELECTED
+                            : NOT_SELECTED;
+
+                    // if this is the first note in the drag sequence, set dragStatus based off what we just did
+                    if (dragStatus === null)
+                        toDragStatus = toStatus === SELECTED ? "on" : "off";
+                }
+
+                if (toStatus !== fromStatus) {
                     store.dispatch.setHighlightedNote(
                         stringIndex,
                         value,
                         toStatus
                     );
                     playNoteAudio();
-                } else if (status === SELECTED) {
-                    toStatus =
-                        fromStatus === NOT_SELECTED ? SELECTED : NOT_SELECTED;
-                    store.dispatch.setHighlightedNote(
-                        stringIndex,
-                        value,
-                        toStatus
-                    );
+                }
+                if (toDragStatus !== dragStatus) {
+                    store.dispatch.setDragStatus(dragStatus);
                     playNoteAudio();
                 }
 

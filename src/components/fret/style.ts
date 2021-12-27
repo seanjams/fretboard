@@ -13,8 +13,6 @@ export const FretDiv = styled.div.attrs((props: CSSProps) => ({
         ...props,
         borderLeft: props.fretBorder,
         borderRight: props.fretBorder,
-        width: props.width,
-        height: props.height,
     },
 }))<CSSProps>`
     display: flex;

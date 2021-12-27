@@ -15,6 +15,7 @@ export const InputAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     .input-container {
         max-height: ${(props) => props.minInputHeight}px;
+        height: 100%;
     }
 
     .input-grow-enter {
@@ -33,7 +34,7 @@ export const InputAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .input-grow-exit-active {
         max-height: ${(props) => props.minInputHeight}px;
         transition: max-height 150ms;
-        transition-delay: 75ms;
+        // transition-delay: 0ms;
     }
 `;
 
@@ -92,11 +93,9 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
         height: props.height,
-        overflowX: props.lockScroll ? "hidden" : "auto",
     },
 }))<CSSProps>`
     width: 100%;
-    overflow-x: auto;
     margin: ${FRETBOARD_MARGIN}px 0;
 `;
 

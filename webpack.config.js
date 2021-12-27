@@ -3,10 +3,10 @@ const path = require("path");
 // 	.BundleAnalyzerPlugin;
 
 module.exports = (env, argv) => ({
-    entry: "./www/src/entry.tsx",
+    entry: "./src/entry.tsx",
     output: {
         filename: "bundle.js",
-        path: path.resolve(__dirname, "./www"),
+        path: path.resolve(__dirname, "www"),
     },
 
     resolve: {

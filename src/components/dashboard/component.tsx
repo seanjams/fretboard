@@ -48,7 +48,6 @@ interface DashboardStateType {
     showInput: boolean;
     orientation: OrientationType;
     dimensions: [number, number];
-    isDragging: boolean;
 }
 
 export const Dashboard: React.FC<Props> = ({
@@ -61,10 +60,9 @@ export const Dashboard: React.FC<Props> = ({
         showInput: store.state.showInput,
         orientation: "portrait-primary",
         dimensions: getScreenDimensions(),
-        isDragging: progression.isDragging,
     }));
 
-    const { showInput, orientation, dimensions, isDragging } = getState();
+    const { showInput, orientation, dimensions } = getState();
     // const width = orientation.startsWith("portrait")
     //     ? windowHeight
     //     : windowWidth;
@@ -76,6 +74,7 @@ export const Dashboard: React.FC<Props> = ({
     const fretboardContainerRef = useRef<HTMLDivElement>(null);
     const scrollToFretRef = useRef(0);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const twoFingerTouchRef = useRef(false);
 
     const {
         gutterHeight,
@@ -88,13 +87,8 @@ export const Dashboard: React.FC<Props> = ({
     useEffect(() => {
         const destroyListener = store.addListener((newState) => {
             const { showInput, progression } = current(newState);
-            const { scrollToFret, isDragging } = progression;
-
-            if (
-                getState().showInput !== showInput ||
-                getState().isDragging !== isDragging
-            )
-                setState({ showInput, isDragging });
+            const { scrollToFret } = progression;
+            if (getState().showInput !== showInput) setState({ showInput });
 
             if (
                 fretboardContainerRef.current &&
@@ -194,8 +188,7 @@ export const Dashboard: React.FC<Props> = ({
 
     const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
         event.preventDefault();
-        const { progression } = current(store.state);
-        const { isDragging } = progression;
+        const { isDragging } = current(store.state);
 
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -203,8 +196,11 @@ export const Dashboard: React.FC<Props> = ({
         }
         if (isDragging) {
             store.dispatch.setIsDragging(false);
+            store.dispatch.setDragStatus(null);
             stopClick();
         }
+
+        twoFingerTouchRef.current = false;
     }, []);
 
     const onMouseDown = (
@@ -216,11 +212,21 @@ export const Dashboard: React.FC<Props> = ({
 
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
-            const { progression } = current(store.state);
-            const { isDragging } = progression;
+            const { isDragging } = store.state;
             if (!isDragging) store.dispatch.setIsDragging(true);
             timeoutRef.current = null;
         }, 100);
+
+        console.log("in here");
+
+        if (event.nativeEvent instanceof TouchEvent) {
+            // highlight note if using touch device and press with two fingers
+            console.log("in here 2", event.nativeEvent.touches.length);
+            twoFingerTouchRef.current = event.nativeEvent.touches.length > 1;
+            if (fretboardContainerRef.current)
+                fretboardContainerRef.current.style.overflowX =
+                    twoFingerTouchRef.current ? "auto" : "hidden";
+        }
     };
 
     return (
@@ -229,7 +235,6 @@ export const Dashboard: React.FC<Props> = ({
             width={`${width}px`}
             onMouseDown={onMouseDown}
             onTouchStart={onMouseDown}
-            lockScroll={isDragging}
         >
             <FlexContainerDiv
                 height={`${gutterHeight}px`}
@@ -258,7 +263,7 @@ export const Dashboard: React.FC<Props> = ({
             >
                 <CSSTransition
                     in={showInput}
-                    timeout={300}
+                    timeout={150}
                     classNames="input-grow"
                     // onEnter={() => setShowButton(false)}
                     // onExited={() => setShowButton(true)}
@@ -278,14 +283,13 @@ export const Dashboard: React.FC<Props> = ({
             >
                 <CSSTransition
                     in={showInput}
-                    timeout={300}
+                    timeout={150}
                     classNames="fretboard-shrink"
                     // onEnter={() => setShowButton(false)}
                     // onExited={() => setShowButton(true)}
                 >
                     <OverflowContainerDiv
                         height={`${maxFretboardHeight}px`}
-                        lockScroll={isDragging}
                         ref={fretboardContainerRef}
                     >
                         <div className="fretboard-container">

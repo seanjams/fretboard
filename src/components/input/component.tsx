@@ -285,7 +285,7 @@ export const ChordInput: React.FC<Props> = ({
                         width="100%"
                         justifyContent="start"
                     >
-                        <Title
+                        {/* <Title
                             marginLeft={`${SP[2]}px`}
                             width={`calc(15% - ${SP[2]}px)`}
                             flexShrink={0}
@@ -294,7 +294,8 @@ export const ChordInput: React.FC<Props> = ({
                             // marginTop={`${SP[2]}px`}
                         >
                             Root:
-                        </Title>
+                        </Title> */}
+                        SEANO
                         <FlexRow
                             marginLeft={`${SP[2]}px`}
                             marginRight={`${SP[2]}px`}

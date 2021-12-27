@@ -67,3 +67,5 @@ export type ChordTypes =
     | "Harmonic Major"
     | "Harmonic Minor"
     | "Neopolitan";
+
+export type DragStatusTypes = "on" | "off" | null;

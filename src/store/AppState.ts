@@ -4,6 +4,7 @@ import {
     DiffType,
     LabelTypes,
     StrumTypes,
+    DragStatusTypes,
 } from "../types";
 import {
     rebuildDiffs,
@@ -31,7 +32,6 @@ export interface ProgressionStateType {
     scrollToFret: number;
     label: LabelTypes;
     hiddenFretboardIndices: number[];
-    isDragging: boolean;
 }
 
 export interface AppStateType {
@@ -42,6 +42,8 @@ export interface AppStateType {
     showInput: boolean;
     currentProgressionIndex: number;
     strumMode: StrumTypes;
+    isDragging: boolean;
+    dragStatus: DragStatusTypes;
 }
 
 // Helper functions
@@ -233,11 +235,11 @@ export const reducers = {
     },
 
     setIsDragging(state: AppStateType, isDragging: boolean) {
-        let progression = current(state).progression;
-        return this.setCurrentProgression(state, {
-            ...progression,
-            isDragging,
-        });
+        return { ...state, isDragging };
+    },
+
+    setDragStatus(state: AppStateType, dragStatus: DragStatusTypes) {
+        return { ...state, dragStatus };
     },
 
     setCurrentProgression(
@@ -292,7 +294,6 @@ const progression1: ProgressionStateType = {
     scrollToFret: 0,
     label: "flat",
     hiddenFretboardIndices: [],
-    isDragging: false,
 };
 const progression2: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
@@ -300,7 +301,6 @@ const progression2: ProgressionStateType = {
     scrollToFret: 0,
     label: "flat",
     hiddenFretboardIndices: [],
-    isDragging: false,
 };
 const progression3: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
@@ -308,11 +308,12 @@ const progression3: ProgressionStateType = {
     scrollToFret: 0,
     label: "flat",
     hiddenFretboardIndices: [],
-    isDragging: false,
 };
 
 export function DEFAULT_MAIN_STATE(): AppStateType {
     return {
+        dragStatus: null,
+        isDragging: false,
         progressions: [progression1, progression2, progression3],
         invert: false,
         leftHand: false,
