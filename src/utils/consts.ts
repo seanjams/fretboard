@@ -130,7 +130,7 @@ export const STRING_SIZE = 23;
 
 export const CIRCLE_SIZE = 26;
 
-export const SAFETY_AREA_MARGIN = SP[3];
+export const SAFETY_AREA_MARGIN = SP[7];
 
 export const SLIDER_LEFT_WINDOW = 0.25;
 
@@ -210,8 +210,13 @@ export const STRUM_HIGH_TO_LOW = "strumHighToLow";
 export const ARPEGGIATE_LOW_TO_HIGH = "arpeggiateLowToHigh";
 export const ARPEGGIATE_HIGH_TO_LOW = "arpeggiateHighToLow";
 
+export const darkGrey = "#444";
+export const mediumGrey = "#888";
+export const lightGrey = "#C1BFB5";
+
 export const COLORS = [
-    ["#C1BFB5", "#B02E0C"],
+    [lightGrey, "#FF9A41"],
+    // ["#C1BFB5", "#B02E0C"],
     // ["#DBB3B1", "#6C534E"],
     // ["#F2E3BC", "#618985"],
     // ["#BBDFC5", "#14342B"],

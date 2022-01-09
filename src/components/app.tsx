@@ -7,6 +7,7 @@ import {
     AppStore,
     SliderStore,
     AudioStore,
+    useTouchStore,
 } from "../store";
 import { Dashboard } from "./dashboard";
 // import { Menu } from "./menu";
@@ -19,6 +20,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
     const store = useMemo(() => new AppStore(), []);
     const sliderStore = useMemo(() => new SliderStore(), []);
     const audioStore = useMemo(() => new AudioStore(), []);
+    const touchStore = useTouchStore();
 
     useEffect(() => {
         rehydrateState();
@@ -68,6 +70,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
                 store={store}
                 sliderStore={sliderStore}
                 audioStore={audioStore}
+                touchStore={touchStore}
             />
         </div>
     );

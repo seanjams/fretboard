@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { COLORS } from "../../utils";
+import { useStateRef } from "../../store";
+import { COLORS, darkGrey } from "../../utils";
 import { Circle } from "./style";
 
 const [secondaryColor, primaryColor] = COLORS[0];
@@ -8,22 +9,22 @@ const [secondaryColor, primaryColor] = COLORS[0];
 interface ButtonProps {
     activeColor?: string;
     backgroundColor?: string;
-    highlighted?: boolean;
-    imageSrc?: string;
     border?: string;
+    diameter?: number;
     onClick?: (event: MouseEvent | TouchEvent) => void;
 }
 
 export const CircleButton: React.FC<ButtonProps> = ({
     activeColor,
     backgroundColor,
-    border,
+    diameter,
     onClick,
     children,
 }) => {
-    const [active, setActive] = useState(false);
-    const activeRef = useRef(active);
-    activeRef.current = active;
+    const [getState, setState] = useStateRef(() => ({
+        active: false,
+    }));
+    const { active } = getState();
 
     useEffect(() => {
         window.addEventListener("mouseup", onMouseUp);
@@ -40,14 +41,14 @@ export const CircleButton: React.FC<ButtonProps> = ({
             | React.TouchEvent<HTMLDivElement>
     ) => {
         // event.preventDefault();
-        if (!activeRef.current) setActive(true);
+        if (!getState().active) setState({ active: true });
     };
 
     const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
         event.stopPropagation();
 
-        if (activeRef.current) {
-            setActive(false);
+        if (getState().active) {
+            setState({ active: false });
             if (onClick) onClick(event);
         }
     }, []);
@@ -57,43 +58,50 @@ export const CircleButton: React.FC<ButtonProps> = ({
             onTouchStart={onMouseDown}
             onMouseDown={onMouseDown}
             backgroundColor={backgroundColor}
-            border={border}
             active={active}
             activeColor={activeColor}
+            diameter={diameter}
         >
             {children}
         </Circle>
     );
 };
 
-export const HighlightButton: React.FC<ButtonProps> = ({
-    highlighted,
+export interface HighlightButtonProps {
+    onClick?: (event: MouseEvent | TouchEvent) => void;
+}
+
+export const HighlightButton: React.FC<HighlightButtonProps> = ({
     onClick,
 }) => {
     const backgroundColor = primaryColor;
     const activeColor = primaryColor;
-    const border = highlighted ? "1px solid #333" : "1px solid transparent";
 
     return (
         <CircleButton
             backgroundColor={backgroundColor}
-            border={border}
             activeColor={activeColor}
             onClick={onClick}
+            diameter={44}
         />
     );
 };
 
-export const CircleIconButton: React.FC<ButtonProps> = ({
+export interface CircleButtonProps {
+    imageSrc?: string;
+    onClick?: (event: MouseEvent | TouchEvent) => void;
+}
+
+export const CircleIconButton: React.FC<CircleButtonProps> = ({
     imageSrc,
     onClick,
 }) => {
     return (
         <CircleButton
             backgroundColor="transparent"
-            border="1px solid #000"
-            activeColor="#000"
+            activeColor={darkGrey}
             onClick={onClick}
+            diameter={44}
         >
             {imageSrc && <img src={imageSrc} width="20px" height="20px" />}
         </CircleButton>

@@ -22,12 +22,11 @@ export const Spacer = styled.div.attrs((props: CSSProps) => ({
 export const SymbolSpan = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        marginLeft: `${(props.scriptFontSize || 0) / -8}px`,
+        marginLeft: `${((props.scriptFontSize || 0) * 1.5) / -8}px`,
         marginRight: `${(props.scriptFontSize || 0) / -8}px`,
         height: `${props.scriptFontSize}px`,
     },
 }))<CSSProps>`
-    vertical-align: top;
     font-size: 75%;
     white-space: nowrap;
 `;

@@ -42,8 +42,6 @@ export interface AppStateType {
     showInput: boolean;
     currentProgressionIndex: number;
     strumMode: StrumTypes;
-    isDragging: boolean;
-    dragStatus: DragStatusTypes;
 }
 
 // Helper functions
@@ -234,14 +232,6 @@ export const reducers = {
         return { ...state, strumMode };
     },
 
-    setIsDragging(state: AppStateType, isDragging: boolean) {
-        return { ...state, isDragging };
-    },
-
-    setDragStatus(state: AppStateType, dragStatus: DragStatusTypes) {
-        return { ...state, dragStatus };
-    },
-
     setCurrentProgression(
         state: AppStateType,
         progression: ProgressionStateType
@@ -312,8 +302,6 @@ const progression3: ProgressionStateType = {
 
 export function DEFAULT_MAIN_STATE(): AppStateType {
     return {
-        dragStatus: null,
-        isDragging: false,
         progressions: [progression1, progression2, progression3],
         invert: false,
         leftHand: false,

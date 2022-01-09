@@ -1,4 +1,4 @@
-import { Howl } from "howler";
+import { Howl, Howler } from "howler";
 import { StringSwitchType } from "../types";
 import {
     STANDARD_TUNING,
@@ -8,6 +8,9 @@ import {
     HIGHLIGHTED,
 } from "../utils";
 import { Store } from "./store";
+
+import WebWorker from "../webworkers/WebWorker";
+import timerWorkerCode from "../webworkers/metronomeworker";
 
 import String_0_E from "../assets/audio/String_0_E.json";
 import String_1_A from "../assets/audio/String_1_A.json";
@@ -33,38 +36,95 @@ import SOUND_STRING_5_E_MP3 from "../assets/audio/String_5_E.mp3";
 export interface AudioStateType {
     stringSounds: Howl[];
     isLoaded: boolean;
+    isPlaying: Set<any>;
 }
 
 // Reducers
 export const audioReducers = {
-    playNote(
+    setIsPlaying(
         state: AudioStateType,
-        stringIndex: number,
-        fretIndex: number
+        value: any,
+        play: boolean
     ): AudioStateType {
+        if (play) {
+            state.isPlaying.add(value);
+        } else {
+            state.isPlaying.delete(value);
+        }
+        return state;
+    },
+    clearIsPlaying(state: AudioStateType): AudioStateType {
+        return {
+            ...state,
+            isPlaying: new Set(),
+        };
+    },
+};
+
+// Store
+export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
+    constructor() {
+        super(DEFAULT_AUDIO_STATE(), audioReducers);
+    }
+
+    timerWorker: Worker = WebWorker(timerWorkerCode);
+
+    playNote(stringIndex: number, fretIndex: number) {
+        // play sound for note at stringIndex, fretIndex
         const noteName =
             FLAT_NAMES[mod(STANDARD_TUNING[stringIndex] + fretIndex, 12)];
         const fretKey = `${stringIndex}_${fretIndex}_${noteName.replace(
             "♭",
             "b"
         )}`;
-        const stringSound = state.stringSounds[stringIndex];
+        const stringSound = this.state.stringSounds[stringIndex];
 
         if (stringSound) {
-            stringSound.stop();
-            stringSound.play(fretKey);
+            // stringSound.pause();
+            const fretName = `${stringIndex}_${fretIndex}`;
+            this.dispatch.clearIsPlaying();
+            this.dispatch.setIsPlaying(fretName, true);
+            const soundId = stringSound.play(fretKey);
+            stringSound.on(
+                "end",
+                (e) => {
+                    this.dispatch.setIsPlaying(fretName, false);
+                },
+                soundId
+            );
         }
-        return state;
-    },
+    }
 
-    strumChord(
-        state: AudioStateType,
-        fretboard: StringSwitchType
-    ): AudioStateType {
+    playNotes(sounds: [number, number][], interval: number) {
+        // start a worker to play each note at [stringIndex, fretIndex]
+        // in "sounds", every "interval" milliseconds
+        this.state.stringSounds.forEach((sound) => sound.stop());
+        this.dispatch.clearIsPlaying();
+        this.timerWorker.postMessage("stop");
+
+        if (sounds.length) {
+            // what to do when we get ticks
+            this.timerWorker.onmessage = (e) => {
+                if (e.data == "tick") {
+                    // console.log("tick!");
+                    const [stringIndex, fretIndex] = sounds[0];
+                    this.playNote(stringIndex, fretIndex);
+                    sounds.splice(0, 1);
+                    if (!sounds.length) this.timerWorker.postMessage("stop");
+                } else console.log("message: " + e.data);
+            };
+
+            // set the speed and start the ticks
+            this.timerWorker.postMessage({ interval });
+            this.timerWorker.postMessage("start");
+        }
+    }
+
+    strumChord(fretboard: StringSwitchType) {
         // figure out which notes are highlighted on each string
         // get the rightmost value
         // play chord with very small delay between notes
-        let chordSounds: [number, number][] = [];
+        let strumSounds: [number, number][] = [];
 
         for (let stringIndex in fretboard) {
             let fretIndex = -1;
@@ -73,62 +133,34 @@ export const audioReducers = {
                 let fretValue = fretString[i + STANDARD_TUNING[stringIndex]];
                 if (fretValue === HIGHLIGHTED) fretIndex = i;
             }
-            if (fretIndex >= 0) chordSounds.push([+stringIndex, fretIndex]);
+            if (fretIndex >= 0) strumSounds.push([+stringIndex, fretIndex]);
         }
 
-        if (chordSounds.length) {
-            let playCount = 0;
-            let STRUM_DELAY = 70;
-            let interval = setInterval(() => {
-                const [stringIndex, fretIndex] = chordSounds[playCount];
-                this.playNote(state, stringIndex, fretIndex);
-                playCount++;
-                if (playCount >= chordSounds.length) clearInterval(interval);
-            }, STRUM_DELAY);
-        }
+        const strumDelay = 70;
+        this.playNotes(strumSounds, strumDelay);
+    }
 
-        return state;
-    },
-
-    arpeggiateChord(
-        state: AudioStateType,
-        fretboard: StringSwitchType
-    ): AudioStateType {
+    arpeggiateChord(fretboard: StringSwitchType) {
         // figure out which notes are highlighted on each string
         // construct notes to be played forward and backwards
         // play chord with medium delay between notes
-        let arpeggioSounds: [number, number][] = [];
+        let arpeggiateSounds: [number, number][] = [];
 
         for (let stringIndex in fretboard) {
             let fretString = fretboard[stringIndex];
             for (let i = 0; i < STRING_SIZE; i++) {
                 let fretValue = fretString[i + STANDARD_TUNING[stringIndex]];
                 if (fretValue === HIGHLIGHTED)
-                    arpeggioSounds.push([+stringIndex, i]);
+                    arpeggiateSounds.push([+stringIndex, i]);
             }
         }
 
-        arpeggioSounds = arpeggioSounds.concat(
-            arpeggioSounds.slice(0, -1).reverse()
+        arpeggiateSounds = arpeggiateSounds.concat(
+            arpeggiateSounds.slice(0, -1).reverse()
         );
 
-        let playCount = 0;
-        let STRUM_DELAY = 200;
-        let interval = setInterval(() => {
-            const [stringIndex, fretIndex] = arpeggioSounds[playCount];
-            this.playNote(state, stringIndex, fretIndex);
-            playCount++;
-            if (playCount >= arpeggioSounds.length) clearInterval(interval);
-        }, STRUM_DELAY);
-
-        return state;
-    },
-};
-
-// Store
-export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
-    constructor() {
-        super(DEFAULT_AUDIO_STATE(), audioReducers);
+        const arpeggiateDelay = 250;
+        this.playNotes(arpeggiateSounds, arpeggiateDelay);
     }
 }
 
@@ -204,5 +236,6 @@ export function DEFAULT_AUDIO_STATE(): AudioStateType {
             createHowl("String_5_E"),
         ],
         isLoaded: false,
+        isPlaying: new Set(),
     };
 }

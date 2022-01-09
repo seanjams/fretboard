@@ -1,5 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
+import { darkGrey } from "../../utils";
 
 // CSS
 interface CSSProps extends CSS.Properties {
@@ -23,7 +24,6 @@ export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
 export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -36,7 +36,7 @@ export const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
         width: `calc(${props.width} - ${
             props.isFirst || props.isLast ? "10" : "0"
         }px)`,
-        borderLeft: `${props.isFirst ? "1px solid #333" : "0"}`,
+        borderLeft: `${props.isFirst ? `1px solid ${darkGrey}` : "0"}`,
         borderTopLeftRadius: `${props.isFirst ? "100000000000000px" : "0"}`,
         borderBottomLeftRadius: `${props.isFirst ? "100000000000000px" : "0"}`,
         borderTopRightRadius: `${props.isLast ? "100000000000000px" : "0"}`,
@@ -47,8 +47,8 @@ export const ProgressBarFragment = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     height: 10px;
     background-color: white;
-    border: 1px solid #333;
-    color: #333;
+    border: 1px solid ${darkGrey};
+    color: ${darkGrey};
     touch-action: none;
     margin: 10px 0;
 `;
@@ -64,7 +64,7 @@ export const SliderBar = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #333;
+    color: ${darkGrey};
     opacity: 0.5;
     touch-action: none;
     border-radius: 100000000000000px;
@@ -98,7 +98,7 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .slider-grow-enter-active {
         height: ${(props) => props.maxSliderSize}px;
         width: ${(props) => props.maxSliderSize}px;
-        transition: height 150ms ease, width 150ms ease;
+        transition: all 150ms ease;
     }
     .slider-grow-enter-done {
         height: ${(props) => props.maxSliderSize}px;
@@ -111,6 +111,6 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .slider-grow-exit-active {
         height: ${(props) => props.minSliderSize}px;
         width: ${(props) => props.minSliderSize}px;
-        transition: height 150ms ease, width 150ms ease;
+        transition: all 150ms ease;
     }
 `;

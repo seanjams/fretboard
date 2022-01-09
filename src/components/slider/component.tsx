@@ -223,9 +223,9 @@ export const Slider: React.FC<SliderProps> = ({
             store.dispatch.setFocusedIndex(newFocusedIndex || 0);
             const { fretboard, strumMode } = current(store.state);
             if (strumMode === STRUM_LOW_TO_HIGH)
-                audioStore.dispatch.strumChord(fretboard);
+                audioStore.strumChord(fretboard);
             else {
-                audioStore.dispatch.arpeggiateChord(fretboard);
+                audioStore.arpeggiateChord(fretboard);
             }
         }
 
@@ -396,7 +396,7 @@ export const Slider: React.FC<SliderProps> = ({
                     onClick={onSliderClick}
                     onTouchStart={onSliderClick}
                 >
-                    <AnimationWrapper minSliderSize={30} maxSliderSize={36}>
+                    <AnimationWrapper minSliderSize={44} maxSliderSize={50}>
                         <CSSTransition
                             in={dragging}
                             timeout={300}

@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { SP } from "../../utils";
+import { CIRCLE_SIZE, SP, darkGrey, lightGrey } from "../../utils";
 
 // CSS
 interface CSSProps extends CSS.Properties {
@@ -11,8 +11,6 @@ interface CSSProps extends CSS.Properties {
 export const FretDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        borderLeft: props.fretBorder,
-        borderRight: props.fretBorder,
     },
 }))<CSSProps>`
     display: flex;
@@ -29,14 +27,13 @@ export const FretDiv = styled.div.attrs((props: CSSProps) => ({
 export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        color: props.color,
     },
 }))<CSSProps>`
-    margin-left: -13px;
-    margin-right: -13px;
-    border: 1px solid #333;
+    margin-left: -${CIRCLE_SIZE / 2}px;
+    margin-right: -${CIRCLE_SIZE / 2}px;
+    border: 1px solid ${lightGrey};
     box-sizing: border-box;
-    color: #333;
+    color: ${lightGrey};
     display: flex;
     justify-content: center;
     align-items: center;
@@ -45,15 +42,12 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     border-radius: 100%;
     background-color: transparent;
     z-index: 9999;
+    touch-action: none;
 `;
 
 export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        left: props.left,
-        top: props.top,
-        width: props.width,
-        backgroundColor: props.backgroundColor,
     },
 }))<CSSProps>`
     margin-left: -13px;
@@ -68,8 +62,6 @@ export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
 export const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        height: props.height,
-        backgroundColor: props.backgroundColor,
     },
 }))<CSSProps>`
     width: calc(50% - 13px);

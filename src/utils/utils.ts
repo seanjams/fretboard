@@ -530,7 +530,7 @@ export const getScreenDimensions = (): [number, number] => {
         width = window.innerWidth;
         height = window.innerHeight;
     }
-    return [width, height];
+    return [width, Math.min(height, 600)];
 };
 
 export const getFretboardDimensions = () => {
@@ -555,15 +555,12 @@ export const getFretboardDimensions = () => {
     // -------------------------------
 
     const height = getScreenDimensions()[1];
-    const gutterHeight = height * 0.15 - SAFETY_AREA_MARGIN;
+    const gutterHeight = height * 0.2 - SAFETY_AREA_MARGIN;
 
-    // input open
-    const maxInputHeight = height * 0.2;
-    const maxFretboardHeight = height * 0.65 - 2 * FRETBOARD_MARGIN;
-
-    // input closed
+    const maxInputHeight = height * 0.15;
     const minInputHeight = height * 0;
-    const minFretboardHeight = height * 0.7 - 2 * FRETBOARD_MARGIN;
+    const minFretboardHeight = height * 0.45 - 2 * FRETBOARD_MARGIN;
+    const maxFretboardHeight = height * 0.6 - 2 * FRETBOARD_MARGIN;
 
     return {
         gutterHeight,

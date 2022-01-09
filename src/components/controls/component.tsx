@@ -61,9 +61,9 @@ export const PositionControls: React.FC<PositionControlProps> = ({
         if (playSound) {
             const { fretboard } = current(store.state);
             if (strumMode === STRUM_LOW_TO_HIGH)
-                audioStore.dispatch.strumChord(fretboard);
+                audioStore.strumChord(fretboard);
             else {
-                audioStore.dispatch.arpeggiateChord(fretboard);
+                audioStore.arpeggiateChord(fretboard);
             }
         }
     };
@@ -160,10 +160,7 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
                 <Label>{"clear highlight"}</Label>
             </div>
             <div>
-                <HighlightButton
-                    highlighted={status === HIGHLIGHTED}
-                    onClick={onStatusChange}
-                />
+                <HighlightButton onClick={onStatusChange} />
                 <Label>
                     {status === HIGHLIGHTED && BRUSH_MODES[HIGHLIGHTED]}
                 </Label>

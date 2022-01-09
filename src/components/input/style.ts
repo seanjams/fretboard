@@ -4,30 +4,45 @@ import { SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
+    maxInputHeight?: number;
+    minInputHeight?: number;
 }
 
-export const AnimationWrapper = styled.div`
+export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
     .input-form {
         opacity: 0;
+        height: 100%;
+        width: 100%;
+        max-height: ${(props) => props.minInputHeight}px;
     }
 
-    .input-fade-enter {
+    .input-grow-enter {
         opacity: 0;
+        max-height: ${(props) => props.minInputHeight}px;
     }
-    .input-fade-enter-active {
+    .input-grow-enter-active {
         opacity: 1;
-        transition: opacity 150ms ease;
-        transition-delay: 150ms;
+        max-height: ${(props) => props.maxInputHeight}px;
+        transition: max-height 150ms, opacity 150ms ease;
     }
-    .input-fade-enter-done {
+    .input-grow-enter-done {
         opacity: 1;
+        max-height: ${(props) => props.maxInputHeight}px;
     }
-    .input-fade-exit {
+    .input-grow-exit {
         opacity: 1;
+        max-height: ${(props) => props.maxInputHeight}px;
     }
-    .input-fade-exit-active {
+    .input-grow-exit-active {
         opacity: 0;
-        transition: opacity 150ms ease;
+        max-height: ${(props) => props.minInputHeight}px;
+        transition: max-height 150ms, opacity 150ms ease;
+    }
+    .input-grow-exit-done {
+        opacity: 0;
+        max-height: ${(props) => props.minInputHeight}px;
     }
 `;
 
@@ -38,6 +53,7 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     flex-direction: column;
     align-items: start;
     width: 100%;
+    height: 100%;
 `;
 
 export const FlexRow = styled.div.attrs((props: CSSProps) => ({

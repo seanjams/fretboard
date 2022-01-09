@@ -27,6 +27,7 @@ import {
     majorChord,
     SP,
     getScrollToFret,
+    getFretboardDimensions,
 } from "../../utils";
 import {
     AnimationWrapper,
@@ -222,7 +223,7 @@ export const ChordInput: React.FC<Props> = ({
                 });
                 sliderStore.dispatch.setProgress(currentFocusedIndex + 0.5);
                 const { fretboard } = current(store.state);
-                audioStore.dispatch.strumChord(fretboard);
+                audioStore.strumChord(fretboard);
             }
         };
         requestAnimationFrame(performAnimation);
@@ -265,12 +266,17 @@ export const ChordInput: React.FC<Props> = ({
         // if (store.state.showInput) store.dispatch.setShowInput(false);
     };
 
+    const { maxInputHeight, minInputHeight } = getFretboardDimensions();
+
     return (
-        <AnimationWrapper>
+        <AnimationWrapper
+            minInputHeight={minInputHeight}
+            maxInputHeight={maxInputHeight}
+        >
             <CSSTransition
                 in={showInput}
-                timeout={300}
-                classNames="input-fade"
+                timeout={{ enter: 150, exit: 150 }}
+                classNames="input-grow"
                 // onEnter={() => setShowButton(false)}
                 // onExited={() => setShowButton(true)}
             >
@@ -278,6 +284,7 @@ export const ChordInput: React.FC<Props> = ({
                     onClick={onClick}
                     onTouchStart={onClick}
                     className="input-form"
+                    height={`${maxInputHeight}px`}
                 >
                     <FlexRow
                         // onClick={preventDefault}
@@ -285,7 +292,7 @@ export const ChordInput: React.FC<Props> = ({
                         width="100%"
                         justifyContent="start"
                     >
-                        {/* <Title
+                        <Title
                             marginLeft={`${SP[2]}px`}
                             width={`calc(15% - ${SP[2]}px)`}
                             flexShrink={0}
@@ -294,8 +301,7 @@ export const ChordInput: React.FC<Props> = ({
                             // marginTop={`${SP[2]}px`}
                         >
                             Root:
-                        </Title> */}
-                        SEANO
+                        </Title>
                         <FlexRow
                             marginLeft={`${SP[2]}px`}
                             marginRight={`${SP[2]}px`}

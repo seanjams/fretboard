@@ -24,5 +24,5 @@ function init() {
 }
 
 // comment out for mobile builds
-// document.addEventListener("DsOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", init);
 document.addEventListener("deviceready", init);

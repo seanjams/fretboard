@@ -11,7 +11,7 @@
     ],
     "scripts": {
         "build": "yarn run clean && webpack --mode=production --progress --display-modules",
-        "watch": "yarn run clean && webpack --mode=development --progress --display-modules --watch",
+        "watch": "webpack --mode=development --progress --display-modules --watch",
         "serve": "webpack-dev-server --mode=development --progress --open",
         "deps": "rm -rf node_modules && yarn install",
         "clean": "rm -f www/bundle.js && rm -rf www/assets",
