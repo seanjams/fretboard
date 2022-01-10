@@ -266,14 +266,12 @@ export const ChordInput: React.FC<Props> = ({
         // if (store.state.showInput) store.dispatch.setShowInput(false);
     };
 
-    const { maxInputHeight, minInputHeight, maxFretboardHeight } =
-        getFretboardDimensions();
+    const { maxInputHeight, minInputHeight } = getFretboardDimensions();
 
     return (
         <AnimationWrapper
             minInputHeight={minInputHeight}
             maxInputHeight={maxInputHeight}
-            maxFretboardHeight={maxFretboardHeight}
         >
             <CSSTransition
                 in={showInput}

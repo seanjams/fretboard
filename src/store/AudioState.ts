@@ -32,11 +32,14 @@ import SOUND_STRING_4_B_MP3 from "../assets/audio/String_4_B.mp3";
 import SOUND_STRING_5_E_OGG from "../assets/audio/String_5_E.ogg";
 import SOUND_STRING_5_E_MP3 from "../assets/audio/String_5_E.mp3";
 
+const VOLUME = 0.1;
+
 // Types
 export interface AudioStateType {
     stringSounds: Howl[];
     isLoaded: boolean;
     isPlaying: Set<any>;
+    isMuted: boolean;
 }
 
 // Reducers
@@ -58,6 +61,14 @@ export const audioReducers = {
             ...state,
             isPlaying: new Set(),
         };
+    },
+    toggleMute(state: AudioStateType) {
+        const isMuted = !state.isMuted;
+        console.log(isMuted);
+        for (let sound of state.stringSounds) {
+            sound.volume(isMuted ? 0 : VOLUME);
+        }
+        return { ...state, isMuted };
     },
 };
 
@@ -167,14 +178,6 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
 // Default State
 
 export function DEFAULT_AUDIO_STATE(): AudioStateType {
-    // const names = [];
-    // for (let stringIndex = 0; stringIndex < 6; stringIndex++) {
-    //     for (let i = 0; i < STRING_SIZE; i++) {
-    //         const name = FLAT_NAMES[mod(i + STANDARD_TUNING[stringIndex], 12)];
-    //         names.push(`${stringIndex}_${i}_${name}.ogg`);
-    //     }
-    // }
-
     const stringJson = {
         String_0_E,
         String_1_A,
@@ -205,7 +208,7 @@ export function DEFAULT_AUDIO_STATE(): AudioStateType {
             src: urls,
             autoplay: false,
             loop: false,
-            volume: 0.1,
+            volume: VOLUME,
             preload: true,
             sprite: sprite,
             // onplay: function () {
@@ -237,5 +240,6 @@ export function DEFAULT_AUDIO_STATE(): AudioStateType {
         ],
         isLoaded: false,
         isPlaying: new Set(),
+        isMuted: false,
     };
 }

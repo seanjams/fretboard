@@ -45,24 +45,40 @@ export const Fretboard: React.FC<Props> = ({
     const [getState, setState] = useStateRef(() => ({
         highEBottom: store.state.invert !== store.state.leftHand,
         showInput: store.state.showInput,
+        showSettings: store.state.showSettings,
+        transformOrigin: "bottom",
     }));
-    const { highEBottom, showInput } = getState();
+    const { highEBottom, showInput, showSettings, transformOrigin } =
+        getState();
 
     const fretboardContainerRef = useRef<HTMLDivElement>(null);
     const scrollToFretRef = useRef(0);
 
     useEffect(() => {
         const destroyListener = store.addListener((newState) => {
-            const { showInput, progression, invert, leftHand } =
+            const { showInput, progression, invert, leftHand, showSettings } =
                 current(newState);
             const { scrollToFret } = progression;
             const highEBottom = invert !== leftHand;
 
             if (
                 getState().highEBottom !== highEBottom ||
-                getState().showInput !== showInput
-            )
-                setState({ highEBottom, showInput });
+                getState().showInput !== showInput ||
+                getState().showSettings !== showSettings
+            ) {
+                let transformOrigin =
+                    showInput && !getState().showInput
+                        ? "bottom"
+                        : showSettings && !getState().showSettings
+                        ? "top"
+                        : getState().transformOrigin;
+                setState({
+                    highEBottom,
+                    showInput,
+                    showSettings,
+                    transformOrigin,
+                });
+            }
 
             if (
                 fretboardContainerRef.current &&
@@ -163,9 +179,10 @@ export const Fretboard: React.FC<Props> = ({
             maxFretboardHeight={maxFretboardHeight}
             minFretboardHeight={minFretboardHeight}
             maxInputHeight={maxInputHeight}
+            transformOrigin={transformOrigin}
         >
             <CSSTransition
-                in={showInput}
+                in={showInput || showSettings}
                 timeout={{ enter: 150, exit: 300 }}
                 classNames="fretboard-shrink"
                 // onEnter={() => console.log("ENTER")}

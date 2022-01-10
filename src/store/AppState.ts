@@ -40,6 +40,7 @@ export interface AppStateType {
     leftHand?: boolean;
     status: StatusTypes;
     showInput: boolean;
+    showSettings: boolean;
     currentProgressionIndex: number;
     strumMode: StrumTypes;
 }
@@ -221,7 +222,13 @@ export const reducers = {
     },
 
     setShowInput(state: AppStateType, showInput: boolean) {
-        return { ...state, showInput };
+        const showSettings = showInput ? false : state.showSettings;
+        return { ...state, showSettings, showInput };
+    },
+
+    setShowSettings(state: AppStateType, showSettings: boolean) {
+        const showInput = showSettings ? false : state.showInput;
+        return { ...state, showSettings, showInput };
     },
 
     setStatus(state: AppStateType, status: StatusTypes) {
@@ -230,6 +237,16 @@ export const reducers = {
 
     setStrumMode(state: AppStateType, strumMode: StrumTypes) {
         return { ...state, strumMode };
+    },
+
+    toggleLeftHand(state: AppStateType) {
+        const leftHand = !state.leftHand;
+        return { ...state, leftHand };
+    },
+
+    toggleInvert(state: AppStateType) {
+        const invert = !state.invert;
+        return { ...state, invert };
     },
 
     setCurrentProgression(
@@ -307,6 +324,7 @@ export function DEFAULT_MAIN_STATE(): AppStateType {
         leftHand: false,
         status: 1,
         showInput: false,
+        showSettings: false,
         currentProgressionIndex: 0,
         strumMode: STRUM_LOW_TO_HIGH,
     };

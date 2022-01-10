@@ -61,6 +61,7 @@ export const CircleButton: React.FC<ButtonProps> = ({
             active={active}
             activeColor={activeColor}
             diameter={diameter}
+            className="circle-button"
         >
             {children}
         </Circle>

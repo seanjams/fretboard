@@ -6,6 +6,7 @@ interface CSSProps extends CSS.Properties {
     maxFretboardHeight?: number;
     minFretboardHeight?: number;
     maxInputHeight?: number;
+    transformOrigin?: string;
 }
 
 const getOverFlowScale = (
@@ -41,7 +42,7 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .fretboard-shrink-enter {
         width: 100%;
         transform: scale(1);
-        transform-origin: bottom left;
+        transform-origin: ${(props) => props.transformOrigin} left;
     }
     .fretboard-shrink-enter-active {
         width: ${(props) =>
@@ -56,7 +57,7 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
                     props.maxFretboardHeight
                 )[1]}
         );
-        transform-origin: bottom left;
+        transform-origin: ${(props) => props.transformOrigin} left;
         transition: all 150ms;
     }
     .fretboard-shrink-enter-done {
@@ -72,7 +73,7 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
                     props.maxFretboardHeight
                 )[1]}
         );
-        transform-origin: bottom left;
+        transform-origin: ${(props) => props.transformOrigin} left;
     }
     .fretboard-shrink-exit {
         width: ${(props) =>
@@ -87,19 +88,19 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
                     props.maxFretboardHeight
                 )[1]}
         );
-        transform-origin: bottom left;
+        transform-origin: ${(props) => props.transformOrigin} left;
     }
     .fretboard-shrink-exit-active {
         width: 100%;
         transform: scale(1);
-        transform-origin: bottom left;
+        transform-origin: ${(props) => props.transformOrigin} left;
         transition: all 150ms;
         transition-delay: 150ms;
     }
     .fretboard-shrink-exit-done {
         width: 100%;
         transform: scale(1);
-        transform-origin: bottom left;
+        transform-origin: ${(props) => props.transformOrigin} left;
     }
 `;
 

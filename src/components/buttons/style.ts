@@ -18,7 +18,6 @@ export const Circle = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     width: ${(props) => props.diameter || 0}px;
     height: ${(props) => props.diameter || 0}px;
-    border-radius: 100%;
     text-align: center;
     line-height: 0;
     display: flex;

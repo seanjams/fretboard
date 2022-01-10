@@ -6,7 +6,6 @@ interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
     maxInputHeight?: number;
     minInputHeight?: number;
-    maxFretboardHeight?: number;
 }
 
 export const getOverflowMargin = (height: number | undefined) => {

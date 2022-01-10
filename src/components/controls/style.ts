@@ -10,7 +10,27 @@ export const CircleControlsContainer = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     align-items: center;
     justify-content: start;
-    width: 100%;
+
+    .circle-button-container {
+        .circle-button {
+            margin-left: -1px;
+        }
+    }
+
+    .circle-button-container:first-child {
+        .circle-button {
+            border-top-left-radius: 100%;
+            border-bottom-left-radius: 100%;
+            margin-left: 0;
+        }
+    }
+
+    .circle-button-container:last-child {
+        .circle-button {
+            border-top-right-radius: 100%;
+            border-bottom-right-radius: 100%;
+        }
+    }
 `;
 
 export const Label = styled.div.attrs((props: CSSProps) => ({

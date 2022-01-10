@@ -530,7 +530,7 @@ export const getScreenDimensions = (): [number, number] => {
         width = window.innerWidth;
         height = window.innerHeight;
     }
-    return [width, Math.min(height, 600)];
+    return [width, Math.min(height, 420)];
 };
 
 export const getFretboardDimensions = () => {

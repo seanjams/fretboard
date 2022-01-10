@@ -18,6 +18,7 @@ import {
     SliderControls,
 } from "../controls";
 import { ChordInput } from "../input";
+import { FretboardSettings } from "../FretboardSettings";
 // import { Menu } from "../menu";
 import { Slider } from "../slider";
 import { Title } from "../title";
@@ -108,6 +109,11 @@ export const Dashboard: React.FC<Props> = ({
                     sliderStore={sliderStore}
                     audioStore={audioStore}
                     touchStore={touchStore}
+                />
+                <FretboardSettings
+                    store={store}
+                    sliderStore={sliderStore}
+                    audioStore={audioStore}
                 />
             </DashboardContainerDiv>
             <FlexContainerDiv
