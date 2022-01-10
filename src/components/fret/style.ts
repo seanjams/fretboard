@@ -50,10 +50,10 @@ export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
         ...props,
     },
 }))<CSSProps>`
-    margin-left: -13px;
-    margin-right: -13px;
-    width: 26px;
-    height: 26px;
+    margin-left: -${CIRCLE_SIZE / 2}px;
+    margin-right: -${CIRCLE_SIZE / 2}px;
+    width: ${CIRCLE_SIZE}px;
+    height: ${CIRCLE_SIZE}px;
     border-radius: 100%;
     z-index: 9998;
     position: absolute;
@@ -64,7 +64,7 @@ export const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
         ...props,
     },
 }))<CSSProps>`
-    width: calc(50% - 13px);
+    width: calc(50% - ${CIRCLE_SIZE / 2}px);
     margin: auto 0;
 `;
 

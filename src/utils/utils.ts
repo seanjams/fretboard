@@ -554,13 +554,19 @@ export const getFretboardDimensions = () => {
     // Safety Area
     // -------------------------------
 
-    const height = getScreenDimensions()[1];
-    const gutterHeight = height * 0.2 - SAFETY_AREA_MARGIN;
+    const GUTTER_PERCENTAGE = 0.22;
+    const MAIN_PERCENTAGE = 1 - 2 * GUTTER_PERCENTAGE;
+    const INPUT_PERCENTAGE = 0.18;
+    const FRETBOARD_PERCENTAGE = MAIN_PERCENTAGE - INPUT_PERCENTAGE;
 
-    const maxInputHeight = height * 0.15;
+    const height = getScreenDimensions()[1];
+    const gutterHeight = height * GUTTER_PERCENTAGE - SAFETY_AREA_MARGIN;
+
+    const maxInputHeight = height * INPUT_PERCENTAGE;
     const minInputHeight = height * 0;
-    const minFretboardHeight = height * 0.45 - 2 * FRETBOARD_MARGIN;
-    const maxFretboardHeight = height * 0.6 - 2 * FRETBOARD_MARGIN;
+    const minFretboardHeight =
+        height * FRETBOARD_PERCENTAGE - 2 * FRETBOARD_MARGIN;
+    const maxFretboardHeight = height * MAIN_PERCENTAGE - 2 * FRETBOARD_MARGIN;
 
     return {
         gutterHeight,

@@ -155,16 +155,18 @@ export const Fretboard: React.FC<Props> = ({
         />
     ));
 
-    const { maxFretboardHeight, minFretboardHeight } = getFretboardDimensions();
+    const { maxFretboardHeight, minFretboardHeight, maxInputHeight } =
+        getFretboardDimensions();
 
     return (
         <AnimationWrapper
             maxFretboardHeight={maxFretboardHeight}
             minFretboardHeight={minFretboardHeight}
+            maxInputHeight={maxInputHeight}
         >
             <CSSTransition
                 in={showInput}
-                timeout={{ enter: 150, exit: 150 }}
+                timeout={{ enter: 150, exit: 300 }}
                 classNames="fretboard-shrink"
                 // onEnter={() => console.log("ENTER")}
                 // onEntered={() => console.log("ENTERED")}
@@ -172,8 +174,8 @@ export const Fretboard: React.FC<Props> = ({
                 // onExited={() => console.log("EXITED")}
             >
                 <OverflowContainerDiv
-                    height={`${maxFretboardHeight}px`}
                     ref={fretboardContainerRef}
+                    className="overflow-container"
                 >
                     <FretboardContainer
                         width={`${FRETBOARD_WIDTH}px`}

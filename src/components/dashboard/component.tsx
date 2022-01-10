@@ -75,31 +75,29 @@ export const Dashboard: React.FC<Props> = ({
 
     return (
         <ContainerDiv>
+            <FlexContainerDiv
+                height={`${gutterHeight}px`}
+                marginTop={`${SAFETY_AREA_MARGIN}px`}
+                marginBottom={0}
+                verticalAlign="top"
+            >
+                <FlexRow alignItems="end" padding={`0 ${SAFETY_AREA_MARGIN}px`}>
+                    <div style={{ flex: 1 }}>
+                        <Title store={store} />
+                    </div>
+                    <div style={{ flex: 2 }}>
+                        <Slider
+                            store={store}
+                            sliderStore={sliderStore}
+                            audioStore={audioStore}
+                        />
+                    </div>
+                    <div style={{ flexShrink: 1 }}>
+                        <SliderControls store={store} />
+                    </div>
+                </FlexRow>
+            </FlexContainerDiv>
             <DashboardContainerDiv height={`${height}px`} width={`${width}px`}>
-                <FlexContainerDiv
-                    height={`${gutterHeight}px`}
-                    marginTop={`${SAFETY_AREA_MARGIN}px`}
-                    marginBottom={0}
-                >
-                    <FlexRow
-                        alignItems="end"
-                        padding={`0 ${SAFETY_AREA_MARGIN}px`}
-                    >
-                        <div style={{ flex: 1 }}>
-                            <Title store={store} />
-                        </div>
-                        <div style={{ flex: 2 }}>
-                            <Slider
-                                store={store}
-                                sliderStore={sliderStore}
-                                audioStore={audioStore}
-                            />
-                        </div>
-                        <div style={{ flexShrink: 1 }}>
-                            <SliderControls store={store} />
-                        </div>
-                    </FlexRow>
-                </FlexContainerDiv>
                 <ChordInput
                     store={store}
                     sliderStore={sliderStore}
@@ -111,27 +109,28 @@ export const Dashboard: React.FC<Props> = ({
                     audioStore={audioStore}
                     touchStore={touchStore}
                 />
-                <FlexContainerDiv
-                    height={`${gutterHeight}px`}
-                    marginTop="0px"
-                    marginBottom={`${SAFETY_AREA_MARGIN}px`}
-                >
-                    <FlexRow
-                        alignItems="start"
-                        padding={`0 ${SAFETY_AREA_MARGIN}px`}
-                    >
-                        <div style={{ flexGrow: 1 }}>
-                            <HighlightControls store={store} />
-                        </div>
-                        <div style={{ flexShrink: 1 }}>
-                            <PositionControls
-                                store={store}
-                                audioStore={audioStore}
-                            />
-                        </div>
-                    </FlexRow>
-                </FlexContainerDiv>
             </DashboardContainerDiv>
+            <FlexContainerDiv
+                height={`${gutterHeight}px`}
+                marginTop="0px"
+                marginBottom={`${SAFETY_AREA_MARGIN}px`}
+                verticalAlign="bottom"
+            >
+                <FlexRow
+                    alignItems="start"
+                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
+                >
+                    <div style={{ flexGrow: 1 }}>
+                        <HighlightControls store={store} />
+                    </div>
+                    <div style={{ flexShrink: 1 }}>
+                        <PositionControls
+                            store={store}
+                            audioStore={audioStore}
+                        />
+                    </div>
+                </FlexRow>
+            </FlexContainerDiv>
         </ContainerDiv>
     );
 };

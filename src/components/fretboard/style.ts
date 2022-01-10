@@ -5,36 +5,101 @@ import { FRETBOARD_MARGIN } from "../../utils";
 interface CSSProps extends CSS.Properties {
     maxFretboardHeight?: number;
     minFretboardHeight?: number;
+    maxInputHeight?: number;
 }
 
+const getOverFlowScale = (
+    maxInputHeight: number | undefined,
+    maxFretboardHeight: number | undefined
+) => {
+    const scale = 1 - (maxInputHeight || 0) / (maxFretboardHeight || 0);
+    const width = 100 / scale;
+
+    return [width, scale];
+};
+
 export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
+    style: {
+        ...props,
+    },
 }))<CSSProps>`
-    .fretboard-container {
+    // overflow: auto;
+
+    .overflow-container {
+        height: ${(props) => props.maxFretboardHeight}px;
         max-height: ${(props) => props.maxFretboardHeight}px;
-        height: 100%;
-        width: 100%;
+        margin-top: ${FRETBOARD_MARGIN}px;
+        margin-bottom: ${FRETBOARD_MARGIN}px;
+    }
+
+    .fretboard-container {
+        // max-height: ${(props) => props.maxFretboardHeight}px;
+        // height: 100%;
+        // width: 100%;
     }
 
     .fretboard-shrink-enter {
-        max-height: ${(props) => props.maxFretboardHeight}px;
+        width: 100%;
+        transform: scale(1);
+        transform-origin: bottom left;
     }
     .fretboard-shrink-enter-active {
-        max-height: ${(props) => props.minFretboardHeight}px;
+        width: ${(props) =>
+            getOverFlowScale(
+                props.maxInputHeight,
+                props.maxFretboardHeight
+            )[0]}%;
+        transform: scale(
+            ${(props) =>
+                getOverFlowScale(
+                    props.maxInputHeight,
+                    props.maxFretboardHeight
+                )[1]}
+        );
+        transform-origin: bottom left;
         transition: all 150ms;
     }
     .fretboard-shrink-enter-done {
-        max-height: ${(props) => props.minFretboardHeight}px;
+        width: ${(props) =>
+            getOverFlowScale(
+                props.maxInputHeight,
+                props.maxFretboardHeight
+            )[0]}%;
+        transform: scale(
+            ${(props) =>
+                getOverFlowScale(
+                    props.maxInputHeight,
+                    props.maxFretboardHeight
+                )[1]}
+        );
+        transform-origin: bottom left;
     }
     .fretboard-shrink-exit {
-        max-height: ${(props) => props.minFretboardHeight}px;
+        width: ${(props) =>
+            getOverFlowScale(
+                props.maxInputHeight,
+                props.maxFretboardHeight
+            )[0]}%;
+        transform: scale(
+            ${(props) =>
+                getOverFlowScale(
+                    props.maxInputHeight,
+                    props.maxFretboardHeight
+                )[1]}
+        );
+        transform-origin: bottom left;
     }
     .fretboard-shrink-exit-active {
-        max-height: ${(props) => props.maxFretboardHeight}px;
+        width: 100%;
+        transform: scale(1);
+        transform-origin: bottom left;
         transition: all 150ms;
+        transition-delay: 150ms;
     }
     .fretboard-shrink-exit-done {
-        max-height: ${(props) => props.maxFretboardHeight}px;
+        width: 100%;
+        transform: scale(1);
+        transform-origin: bottom left;
     }
 `;
 

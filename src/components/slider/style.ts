@@ -98,7 +98,7 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .slider-grow-enter-active {
         height: ${(props) => props.maxSliderSize}px;
         width: ${(props) => props.maxSliderSize}px;
-        transition: all 150ms ease;
+        transition: all 150ms ease-in-out;
     }
     .slider-grow-enter-done {
         height: ${(props) => props.maxSliderSize}px;
@@ -111,6 +111,6 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .slider-grow-exit-active {
         height: ${(props) => props.minSliderSize}px;
         width: ${(props) => props.minSliderSize}px;
-        transition: all 150ms ease;
+        transition: all 150ms ease-in-out;
     }
 `;
