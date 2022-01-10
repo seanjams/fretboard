@@ -14,10 +14,10 @@ import {
     useStateRef,
     AppStore,
     SliderStore,
-    current,
+    getComputedAppState,
     AudioStore,
 } from "../../store";
-import { ChordSymbol } from "../symbol";
+import { ChordSymbol } from "../ChordSymbol";
 import {
     AnimationWrapper,
     ContainerDiv,
@@ -29,23 +29,23 @@ import {
 import { isEqual } from "lodash";
 
 interface SliderProps {
-    store: AppStore;
+    appStore: AppStore;
     sliderStore: SliderStore;
     audioStore: AudioStore;
 }
 
 export const Slider: React.FC<SliderProps> = ({
-    store,
+    appStore,
     sliderStore,
     audioStore,
 }) => {
     // state
-    const { progression } = current(store.state);
+    const { progression } = appStore.getComputedState();
     const [getState, setState] = useStateRef(() => ({
         label: progression.label,
         hiddenFretboardIndices: progression.hiddenFretboardIndices,
         rehydrateSuccess: sliderStore.state.rehydrateSuccess,
-        currentProgressionIndex: store.state.currentProgressionIndex,
+        currentProgressionIndex: appStore.state.currentProgressionIndex,
         visibleFretboards: getVisibleFretboards(
             progression.fretboards,
             progression.hiddenFretboardIndices
@@ -78,8 +78,9 @@ export const Slider: React.FC<SliderProps> = ({
             }
         );
 
-        const destroyListener = store.addListener((newData) => {
-            const { currentProgressionIndex, progression } = current(newData);
+        const destroyListener = appStore.addListener((newState) => {
+            const { currentProgressionIndex, progression } =
+                getComputedAppState(newState);
             const { label, fretboards, hiddenFretboardIndices } = progression;
             const visibleFretboards = getVisibleFretboards(
                 fretboards,
@@ -134,10 +135,8 @@ export const Slider: React.FC<SliderProps> = ({
 
     // useEffect(() => {
     //     // set default position to be halfway through the fragment of the current focusedIndex
-    //     if (sliderBarRef.current && progressBarRef.current) {
-    //         const { focusedIndex, fretboards } = current(
-    //             store.state
-    //         ).progression;
+    // if (sliderBarRef.current && progressBarRef.current) {
+    //     const { focusedIndex, fretboards } = appStore.getComputedState().progression;
 
     //         // dont update if in middle of animation
     //         const { visibleFretboards, hiddenFretboardIndices } = getState();
@@ -188,7 +187,7 @@ export const Slider: React.FC<SliderProps> = ({
         // get widths, maxwidth is how far the left of the slider can move
         // aka full bar - width of slider
         const { visibleFretboards, dragging } = getState();
-        const { focusedIndex } = current(store.state).progression;
+        const { focusedIndex } = appStore.getComputedState().progression;
         const origin = progressBarRef.current.offsetLeft;
         const progressBarWidth = progressBarRef.current.offsetWidth;
         const sliderBarWidth = sliderBarRef.current.offsetWidth;
@@ -220,8 +219,8 @@ export const Slider: React.FC<SliderProps> = ({
         );
 
         if (newFocusedIndex !== focusedIndex) {
-            store.dispatch.setFocusedIndex(newFocusedIndex || 0);
-            const { fretboard, strumMode } = current(store.state);
+            appStore.dispatch.setFocusedIndex(newFocusedIndex || 0);
+            const { fretboard, strumMode } = appStore.getComputedState();
             if (strumMode === STRUM_LOW_TO_HIGH)
                 audioStore.strumChord(fretboard);
             else {
@@ -241,7 +240,7 @@ export const Slider: React.FC<SliderProps> = ({
         // cancel past animation if pressed quickly
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
-        const { progression } = current(store.state);
+        const { progression } = appStore.getComputedState();
         const { focusedIndex, fretboards, hiddenFretboardIndices } =
             progression;
         const visibleFretboards = getVisibleFretboards(

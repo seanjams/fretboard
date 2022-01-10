@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
 import { CSSTransition } from "react-transition-group";
 import { AppStore, AudioStore, SliderStore, useStateRef } from "../../store";
-import { FretboardSettingsControls } from "../controls";
+import { FretboardSettingsControls } from "../Controls";
 import { getFretboardDimensions } from "../../utils";
 import { ContainerDiv, AnimationWrapper } from "./style";
 
 // Component
 interface Props {
-    store: AppStore;
+    appStore: AppStore;
     sliderStore: SliderStore;
     audioStore: AudioStore;
 }
@@ -15,16 +15,16 @@ interface Props {
 export const FretboardSettings: React.FC<Props> = ({
     audioStore,
     sliderStore,
-    store,
+    appStore,
 }) => {
     const [getState, setState] = useStateRef(() => ({
         // custom state for component
-        showSettings: store.state.showSettings,
+        showSettings: appStore.state.showSettings,
     }));
     const { showSettings } = getState();
 
     useEffect(() => {
-        return store.addListener(({ showSettings }) => {
+        return appStore.addListener(({ showSettings }) => {
             if (getState().showSettings !== showSettings)
                 setState({ showSettings });
         });
@@ -49,7 +49,7 @@ export const FretboardSettings: React.FC<Props> = ({
                     height={`${maxInputHeight}px`}
                 >
                     <FretboardSettingsControls
-                        store={store}
+                        appStore={appStore}
                         audioStore={audioStore}
                     />
                 </ContainerDiv>

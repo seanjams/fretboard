@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useRef } from "react";
 import {
     AppStore,
     SliderStore,
-    current,
+    getComputedAppState,
     useStateRef,
     AudioStore,
     TouchStore,
 } from "../../store";
-import { DiffType, DragStatusTypes, StatusTypes } from "../../types";
+import { DiffType, StatusTypes } from "../../types";
 import {
     getFretWidth,
     mod,
@@ -29,7 +29,7 @@ import {
     lightGrey,
     mediumGrey,
 } from "../../utils";
-import { ChordSymbol } from "../symbol";
+import { ChordSymbol } from "../ChordSymbol";
 import {
     CircleDiv,
     FretDiv,
@@ -104,7 +104,7 @@ interface Props {
     value: number;
     stringIndex: number;
     openString?: boolean;
-    store: AppStore;
+    appStore: AppStore;
     sliderStore: SliderStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
@@ -114,7 +114,7 @@ export const Fret: React.FC<Props> = ({
     value,
     openString,
     stringIndex,
-    store,
+    appStore,
     sliderStore,
     audioStore,
     touchStore,
@@ -126,11 +126,11 @@ export const Fret: React.FC<Props> = ({
     // makes frets progressively smaller
     const fretWidth = getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, fretIndex);
 
-    const { fretboard, progression } = current(store.state);
+    const { fretboard, progression } = appStore.getComputedState();
     const { label } = progression;
 
     const [getState, setState] = useStateRef(() => ({
-        status: store.state.status,
+        status: appStore.state.status,
     }));
     // const { status } = getState();
 
@@ -161,8 +161,8 @@ export const Fret: React.FC<Props> = ({
     const top = getTopMargin(CIRCLE_SIZE);
 
     useEffect(() => {
-        const destroyListener = store.addListener((newState) => {
-            const { status, fretboard } = current(newState);
+        const destroyListener = appStore.addListener((newState) => {
+            const { status, fretboard } = getComputedAppState(newState);
             let didUpdate = false;
 
             if (getState().status !== status) {
@@ -218,7 +218,8 @@ export const Fret: React.FC<Props> = ({
         if (!shadowRef.current || !circleRef.current) return;
 
         const progress = progressRef.current;
-        const { fretboard, progression, invert, status } = current(store.state);
+        const { fretboard, progression, invert, status } =
+            appStore.getComputedState();
         const { focusedIndex, leftDiffs, rightDiffs } = progression;
         const i = focusedIndex; // to battle verbosity
         const leftDiff = leftDiffs[i];
@@ -371,12 +372,12 @@ export const Fret: React.FC<Props> = ({
     //     event.preventDefault();
     //     event.stopPropagation();
     // highlight note on right click
-    // const { fretboard } = current(store.state);
+    // const { fretboard } = appStore.getComputedState();
     // const status =
     //     fretboard[stringIndex][value] === HIGHLIGHTED
     //         ? SELECTED
     //         : HIGHLIGHTED;
-    // store.dispatch.setHighlightedNote(stringIndex, value, status);
+    // appStore.dispatch.setHighlightedNote(stringIndex, value, status);
     // }
 
     function onTouchStart(
@@ -385,7 +386,7 @@ export const Fret: React.FC<Props> = ({
             | React.MouseEvent<HTMLDivElement, MouseEvent>
     ) {
         // highlight note if brush mode is highlight
-        const { status, fretboard } = current(store.state);
+        const { status, fretboard } = appStore.getComputedState();
         const { dragStatus } = touchStore.state;
         // const highlightConditions = [status === HIGHLIGHTED];
 
@@ -415,7 +416,7 @@ export const Fret: React.FC<Props> = ({
         }
 
         if (toStatus !== fromStatus) {
-            store.dispatch.setHighlightedNote(stringIndex, value, toStatus);
+            appStore.dispatch.setHighlightedNote(stringIndex, value, toStatus);
             playNoteAudio();
         }
         if (toDragStatus !== dragStatus)
@@ -431,7 +432,7 @@ export const Fret: React.FC<Props> = ({
     // ) => {
     const onTouchMove = useCallback((event: MouseEvent | TouchEvent) => {
         // event.preventDefault();
-        const { fretboard, status } = current(store.state);
+        const { fretboard, status } = appStore.getComputedState();
         const { isDragging, dragStatus } = touchStore.state;
         if (!isDragging || !circleRef.current) return;
 
@@ -493,7 +494,7 @@ export const Fret: React.FC<Props> = ({
                 }
 
                 if (toStatus !== fromStatus) {
-                    store.dispatch.setHighlightedNote(
+                    appStore.dispatch.setHighlightedNote(
                         stringIndex,
                         value,
                         toStatus

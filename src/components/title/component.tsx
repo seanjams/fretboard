@@ -1,16 +1,16 @@
 import React, { useEffect } from "react";
-import { AppStore, current, useStateRef } from "../../store";
+import { AppStore, getComputedAppState, useStateRef } from "../../store";
 import { getName, getNotes } from "../../utils";
-import { ChordSymbol } from "../symbol";
+import { ChordSymbol } from "../ChordSymbol";
 import { TitleContainerDiv } from "./style";
 
 // Component
 interface Props {
-    store: AppStore;
+    appStore: AppStore;
 }
 
-export const Title: React.FC<Props> = ({ store }) => {
-    const { fretboard, progression } = current(store.state);
+export const Title: React.FC<Props> = ({ appStore }) => {
+    const { fretboard, progression } = getComputedAppState(appStore.state);
     const [getState, setState] = useStateRef(() => ({
         name: getName(getNotes(fretboard), progression.label)[0],
     }));
@@ -18,8 +18,8 @@ export const Title: React.FC<Props> = ({ store }) => {
     const { rootName, chordName } = name;
 
     useEffect(() => {
-        return store.addListener((newState) => {
-            const { fretboard, progression } = current(newState);
+        return appStore.addListener((newState) => {
+            const { fretboard, progression } = getComputedAppState(newState);
             const name = getName(getNotes(fretboard), progression.label)[0];
             if (getState().name !== name) setState({ name });
         });
@@ -52,7 +52,7 @@ export const Title: React.FC<Props> = ({ store }) => {
             | React.TouchEvent<HTMLDivElement>
     ) => {
         // event.preventDefault();
-        return store.dispatch.setShowInput(!store.state.showInput);
+        return appStore.dispatch.setShowInput(!appStore.state.showInput);
     };
 
     return (

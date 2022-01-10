@@ -11,17 +11,17 @@ import {
     getScreenDimensions,
     getFretboardDimensions,
 } from "../../utils";
-import { Fretboard } from "../fretboard";
+import { Fretboard } from "../Fretboard";
 import {
     PositionControls,
     HighlightControls,
     SliderControls,
-} from "../controls";
-import { ChordInput } from "../input";
+} from "../Controls";
+import { ChordInput } from "../ChordInput";
 import { FretboardSettings } from "../FretboardSettings";
 // import { Menu } from "../menu";
-import { Slider } from "../slider";
-import { Title } from "../title";
+import { Slider } from "../Slider";
+import { Title } from "../Title";
 import {
     ContainerDiv,
     DashboardContainerDiv,
@@ -30,14 +30,14 @@ import {
 } from "./style";
 
 interface Props {
-    store: AppStore;
+    appStore: AppStore;
     sliderStore: SliderStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
 }
 
 export const Dashboard: React.FC<Props> = ({
-    store,
+    appStore,
     sliderStore,
     audioStore,
     touchStore,
@@ -84,34 +84,34 @@ export const Dashboard: React.FC<Props> = ({
             >
                 <FlexRow alignItems="end" padding={`0 ${SAFETY_AREA_MARGIN}px`}>
                     <div style={{ flex: 1 }}>
-                        <Title store={store} />
+                        <Title appStore={appStore} />
                     </div>
                     <div style={{ flex: 2 }}>
                         <Slider
-                            store={store}
+                            appStore={appStore}
                             sliderStore={sliderStore}
                             audioStore={audioStore}
                         />
                     </div>
                     <div style={{ flexShrink: 1 }}>
-                        <SliderControls store={store} />
+                        <SliderControls appStore={appStore} />
                     </div>
                 </FlexRow>
             </FlexContainerDiv>
             <DashboardContainerDiv height={`${height}px`} width={`${width}px`}>
                 <ChordInput
-                    store={store}
+                    appStore={appStore}
                     sliderStore={sliderStore}
                     audioStore={audioStore}
                 />
                 <Fretboard
-                    store={store}
+                    appStore={appStore}
                     sliderStore={sliderStore}
                     audioStore={audioStore}
                     touchStore={touchStore}
                 />
                 <FretboardSettings
-                    store={store}
+                    appStore={appStore}
                     sliderStore={sliderStore}
                     audioStore={audioStore}
                 />
@@ -127,11 +127,11 @@ export const Dashboard: React.FC<Props> = ({
                     padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 >
                     <div style={{ flexGrow: 1 }}>
-                        <HighlightControls store={store} />
+                        <HighlightControls appStore={appStore} />
                     </div>
                     <div style={{ flexShrink: 1 }}>
                         <PositionControls
-                            store={store}
+                            appStore={appStore}
                             audioStore={audioStore}
                         />
                     </div>

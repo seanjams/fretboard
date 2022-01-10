@@ -55,7 +55,7 @@ export function currentFretboard(state: AppStateType): StringSwitchType {
     return progression.fretboards[progression.focusedIndex];
 }
 
-export function current(state: AppStateType): AppStateType & {
+export function getComputedAppState(state: AppStateType): AppStateType & {
     progression: ProgressionStateType;
     fretboard: StringSwitchType;
 } {
@@ -67,9 +67,9 @@ export function current(state: AppStateType): AppStateType & {
 }
 
 // Reducers
-export const reducers = {
+export const appReducers = {
     clearAll(state: AppStateType) {
-        let progression = current(state).progression;
+        let progression = getComputedAppState(state).progression;
         let { fretboards } = progression;
 
         const newFretboards = Array(fretboards.length)
@@ -86,7 +86,7 @@ export const reducers = {
     },
 
     clear(state: AppStateType) {
-        let progression = current(state).progression;
+        let progression = getComputedAppState(state).progression;
         let { focusedIndex, fretboards } = progression;
 
         fretboards[focusedIndex] = DEFAULT_STRINGSWITCH();
@@ -100,7 +100,7 @@ export const reducers = {
     },
 
     clearHighlight(state: AppStateType) {
-        let progression = current(state).progression;
+        let progression = getComputedAppState(state).progression;
         let { focusedIndex, fretboards } = progression;
 
         clearHighlight(fretboards[focusedIndex]);
@@ -111,7 +111,7 @@ export const reducers = {
     },
 
     incrementPosition(state: AppStateType, inc: number, vertical: boolean) {
-        let progression = current(state).progression;
+        let progression = getComputedAppState(state).progression;
         let { focusedIndex, scrollToFret, fretboards } = progression;
 
         for (let i = 0; i < fretboards.length; i++) {
@@ -152,7 +152,7 @@ export const reducers = {
         value: number,
         status: StatusTypes
     ) {
-        let progression = current(state).progression;
+        let progression = getComputedAppState(state).progression;
         let { focusedIndex, fretboards } = progression;
 
         for (let i = 0; i < fretboards.length; i++) {
@@ -179,7 +179,7 @@ export const reducers = {
     },
 
     addFretboard(state: AppStateType) {
-        let progression = current(state).progression;
+        let progression = getComputedAppState(state).progression;
         let { focusedIndex, fretboards } = progression;
 
         const lastIndex = fretboards.length - 1;
@@ -194,7 +194,7 @@ export const reducers = {
     },
 
     removeFretboard(state: AppStateType) {
-        let progression = current(state).progression;
+        let progression = getComputedAppState(state).progression;
         let { focusedIndex, fretboards } = progression;
 
         if (fretboards.length > 1) fretboards = fretboards.slice(0, -1);
@@ -210,7 +210,7 @@ export const reducers = {
     },
 
     setFocusedIndex(state: AppStateType, focusedIndex: number) {
-        let progression = current(state).progression;
+        let progression = getComputedAppState(state).progression;
         let { fretboards } = progression;
         focusedIndex = Math.max(focusedIndex, 0);
         focusedIndex = Math.min(focusedIndex, fretboards.length - 1);
@@ -261,9 +261,13 @@ export const reducers = {
 };
 
 // Store
-export class AppStore extends Store<AppStateType, typeof reducers> {
+export class AppStore extends Store<AppStateType, typeof appReducers> {
     constructor() {
-        super(DEFAULT_MAIN_STATE(), reducers);
+        super(DEFAULT_MAIN_STATE(), appReducers);
+    }
+
+    getComputedState() {
+        return getComputedAppState(this.state);
     }
 }
 

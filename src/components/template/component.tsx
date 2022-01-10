@@ -4,10 +4,10 @@ import { ContainerDiv } from "./style";
 
 // Component
 interface Props {
-    store: AppStore;
+    appStore: AppStore;
 }
 
-export const Template: React.FC<Props> = ({ store }) => {
+export const Template: React.FC<Props> = ({ appStore }) => {
     const [getState, setState] = useStateRef(() => ({
         // custom state for component
         message: "hello",
@@ -15,7 +15,7 @@ export const Template: React.FC<Props> = ({ store }) => {
     const { message } = getState();
 
     useEffect(() => {
-        return store.addListener((newState) => {});
+        return appStore.addListener((newState) => {});
     }, []);
 
     return <ContainerDiv>{message}</ContainerDiv>;

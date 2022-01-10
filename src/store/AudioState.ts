@@ -10,7 +10,7 @@ import {
 import { Store } from "./store";
 
 import WebWorker from "../webworkers/WebWorker";
-import timerWorkerCode from "../webworkers/metronomeworker";
+import timerWorkerCode from "../webworkers/TimerWorker";
 
 import String_0_E from "../assets/audio/String_0_E.json";
 import String_1_A from "../assets/audio/String_1_A.json";

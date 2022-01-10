@@ -1,11 +1,11 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
-import { ChordSymbol } from "../symbol";
+import { ChordSymbol } from "../ChordSymbol";
 import {
     useStateRef,
     AppStore,
     SliderStore,
-    current,
+    getComputedAppState,
     AudioStore,
 } from "../../store";
 import { ChordTypes, NoteTypes } from "../../types";
@@ -93,22 +93,22 @@ export const TagButton: React.FC<TagButtonProps> = ({
 };
 
 interface Props {
-    store: AppStore;
+    appStore: AppStore;
     sliderStore: SliderStore;
     audioStore: AudioStore;
 }
 
 export const ChordInput: React.FC<Props> = ({
-    store,
+    appStore,
     sliderStore,
     audioStore,
 }) => {
     // state
-    const { fretboard, progression } = current(store.state);
+    const { fretboard, progression } = appStore.getComputedState();
     const [getState, setState] = useStateRef(() => ({
         label: progression.label,
         name: getName(getNotes(fretboard), progression.label)[0],
-        showInput: store.state.showInput,
+        showInput: appStore.state.showInput,
     }));
     const { label, name, showInput } = getState();
     const { rootIdx, chordName } = name;
@@ -118,9 +118,9 @@ export const ChordInput: React.FC<Props> = ({
     const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
 
     useEffect(() => {
-        return store.addListener((newState) => {
+        return appStore.addListener((newState) => {
             const { showInput } = newState;
-            const { fretboard, progression } = current(newState);
+            const { fretboard, progression } = getComputedAppState(newState);
             const name = getName(getNotes(fretboard), progression.label)[0];
 
             if (
@@ -148,7 +148,7 @@ export const ChordInput: React.FC<Props> = ({
         // cancel past animation if pressed quickly
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
-        const { progression } = current(store.state);
+        const { progression } = appStore.getComputedState();
         const { focusedIndex, fretboards } = progression;
         let nextProgress = focusedIndex + SLIDER_RIGHT_WINDOW;
 
@@ -170,7 +170,7 @@ export const ChordInput: React.FC<Props> = ({
         // clearHighlight(fretboards[focusedIndex]);
 
         // update diffs
-        store.dispatch.setCurrentProgression({
+        appStore.dispatch.setCurrentProgression({
             ...progression,
             ...cascadeDiffs(fretboards, focusedIndex),
             hiddenFretboardIndices,
@@ -202,7 +202,7 @@ export const ChordInput: React.FC<Props> = ({
             // set progress, and check if we should update focusedIndex
             sliderStore.dispatch.setProgress(nextProgress);
             if (Math.floor(nextProgress) > currentFocusedIndex + i) {
-                store.dispatch.setFocusedIndex(currentFocusedIndex + i + 1);
+                appStore.dispatch.setFocusedIndex(currentFocusedIndex + i + 1);
                 i++;
             }
             // when done animating, remove extra fretboard and reset progress
@@ -212,7 +212,7 @@ export const ChordInput: React.FC<Props> = ({
 
                 // remove old fretboard, update diffs, reset progress and focusedIndex
                 fretboards.splice(currentFocusedIndex, 1);
-                store.dispatch.setCurrentProgression({
+                appStore.dispatch.setCurrentProgression({
                     ...progression,
                     ...cascadeDiffs(fretboards, currentFocusedIndex),
                     hiddenFretboardIndices: [],
@@ -222,7 +222,7 @@ export const ChordInput: React.FC<Props> = ({
                     // ),
                 });
                 sliderStore.dispatch.setProgress(currentFocusedIndex + 0.5);
-                const { fretboard } = current(store.state);
+                const { fretboard } = appStore.getComputedState();
                 audioStore.strumChord(fretboard);
             }
         };
@@ -263,7 +263,7 @@ export const ChordInput: React.FC<Props> = ({
     ) => {
         // event.preventDefault();
         // event.stopPropagation();
-        // if (store.state.showInput) store.dispatch.setShowInput(false);
+        // if (appStore.state.showInput) appStore.dispatch.setShowInput(false);
     };
 
     const { maxInputHeight, minInputHeight } = getFretboardDimensions();

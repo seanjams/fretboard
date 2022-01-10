@@ -6,9 +6,9 @@ import {
     SliderStore,
     AudioStore,
     TouchStore,
-    current,
+    getComputedAppState,
 } from "../../store";
-import { GuitarString } from "../string";
+import { FretboardString } from "../FretboardString";
 import {
     getFretboardDimensions,
     getFretWidth,
@@ -28,14 +28,14 @@ import {
 
 // Component
 interface Props {
-    store: AppStore;
+    appStore: AppStore;
     sliderStore: SliderStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
 }
 
 export const Fretboard: React.FC<Props> = ({
-    store,
+    appStore,
     sliderStore,
     audioStore,
     touchStore,
@@ -43,9 +43,9 @@ export const Fretboard: React.FC<Props> = ({
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
     const [getState, setState] = useStateRef(() => ({
-        highEBottom: store.state.invert !== store.state.leftHand,
-        showInput: store.state.showInput,
-        showSettings: store.state.showSettings,
+        highEBottom: appStore.state.invert !== appStore.state.leftHand,
+        showInput: appStore.state.showInput,
+        showSettings: appStore.state.showSettings,
         transformOrigin: "bottom",
     }));
     const { highEBottom, showInput, showSettings, transformOrigin } =
@@ -55,9 +55,9 @@ export const Fretboard: React.FC<Props> = ({
     const scrollToFretRef = useRef(0);
 
     useEffect(() => {
-        const destroyListener = store.addListener((newState) => {
+        const destroyListener = appStore.addListener((newState) => {
             const { showInput, progression, invert, leftHand, showSettings } =
-                current(newState);
+                getComputedAppState(newState);
             const { scrollToFret } = progression;
             const highEBottom = invert !== leftHand;
 
@@ -113,7 +113,7 @@ export const Fretboard: React.FC<Props> = ({
     }, []);
 
     const onKeyPress = useCallback((event: KeyboardEvent) => {
-        const { invert, leftHand, progression } = current(store.state);
+        const { invert, leftHand, progression } = appStore.getComputedState();
         const { label } = progression;
         const highEBottom = invert !== leftHand;
 
@@ -130,18 +130,18 @@ export const Fretboard: React.FC<Props> = ({
         let playSound = up || down || left || right;
 
         if (up) {
-            store.dispatch.incrementPositionY();
+            appStore.dispatch.incrementPositionY();
         } else if (down) {
-            store.dispatch.decrementPositionY();
+            appStore.dispatch.decrementPositionY();
         } else if (right) {
-            store.dispatch.incrementPositionX();
+            appStore.dispatch.incrementPositionX();
         } else if (left) {
-            store.dispatch.decrementPositionX();
+            appStore.dispatch.decrementPositionX();
         } else {
             const naturalNotesKeyMap = NATURAL_NOTE_KEYMAP[label];
             if (naturalNotesKeyMap.hasOwnProperty(event.key)) {
                 event.preventDefault();
-                store.dispatch.setHighlightedNote(
+                appStore.dispatch.setHighlightedNote(
                     0,
                     naturalNotesKeyMap[event.key],
                     SELECTED
@@ -150,7 +150,7 @@ export const Fretboard: React.FC<Props> = ({
         }
 
         if (playSound) {
-            const { fretboard, strumMode } = current(store.state);
+            const { fretboard, strumMode } = appStore.getComputedState();
             if (strumMode === STRUM_LOW_TO_HIGH)
                 audioStore.strumChord(fretboard);
             else {
@@ -160,11 +160,11 @@ export const Fretboard: React.FC<Props> = ({
     }, []);
 
     const strings = STANDARD_TUNING.map((value, i) => (
-        <GuitarString
+        <FretboardString
             stringIndex={i}
             base={value}
             key={`string-${i}`}
-            store={store}
+            appStore={appStore}
             sliderStore={sliderStore}
             audioStore={audioStore}
             touchStore={touchStore}

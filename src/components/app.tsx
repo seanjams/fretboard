@@ -3,13 +3,13 @@ import "reset-css";
 import {
     DEFAULT_MAIN_STATE,
     AppStateType,
-    currentProgression,
     AppStore,
     SliderStore,
     AudioStore,
     useTouchStore,
+    getComputedAppState,
 } from "../store";
-import { Dashboard } from "./dashboard";
+import { Dashboard } from "./Dashboard";
 // import { Menu } from "./menu";
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
 }
 
 export const App: React.FC<Props> = ({ oldState }) => {
-    const store = useMemo(() => new AppStore(), []);
+    const appStore = useMemo(() => new AppStore(), []);
     const sliderStore = useMemo(() => new SliderStore(), []);
     const audioStore = useMemo(() => new AudioStore(), []);
     const touchStore = useTouchStore();
@@ -32,7 +32,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
     }, []);
 
     const saveToLocalStorage = () => {
-        localStorage.setItem("state", JSON.stringify(store.state));
+        localStorage.setItem("state", JSON.stringify(appStore.state));
     };
 
     const rehydrateState = () => {
@@ -54,10 +54,10 @@ export const App: React.FC<Props> = ({ oldState }) => {
                 ...parsedState,
             };
         }
-        store.setState(newState);
+        appStore.setState(newState);
 
         // rehydrate slider state
-        const { focusedIndex } = currentProgression(newState);
+        const { focusedIndex } = getComputedAppState(newState).progression;
         sliderStore.setState({
             progress: focusedIndex + 0.5,
             rehydrateSuccess: true,
@@ -67,7 +67,7 @@ export const App: React.FC<Props> = ({ oldState }) => {
     return (
         <div>
             <Dashboard
-                store={store}
+                appStore={appStore}
                 sliderStore={sliderStore}
                 audioStore={audioStore}
                 touchStore={touchStore}

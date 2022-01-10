@@ -1,28 +1,28 @@
 import * as React from "react";
 import { AppStore, AudioStore, SliderStore, TouchStore } from "../../store";
 import { STRING_SIZE } from "../../utils";
-import { Fret } from "../fret";
+import { Fret } from "../Fret";
 import { StringDiv } from "./style";
 
 // Component
 interface Props {
     base: number;
     stringIndex: number;
-    store: AppStore;
+    appStore: AppStore;
     sliderStore: SliderStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
 }
 
-export const GuitarString: React.FC<Props> = ({
+export const FretboardString: React.FC<Props> = ({
     base,
     stringIndex,
-    store,
+    appStore,
     sliderStore,
     audioStore,
     touchStore,
 }) => {
-    const { invert } = store.state;
+    const { invert } = appStore.state;
 
     const frets = Array(STRING_SIZE)
         .fill(0)
@@ -34,7 +34,7 @@ export const GuitarString: React.FC<Props> = ({
                     openString={i === 0}
                     key={`fret-${value}`}
                     stringIndex={stringIndex}
-                    store={store}
+                    appStore={appStore}
                     sliderStore={sliderStore}
                     audioStore={audioStore}
                     touchStore={touchStore}

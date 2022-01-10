@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
-import {
-    useStateRef,
-    AppStore,
-    AudioStore,
-    current,
-    DEFAULT_SLIDER_STATE,
-} from "../../store";
+import { useStateRef, AppStore, AudioStore } from "../../store";
 import { ArrowTypes } from "../../types";
 import {
     COLORS,
@@ -16,7 +10,7 @@ import {
     ARPEGGIATE_LOW_TO_HIGH,
 } from "../../utils";
 import { CircleControlsContainer, Label } from "./style";
-import { CircleIconButton, HighlightButton } from "../buttons";
+import { CircleIconButton, HighlightButton } from "../Button";
 import PlusIcon from "../../assets/icons/plus.png";
 import MinusIcon from "../../assets/icons/minus.png";
 import LeftIcon from "../../assets/icons/left-arrow.png";
@@ -25,10 +19,8 @@ import UpIcon from "../../assets/icons/up-arrow.png";
 import RightIcon from "../../assets/icons/right-arrow.png";
 import ClearIcon from "../../assets/icons/clear.png";
 
-const [secondaryColor, primaryColor] = COLORS[0];
-
 interface Props {
-    store: AppStore;
+    appStore: AppStore;
 }
 
 interface PositionControlProps extends Props {
@@ -36,11 +28,11 @@ interface PositionControlProps extends Props {
 }
 
 export const PositionControls: React.FC<PositionControlProps> = ({
-    store,
+    appStore,
     audioStore,
 }) => {
     const onArrowPress = (dir: ArrowTypes) => () => {
-        const { invert, leftHand, strumMode } = store.state;
+        const { invert, leftHand, strumMode } = appStore.state;
 
         // Get the action direction based on orientation of fretboard
         // could maybe move this to reducer.
@@ -55,17 +47,17 @@ export const PositionControls: React.FC<PositionControlProps> = ({
         let playSound = up || down || left || right;
 
         if (up) {
-            store.dispatch.incrementPositionY();
+            appStore.dispatch.incrementPositionY();
         } else if (down) {
-            store.dispatch.decrementPositionY();
+            appStore.dispatch.decrementPositionY();
         } else if (right) {
-            store.dispatch.incrementPositionX();
+            appStore.dispatch.incrementPositionX();
         } else if (left) {
-            store.dispatch.decrementPositionX();
+            appStore.dispatch.decrementPositionX();
         }
 
         if (playSound) {
-            const { fretboard } = current(store.state);
+            const { fretboard } = appStore.getComputedState();
             if (strumMode === STRUM_LOW_TO_HIGH)
                 audioStore.strumChord(fretboard);
             else {
@@ -108,14 +100,14 @@ export const PositionControls: React.FC<PositionControlProps> = ({
     );
 };
 
-export const HighlightControls: React.FC<Props> = ({ store }) => {
+export const HighlightControls: React.FC<Props> = ({ appStore }) => {
     const [getState, setState] = useStateRef(() => ({
-        status: store.state.status,
+        status: appStore.state.status,
     }));
     const { status } = getState();
 
     useEffect(() => {
-        return store.addListener(({ status, strumMode }) => {
+        return appStore.addListener(({ status, strumMode }) => {
             if (getState().status !== status) {
                 setState({ status });
             }
@@ -124,22 +116,22 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
 
     const onStatusChange = (event: MouseEvent | TouchEvent) => {
         event.preventDefault();
-        const { status } = store.state;
-        store.dispatch.setStatus(
+        const { status } = appStore.state;
+        appStore.dispatch.setStatus(
             status === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
         );
     };
 
     const onClearNotes = () => {
-        store.dispatch.clear();
+        appStore.dispatch.clear();
     };
 
     const onClearHighlight = () => {
-        store.dispatch.clearHighlight();
+        appStore.dispatch.clearHighlight();
     };
 
     const onShowSettings = () => {
-        store.dispatch.setShowSettings(!store.state.showSettings);
+        appStore.dispatch.setShowSettings(!appStore.state.showSettings);
     };
 
     return (
@@ -172,18 +164,18 @@ export const HighlightControls: React.FC<Props> = ({ store }) => {
     );
 };
 
-export const SliderControls: React.FC<Props> = ({ store }) => {
+export const SliderControls: React.FC<Props> = ({ appStore }) => {
     return (
         <CircleControlsContainer>
             <div className="circle-button-container">
                 <CircleIconButton
-                    onClick={store.dispatch.addFretboard}
+                    onClick={appStore.dispatch.addFretboard}
                     imageSrc={PlusIcon}
                 />
             </div>
             <div className="circle-button-container">
                 <CircleIconButton
-                    onClick={store.dispatch.removeFretboard}
+                    onClick={appStore.dispatch.removeFretboard}
                     imageSrc={MinusIcon}
                 />
             </div>
@@ -192,19 +184,21 @@ export const SliderControls: React.FC<Props> = ({ store }) => {
 };
 
 export const FretboardSettingsControls: React.FC<PositionControlProps> = ({
-    store,
+    appStore,
     audioStore,
 }) => {
     const [getState, setState] = useStateRef(() => ({
-        strumMode: store.state.strumMode,
+        strumMode: appStore.state.strumMode,
         isMuted: audioStore.state.isMuted,
     }));
     const { strumMode, isMuted } = getState();
 
     useEffect(() => {
-        const destroyAppStateListener = store.addListener(({ strumMode }) => {
-            if (getState().strumMode !== strumMode) setState({ strumMode });
-        });
+        const destroyAppStateListener = appStore.addListener(
+            ({ strumMode }) => {
+                if (getState().strumMode !== strumMode) setState({ strumMode });
+            }
+        );
         const destroyAudioStateListener = audioStore.addListener(
             ({ isMuted }) => {
                 if (getState().isMuted !== isMuted) setState({ isMuted });
@@ -218,8 +212,8 @@ export const FretboardSettingsControls: React.FC<PositionControlProps> = ({
 
     const onStrumModeChange = (event: MouseEvent | TouchEvent) => {
         event.preventDefault();
-        const { strumMode } = store.state;
-        store.dispatch.setStrumMode(
+        const { strumMode } = appStore.state;
+        appStore.dispatch.setStrumMode(
             strumMode === STRUM_LOW_TO_HIGH
                 ? ARPEGGIATE_LOW_TO_HIGH
                 : STRUM_LOW_TO_HIGH
@@ -230,14 +224,14 @@ export const FretboardSettingsControls: React.FC<PositionControlProps> = ({
         <CircleControlsContainer>
             <div className="circle-button-container">
                 <CircleIconButton
-                    onClick={store.dispatch.toggleLeftHand}
+                    onClick={appStore.dispatch.toggleLeftHand}
                     imageSrc={ClearIcon}
                 />
                 <Label>Left Hand</Label>
             </div>
             <div className="circle-button-container">
                 <CircleIconButton
-                    onClick={store.dispatch.toggleInvert}
+                    onClick={appStore.dispatch.toggleInvert}
                     imageSrc={ClearIcon}
                 />
                 <Label>Invert</Label>
