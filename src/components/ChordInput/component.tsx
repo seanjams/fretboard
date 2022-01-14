@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { CSSTransition } from "react-transition-group";
 import { ChordSymbol } from "../ChordSymbol";
+import { Div, FlexRow } from "../Common";
 import {
     useStateRef,
     AppStore,
@@ -18,8 +19,7 @@ import {
     SLIDER_WINDOW_LENGTH,
     DEFAULT_STRINGSWITCH,
     getName,
-    getNotes,
-    getNotesForAnimation,
+    getNotesByChordName,
     SELECTED,
     setFret,
     clearHighlight,
@@ -32,7 +32,6 @@ import {
 import {
     AnimationWrapper,
     ChordInputContainer,
-    FlexRow,
     OverflowContainerDiv,
     Tag,
     Title,
@@ -107,7 +106,7 @@ export const ChordInput: React.FC<Props> = ({
     const { fretboard, progression } = appStore.getComputedState();
     const [getState, setState] = useStateRef(() => ({
         label: progression.label,
-        name: getName(getNotes(fretboard), progression.label)[0],
+        name: getName(fretboard, progression.label)[0],
         showInput: appStore.state.showInput,
     }));
     const { label, name, showInput } = getState();
@@ -119,9 +118,9 @@ export const ChordInput: React.FC<Props> = ({
 
     useEffect(() => {
         return appStore.addListener((newState) => {
-            const { showInput } = newState;
-            const { fretboard, progression } = getComputedAppState(newState);
-            const name = getName(getNotes(fretboard), progression.label)[0];
+            const { fretboard, progression, showInput } =
+                getComputedAppState(newState);
+            const name = getName(fretboard, progression.label)[0];
 
             if (
                 getState().name !== name ||
@@ -135,14 +134,14 @@ export const ChordInput: React.FC<Props> = ({
         });
     }, []);
 
-    const preventDefault = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        event.preventDefault();
-        event.stopPropagation();
-    };
+    // const preventDefault = (
+    //     event:
+    //         | React.MouseEvent<HTMLDivElement, MouseEvent>
+    //         | React.TouchEvent<HTMLDivElement>
+    // ) => {
+    //     event.preventDefault();
+    //     event.stopPropagation();
+    // };
 
     const fretboardAnimation = (notes: number[]) => {
         // cancel past animation if pressed quickly
@@ -238,7 +237,7 @@ export const ChordInput: React.FC<Props> = ({
             if (newRootIdx === rootIdx) return;
             // default chordName to "maj" if not set
             fretboardAnimation(
-                getNotesForAnimation(newRootIdx, foundChordName || majorChord)
+                getNotesByChordName(newRootIdx, foundChordName || majorChord)
             );
         };
 
@@ -252,7 +251,7 @@ export const ChordInput: React.FC<Props> = ({
             if (newChordName === foundChordName) return;
             // default rootIdx to "C" if not set
             fretboardAnimation(
-                getNotesForAnimation(Math.max(rootIdx, 0), newChordName)
+                getNotesByChordName(Math.max(rootIdx, 0), newChordName)
             );
         };
 
@@ -290,7 +289,6 @@ export const ChordInput: React.FC<Props> = ({
                         // onClick={preventDefault}
                         // onTouchStart={preventDefault}
                         width="100%"
-                        justifyContent="start"
                     >
                         <Title
                             marginLeft={`${SP[2]}px`}
@@ -306,7 +304,6 @@ export const ChordInput: React.FC<Props> = ({
                             marginLeft={`${SP[2]}px`}
                             marginRight={`${SP[2]}px`}
                             width={`calc(85% - ${2 * SP[2]}px)`}
-                            justifyContent="center"
                         >
                             {noteNames.map((name, j) => (
                                 <TagButton
@@ -327,7 +324,6 @@ export const ChordInput: React.FC<Props> = ({
                         // onClick={preventDefault}
                         // onTouchStart={preventDefault}
                         width="100%"
-                        justifyContent="start"
                     >
                         <Title
                             marginLeft={`${SP[2]}px`}
@@ -343,10 +339,8 @@ export const ChordInput: React.FC<Props> = ({
                             marginRight={`${SP[2]}px`}
                             width={`calc(85% - ${2 * SP[2]}px)`}
                         >
-                            <div>
+                            <Div>
                                 <FlexRow
-                                    width="100%"
-                                    height="100%"
                                     paddingLeft={`calc(30% + ${SP[3]}px)`}
                                     paddingRight={`calc(30% + ${SP[3]}px)`}
                                 >
@@ -364,7 +358,7 @@ export const ChordInput: React.FC<Props> = ({
                                         </TagButton>
                                     ))}
                                 </FlexRow>
-                            </div>
+                            </Div>
                         </OverflowContainerDiv>
                     </FlexRow>
                 </ChordInputContainer>

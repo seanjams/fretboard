@@ -10,24 +10,23 @@ import {
     SAFETY_AREA_MARGIN,
     getScreenDimensions,
     getFretboardDimensions,
+    SP,
 } from "../../utils";
 import { Fretboard } from "../Fretboard";
+import { Div } from "../Common";
 import {
     PositionControls,
     HighlightControls,
     SliderControls,
+    PlayButton,
+    SettingsButton,
 } from "../Controls";
 import { ChordInput } from "../ChordInput";
 import { FretboardSettings } from "../FretboardSettings";
 // import { Menu } from "../menu";
 import { Slider } from "../Slider";
 import { Title } from "../Title";
-import {
-    ContainerDiv,
-    DashboardContainerDiv,
-    FlexContainerDiv,
-    FlexRow,
-} from "./style";
+import { ContainerDiv } from "./style";
 
 interface Props {
     appStore: AppStore;
@@ -76,29 +75,34 @@ export const Dashboard: React.FC<Props> = ({
 
     return (
         <ContainerDiv>
-            <FlexContainerDiv
+            <Div
                 height={`${gutterHeight}px`}
                 marginTop={`${SAFETY_AREA_MARGIN}px`}
                 marginBottom={0}
                 verticalAlign="top"
             >
-                <FlexRow alignItems="end" padding={`0 ${SAFETY_AREA_MARGIN}px`}>
-                    <div style={{ flex: 1 }}>
+                <Div
+                    display="flex"
+                    justifyContent="space-evenly"
+                    alignItems="end"
+                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
+                >
+                    <Div flex={1}>
                         <Title appStore={appStore} />
-                    </div>
-                    <div style={{ flex: 2 }}>
+                    </Div>
+                    <Div flex={2}>
                         <Slider
                             appStore={appStore}
                             sliderStore={sliderStore}
                             audioStore={audioStore}
                         />
-                    </div>
-                    <div style={{ flexShrink: 1 }}>
+                    </Div>
+                    <Div flexShrink={1}>
                         <SliderControls appStore={appStore} />
-                    </div>
-                </FlexRow>
-            </FlexContainerDiv>
-            <DashboardContainerDiv height={`${height}px`} width={`${width}px`}>
+                    </Div>
+                </Div>
+            </Div>
+            <Div height={`${height}px`} width={`${width}px`}>
                 <ChordInput
                     appStore={appStore}
                     sliderStore={sliderStore}
@@ -115,28 +119,49 @@ export const Dashboard: React.FC<Props> = ({
                     sliderStore={sliderStore}
                     audioStore={audioStore}
                 />
-            </DashboardContainerDiv>
-            <FlexContainerDiv
+            </Div>
+            <Div
                 height={`${gutterHeight}px`}
                 marginTop="0px"
                 marginBottom={`${SAFETY_AREA_MARGIN}px`}
                 verticalAlign="bottom"
             >
-                <FlexRow
+                <Div
+                    display="flex"
+                    justifyContent="space-evenly"
                     alignItems="start"
                     padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 >
-                    <div style={{ flexGrow: 1 }}>
+                    <Div flexShrink={1}>
                         <HighlightControls appStore={appStore} />
-                    </div>
-                    <div style={{ flexShrink: 1 }}>
+                    </Div>
+                    <Div
+                        flexGrow={1}
+                        marginLeft={`${SP[4]}px`}
+                        marginRight={`${SP[4]}px`}
+                    >
+                        <PlayButton
+                            appStore={appStore}
+                            audioStore={audioStore}
+                        />
+                    </Div>
+                    <Div
+                        flexGrow={1}
+                        display="flex"
+                        justifyContent="flex-end"
+                        marginLeft={`${SP[4]}px`}
+                        marginRight={`${SP[4]}px`}
+                    >
+                        <SettingsButton appStore={appStore} />
+                    </Div>
+                    <Div flexShrink={1}>
                         <PositionControls
                             appStore={appStore}
                             audioStore={audioStore}
                         />
-                    </div>
-                </FlexRow>
-            </FlexContainerDiv>
+                    </Div>
+                </Div>
+            </Div>
         </ContainerDiv>
     );
 };

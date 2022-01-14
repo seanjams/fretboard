@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
 import { CSSTransition } from "react-transition-group";
 import { AppStore, AudioStore, SliderStore, useStateRef } from "../../store";
+import { FlexRow } from "../Common";
 import { FretboardSettingsControls } from "../Controls";
-import { getFretboardDimensions } from "../../utils";
-import { ContainerDiv, AnimationWrapper } from "./style";
+import { darkGrey, getFretboardDimensions } from "../../utils";
+import { AnimationWrapper } from "./style";
 
 // Component
 interface Props {
@@ -44,15 +45,17 @@ export const FretboardSettings: React.FC<Props> = ({
                 // onEnter={() => setShowButton(false)}
                 // onExited={() => setShowButton(true)}
             >
-                <ContainerDiv
+                <FlexRow
                     className="settings-form"
                     height={`${maxInputHeight}px`}
+                    width="100%"
+                    color={darkGrey}
                 >
                     <FretboardSettingsControls
                         appStore={appStore}
                         audioStore={audioStore}
                     />
-                </ContainerDiv>
+                </FlexRow>
             </CSSTransition>
         </AnimationWrapper>
     );

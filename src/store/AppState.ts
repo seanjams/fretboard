@@ -4,7 +4,7 @@ import {
     DiffType,
     LabelTypes,
     StrumTypes,
-    DragStatusTypes,
+    ArrowTypes,
 } from "../types";
 import {
     rebuildDiffs,
@@ -144,6 +144,27 @@ export const appReducers = {
 
     decrementPositionY(state: AppStateType) {
         return this.incrementPosition(state, -1, true);
+    },
+
+    setHighlightedPosition(state: AppStateType, dir: ArrowTypes) {
+        const { invert, leftHand, progression } = getComputedAppState(state);
+        const highEBottom = invert === leftHand;
+
+        // Get the action direction based on orientation of fretboard
+        // could maybe move this to reducer.
+        // highEBottom
+        // 	- whether the high E string appears on the top or bottom of the fretboard,
+        // 	- depending on invert/leftHand views
+        const up = highEBottom ? dir === "ArrowUp" : dir === "ArrowDown";
+        const down = highEBottom ? dir === "ArrowDown" : dir === "ArrowUp";
+        const right = invert ? dir === "ArrowLeft" : dir === "ArrowRight";
+        const left = invert ? dir === "ArrowRight" : dir === "ArrowLeft";
+
+        if (up) return this.incrementPositionY(state);
+        if (down) return this.decrementPositionY(state);
+        if (right) return this.incrementPositionX(state);
+        if (left) return this.decrementPositionX(state);
+        return state;
     },
 
     setHighlightedNote(

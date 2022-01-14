@@ -67,14 +67,6 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     height: 100%;
 `;
 
-export const FlexRow = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    display: flex;
-    align-items: start;
-    justify-content: center;
-`;
-
 export const Title = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`

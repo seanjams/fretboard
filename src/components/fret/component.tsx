@@ -7,7 +7,7 @@ import {
     AudioStore,
     TouchStore,
 } from "../../store";
-import { DiffType, StatusTypes } from "../../types";
+import { StatusTypes, StringSwitchType } from "../../types";
 import {
     getFretWidth,
     mod,
@@ -52,32 +52,24 @@ const getBackgroundColor = (
     isHighlighted: boolean,
     isPlaying: boolean
 ) => {
-    return isHighlighted
-        ? primaryColor
-        : isSelected
-        ? secondaryColor
-        : "transparent";
-
-    // return isPlaying && isHighlighted
-    //     ? playingColor
-    //     : isHighlighted
+    // return isHighlighted
     //     ? primaryColor
     //     : isSelected
     //     ? secondaryColor
     //     : "transparent";
+
+    return isPlaying && isHighlighted
+        ? playingColor
+        : isHighlighted
+        ? primaryColor
+        : isSelected
+        ? secondaryColor
+        : "transparent";
 };
 
-const getBorder = (status: StatusTypes, isSelected: boolean) => {
-    return status === HIGHLIGHTED && !isSelected
-        ? "1px solid transparent"
-        : `1px solid ${mediumGrey}`;
+const getCircleBorderColor = (status: StatusTypes, isSelected: boolean) => {
+    return status === HIGHLIGHTED && !isSelected ? lightGrey : darkGrey;
 };
-
-const is = (diff: DiffType, key: number, val: any, negate: boolean = false) =>
-    diff && (negate ? diff[key] !== val : diff[key] === val);
-
-const isNot = (diff: DiffType, key: number, val: any) =>
-    is(diff, key, val, true);
 
 interface LegendProps {
     stringIndex: number;
@@ -129,9 +121,9 @@ export const Fret: React.FC<Props> = ({
     const { fretboard, progression } = appStore.getComputedState();
     const { label } = progression;
 
-    const [getState, setState] = useStateRef(() => ({
-        status: appStore.state.status,
-    }));
+    // const [getState, setState] = useStateRef(() => ({
+    //     status: appStore.state.status,
+    // }));
     // const { status } = getState();
 
     const thickness = (6 - stringIndex + 1) / 2;
@@ -143,12 +135,17 @@ export const Fret: React.FC<Props> = ({
     const progressRef = useRef(sliderStore.state.progress);
     const circleRef = useRef<HTMLDivElement>(null);
     const shadowRef = useRef<HTMLDivElement>(null);
-    const isHighlightedRef = useRef(
-        fretboard[stringIndex][value] === HIGHLIGHTED
-    );
-    const isSelectedRef = useRef(
-        [SELECTED, HIGHLIGHTED].includes(fretboard[stringIndex][value])
-    );
+
+    const getIsSelected = (fretboard: StringSwitchType) => {
+        return [SELECTED, HIGHLIGHTED].includes(fretboard[stringIndex][value]);
+    };
+
+    const getIsHighlighted = (fretboard: StringSwitchType) => {
+        return fretboard[stringIndex][value] === HIGHLIGHTED;
+    };
+
+    const isHighlightedRef = useRef(getIsHighlighted(fretboard));
+    const isSelectedRef = useRef(getIsSelected(fretboard));
     const isPlayingRef = useRef(audioStore.state.isPlaying.has(fretName));
     const isMouseOverRef = useRef(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,19 +158,17 @@ export const Fret: React.FC<Props> = ({
     const top = getTopMargin(CIRCLE_SIZE);
 
     useEffect(() => {
-        const destroyListener = appStore.addListener((newState) => {
+        const destroyAppStoreListener = appStore.addListener((newState) => {
             const { status, fretboard } = getComputedAppState(newState);
             let didUpdate = false;
 
-            if (getState().status !== status) {
-                setState({ status });
-                didUpdate = true;
-            }
+            // if (getState().status !== status) {
+            //     setState({ status });
+            //     didUpdate = true;
+            // }
 
-            const isHighlighted = fretboard[stringIndex][value] === HIGHLIGHTED;
-            const isSelected = [SELECTED, HIGHLIGHTED].includes(
-                fretboard[stringIndex][value]
-            );
+            const isHighlighted = getIsHighlighted(fretboard);
+            const isSelected = getIsSelected(fretboard);
             if (
                 isHighlightedRef.current !== isHighlighted ||
                 isSelectedRef.current !== isSelected
@@ -187,47 +182,46 @@ export const Fret: React.FC<Props> = ({
                 // if (highlightEnabled) playNoteAudio();
             }
 
-            if (didUpdate) move();
+            if (didUpdate) setFretStyles();
         });
-        const destroySliderListener = sliderStore.addListener(
+        const destroySliderStoreListener = sliderStore.addListener(
             ({ progress }) => {
                 progressRef.current = progress;
-                move();
+                setFretStyles();
             }
         );
-        const destroyAudioListener = audioStore.addListener(({ isPlaying }) => {
-            const fretIsPlaying = isPlaying.has(fretName);
-            if (isPlaying.has(fretName) !== isPlayingRef.current) {
-                isPlayingRef.current = fretIsPlaying;
-                move();
+        const destroyAudioStoreListener = audioStore.addListener(
+            ({ isPlaying }) => {
+                const fretIsPlaying = isPlaying.has(fretName);
+                if (isPlaying.has(fretName) !== isPlayingRef.current) {
+                    isPlayingRef.current = fretIsPlaying;
+                    setFretStyles();
+                }
             }
-        });
+        );
 
         window.addEventListener("mousemove", onTouchMove);
         window.addEventListener("touchmove", onTouchMove);
         return () => {
-            destroyListener();
-            destroySliderListener();
-            destroyAudioListener();
+            destroyAppStoreListener();
+            destroySliderStoreListener();
+            destroyAudioStoreListener();
             window.removeEventListener("mousemove", onTouchMove);
             window.removeEventListener("touchmove", onTouchMove);
         };
     }, []);
 
-    function move() {
+    function setFretStyles() {
         if (!shadowRef.current || !circleRef.current) return;
 
         const progress = progressRef.current;
-        const { fretboard, progression, invert, status } =
-            appStore.getComputedState();
+        const { progression, invert, status } = appStore.getComputedState();
         const { focusedIndex, leftDiffs, rightDiffs } = progression;
         const i = focusedIndex; // to battle verbosity
         const leftDiff = leftDiffs[i];
         const rightDiff = rightDiffs[i];
-        const isHighlighted = fretboard[stringIndex][value] === HIGHLIGHTED;
-        const isSelected = [HIGHLIGHTED, SELECTED].includes(
-            fretboard[stringIndex][value]
-        );
+        const isHighlighted = isHighlightedRef.current;
+        const isSelected = isSelectedRef.current;
         const isPlaying = isPlayingRef.current;
         let direction = invert ? -1 : 1;
 
@@ -241,18 +235,24 @@ export const Fret: React.FC<Props> = ({
         );
 
         // this fret has a destination in the fretboard to the left/right
-        const leftExists = isNot(leftDiff, noteValue, undefined);
-        const rightExists = isNot(rightDiff, noteValue, undefined);
+        // const leftExists = isNot(leftDiff, noteValue, undefined);
+        // const rightExists = isNot(rightDiff, noteValue, undefined);
+        const leftExists = leftDiff && leftDiff[noteValue] !== undefined;
+        const rightExists = rightDiff && rightDiff[noteValue] !== undefined;
 
         // this fret is filled now,
         // and does not have a destination in the fretboard to the left/right
-        const leftEmpty = isSelected && is(leftDiff, noteValue, -9999);
-        const rightEmpty = isSelected && is(rightDiff, noteValue, -9999);
+        const leftEmpty =
+            isSelected && leftExists && leftDiff[noteValue] === -9999;
+        const rightEmpty =
+            isSelected && rightExists && rightDiff[noteValue] === -9999;
 
         // this fret is empty now,
         // and has a destination in the fretboard to the left/right
-        const leftFill = !isSelected && is(leftDiff, noteValue, 9999);
-        const rightFill = !isSelected && is(rightDiff, noteValue, 9999);
+        const leftFill =
+            !isSelected && leftExists && leftDiff[noteValue] === 9999;
+        const rightFill =
+            !isSelected && rightExists && rightDiff[noteValue] === 9999;
 
         // consts
         const origin = 50;
@@ -345,18 +345,9 @@ export const Fret: React.FC<Props> = ({
         shadowRef.current.style.top = getTopMargin(diameter);
 
         // set circle colors
-        circleRef.current.style.color =
-            status === HIGHLIGHTED && !isSelected
-                ? lightGrey
-                : // : status !== HIGHLIGHTED && !isSelected
-                  // ? mediumGrey
-                  darkGrey;
-        circleRef.current.style.border =
-            status === HIGHLIGHTED && !isSelected
-                ? `1px solid ${lightGrey}`
-                : // : status !== HIGHLIGHTED && !isSelected
-                  // ? `1px solid ${mediumGrey}`
-                  `1px solid ${darkGrey}`;
+        const circleBorderColor = getCircleBorderColor(status, isSelected);
+        circleRef.current.style.color = circleBorderColor;
+        circleRef.current.style.border = `1px solid ${circleBorderColor}`;
 
         // set background color
         shadowRef.current.style.backgroundColor = backgroundColor;
@@ -524,6 +515,7 @@ export const Fret: React.FC<Props> = ({
             borderRight={fretBorder}
             width={`${fretWidth}px`}
             height="100%"
+            animationBackground={playingColor}
             // onContextMenu={onContextMenu}
         >
             <StringSegmentDiv
@@ -550,6 +542,7 @@ export const Fret: React.FC<Props> = ({
                 backgroundColor={backgroundColor}
                 left="50%"
                 top={`${top}`}
+                // className="fret-animation"
             />
             <StringSegmentDiv
                 height={`${thickness}px`}

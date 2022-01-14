@@ -65,13 +65,11 @@ export const App: React.FC<Props> = ({ oldState }) => {
     };
 
     return (
-        <div>
-            <Dashboard
-                appStore={appStore}
-                sliderStore={sliderStore}
-                audioStore={audioStore}
-                touchStore={touchStore}
-            />
-        </div>
+        <Dashboard
+            appStore={appStore}
+            sliderStore={sliderStore}
+            audioStore={audioStore}
+            touchStore={touchStore}
+        />
     );
 };

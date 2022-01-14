@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { AppStore, getComputedAppState, useStateRef } from "../../store";
-import { getName, getNotes } from "../../utils";
+import { getName } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { TitleContainerDiv } from "./style";
 
@@ -10,9 +10,9 @@ interface Props {
 }
 
 export const Title: React.FC<Props> = ({ appStore }) => {
-    const { fretboard, progression } = getComputedAppState(appStore.state);
+    const { fretboard, progression } = appStore.getComputedState();
     const [getState, setState] = useStateRef(() => ({
-        name: getName(getNotes(fretboard), progression.label)[0],
+        name: getName(fretboard, progression.label)[0],
     }));
     const { name } = getState();
     const { rootName, chordName } = name;
@@ -20,7 +20,7 @@ export const Title: React.FC<Props> = ({ appStore }) => {
     useEffect(() => {
         return appStore.addListener((newState) => {
             const { fretboard, progression } = getComputedAppState(newState);
-            const name = getName(getNotes(fretboard), progression.label)[0];
+            const name = getName(fretboard, progression.label)[0];
             if (getState().name !== name) setState({ name });
         });
     }, []);

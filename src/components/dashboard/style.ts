@@ -19,22 +19,3 @@ export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
     font-family: Arial;
     overflow: hidden;
 `;
-
-export const DashboardContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-    },
-}))<CSSProps>``;
-
-export const FlexContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-    },
-}))<CSSProps>``;
-
-export const FlexRow = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    display: flex;
-    justify-content: space-evenly;
-`;

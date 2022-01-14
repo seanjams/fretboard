@@ -6,19 +6,6 @@ interface CSSProps extends CSS.Properties {
     scriptFontSize?: number;
 }
 
-export const FlexRow = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    flex-wrap: nowrap;
-`;
-
-export const Spacer = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>``;
-
 export const SymbolSpan = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,

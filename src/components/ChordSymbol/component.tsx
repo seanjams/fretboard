@@ -1,11 +1,6 @@
 import React from "react";
-import {
-    FlexRow,
-    Spacer,
-    StandardScript,
-    SuperScript,
-    SymbolSpan,
-} from "./style";
+import { Div, FlexRow } from "../Common";
+import { StandardScript, SuperScript, SymbolSpan } from "./style";
 
 interface Props {
     rootName: string;
@@ -81,10 +76,10 @@ export const ChordSymbol: React.FC<Props> = ({
     const chordNameCrumbs = generateCrumbs(chordName, fontSize);
 
     return (
-        <FlexRow>
+        <FlexRow flexWrap="nowrap" justifyContent="start">
             {rootNameCrumbs}
             {rootNameCrumbs.length && chordNameCrumbs.length ? (
-                <Spacer width={`${fontSize / 4}px`} />
+                <Div width={`${fontSize / 4}px`} />
             ) : null}
             {chordNameCrumbs}
         </FlexRow>

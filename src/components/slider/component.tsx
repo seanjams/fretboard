@@ -18,9 +18,9 @@ import {
     AudioStore,
 } from "../../store";
 import { ChordSymbol } from "../ChordSymbol";
+import { FlexRow } from "../Common";
 import {
     AnimationWrapper,
-    ContainerDiv,
     ProgressBar,
     ProgressBarFragment,
     ProgressBarName,
@@ -70,7 +70,7 @@ export const Slider: React.FC<SliderProps> = ({
     const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
 
     useEffect(() => {
-        const destroySliderListener = sliderStore.addListener(
+        const destroySliderStoreListener = sliderStore.addListener(
             (newSliderData) => {
                 const { rehydrateSuccess } = newSliderData;
                 if (getState().rehydrateSuccess !== rehydrateSuccess)
@@ -78,7 +78,7 @@ export const Slider: React.FC<SliderProps> = ({
             }
         );
 
-        const destroyListener = appStore.addListener((newState) => {
+        const destroyAppStoreListener = appStore.addListener((newState) => {
             const { currentProgressionIndex, progression } =
                 getComputedAppState(newState);
             const { label, fretboards, hiddenFretboardIndices } = progression;
@@ -124,8 +124,8 @@ export const Slider: React.FC<SliderProps> = ({
         }
 
         return () => {
-            destroyListener();
-            destroySliderListener();
+            destroyAppStoreListener();
+            destroySliderStoreListener();
             window.removeEventListener("mousemove", onMouseMove);
             window.removeEventListener("mouseup", onMouseUp);
             window.removeEventListener("touchmove", onMouseMove);
@@ -386,7 +386,7 @@ export const Slider: React.FC<SliderProps> = ({
     };
 
     return (
-        <ContainerDiv>
+        <FlexRow width="100%">
             {visibleFretboards.length > 1 && (
                 <ProgressBar
                     id="progress-bar"
@@ -415,7 +415,7 @@ export const Slider: React.FC<SliderProps> = ({
                     </AnimationWrapper>
                     {visibleFretboards.map((fretboard, i) => {
                         const { rootName, chordName } = getName(
-                            getNotes(fretboard),
+                            fretboard,
                             label
                         )[0];
                         return (
@@ -437,6 +437,6 @@ export const Slider: React.FC<SliderProps> = ({
                     })}
                 </ProgressBar>
             )}
-        </ContainerDiv>
+        </FlexRow>
     );
 };

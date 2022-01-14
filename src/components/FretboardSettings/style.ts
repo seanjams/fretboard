@@ -15,9 +15,6 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     .settings-form {
         opacity: 0;
-        color: #333;
-        height: 100%;
-        width: 100%;
         max-height: ${(props) => props.minInputHeight}px;
     }
 
@@ -54,15 +51,4 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
         max-height: ${(props) => props.minInputHeight}px;
         margin-top: 0;
     }
-`;
-
-export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-    },
-}))<CSSProps>`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
 `;

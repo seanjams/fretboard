@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { useStateRef, AppStore, AudioStore } from "../../store";
 import { ArrowTypes } from "../../types";
 import {
-    COLORS,
     HIGHLIGHTED,
     SELECTED,
     BRUSH_MODES,
@@ -11,6 +10,7 @@ import {
 } from "../../utils";
 import { CircleControlsContainer, Label } from "./style";
 import { CircleIconButton, HighlightButton } from "../Button";
+import { Div } from "../Common";
 import PlusIcon from "../../assets/icons/plus.png";
 import MinusIcon from "../../assets/icons/minus.png";
 import LeftIcon from "../../assets/icons/left-arrow.png";
@@ -32,70 +32,43 @@ export const PositionControls: React.FC<PositionControlProps> = ({
     audioStore,
 }) => {
     const onArrowPress = (dir: ArrowTypes) => () => {
-        const { invert, leftHand, strumMode } = appStore.state;
-
-        // Get the action direction based on orientation of fretboard
-        // could maybe move this to reducer.
-        // highEBottom
-        // 	- whether the high E string appears on the top or bottom of the fretboard,
-        // 	- depending on invert/leftHand views
-        const highEBottom = invert !== leftHand;
-        const up = (dir === "ArrowDown" && highEBottom) || dir === "ArrowUp";
-        const down = (dir === "ArrowUp" && highEBottom) || dir === "ArrowDown";
-        const right = (dir === "ArrowLeft" && invert) || dir === "ArrowRight";
-        const left = (dir === "ArrowRight" && invert) || dir === "ArrowLeft";
-        let playSound = up || down || left || right;
-
-        if (up) {
-            appStore.dispatch.incrementPositionY();
-        } else if (down) {
-            appStore.dispatch.decrementPositionY();
-        } else if (right) {
-            appStore.dispatch.incrementPositionX();
-        } else if (left) {
-            appStore.dispatch.decrementPositionX();
-        }
-
-        if (playSound) {
-            const { fretboard } = appStore.getComputedState();
-            if (strumMode === STRUM_LOW_TO_HIGH)
-                audioStore.strumChord(fretboard);
-            else {
-                audioStore.arpeggiateChord(fretboard);
-            }
-        }
+        appStore.dispatch.setHighlightedPosition(dir);
+        const { fretboard, strumMode } = appStore.getComputedState();
+        strumMode === STRUM_LOW_TO_HIGH
+            ? audioStore.strumChord(fretboard)
+            : audioStore.arpeggiateChord(fretboard);
     };
 
     return (
         <CircleControlsContainer>
-            <div className="circle-button-container">
+            <Div className="circle-button-container">
                 <CircleIconButton
                     onClick={onArrowPress("ArrowLeft")}
                     imageSrc={LeftIcon}
                 />
                 <Label>{""}</Label>
-            </div>
-            <div className="circle-button-container">
+            </Div>
+            <Div className="circle-button-container">
                 <CircleIconButton
                     onClick={onArrowPress("ArrowDown")}
                     imageSrc={DownIcon}
                 />
                 <Label>{""}</Label>
-            </div>
-            <div className="circle-button-container">
+            </Div>
+            <Div className="circle-button-container">
                 <CircleIconButton
                     onClick={onArrowPress("ArrowUp")}
                     imageSrc={UpIcon}
                 />
                 <Label>{""}</Label>
-            </div>
-            <div className="circle-button-container">
+            </Div>
+            <Div className="circle-button-container">
                 <CircleIconButton
                     onClick={onArrowPress("ArrowRight")}
                     imageSrc={RightIcon}
                 />
                 <Label>{""}</Label>
-            </div>
+            </Div>
         </CircleControlsContainer>
     );
 };
@@ -136,30 +109,23 @@ export const HighlightControls: React.FC<Props> = ({ appStore }) => {
 
     return (
         <CircleControlsContainer>
-            <div className="circle-button-container">
+            <Div className="circle-button-container">
                 <CircleIconButton onClick={onClearNotes} imageSrc={ClearIcon} />
                 <Label>{""}</Label>
-            </div>
-            <div className="circle-button-container">
+            </Div>
+            <Div className="circle-button-container">
                 <CircleIconButton
                     onClick={onClearHighlight}
                     imageSrc={ClearIcon}
                 />
                 <Label>{"clear highlight"}</Label>
-            </div>
-            <div className="circle-button-container">
+            </Div>
+            <Div className="circle-button-container">
                 <HighlightButton onClick={onStatusChange} />
                 <Label>
                     {status === HIGHLIGHTED && BRUSH_MODES[HIGHLIGHTED]}
                 </Label>
-            </div>
-            <div className="circle-button-container">
-                <CircleIconButton
-                    onClick={onShowSettings}
-                    imageSrc={ClearIcon}
-                />
-                <Label>Settings</Label>
-            </div>
+            </Div>
         </CircleControlsContainer>
     );
 };
@@ -167,91 +133,153 @@ export const HighlightControls: React.FC<Props> = ({ appStore }) => {
 export const SliderControls: React.FC<Props> = ({ appStore }) => {
     return (
         <CircleControlsContainer>
-            <div className="circle-button-container">
+            <Div className="circle-button-container">
                 <CircleIconButton
                     onClick={appStore.dispatch.addFretboard}
                     imageSrc={PlusIcon}
                 />
-            </div>
-            <div className="circle-button-container">
+            </Div>
+            <Div className="circle-button-container">
                 <CircleIconButton
                     onClick={appStore.dispatch.removeFretboard}
                     imageSrc={MinusIcon}
                 />
-            </div>
+            </Div>
         </CircleControlsContainer>
     );
 };
 
-export const FretboardSettingsControls: React.FC<PositionControlProps> = ({
+interface FretboardSettingsControlProps extends Props {
+    audioStore: AudioStore;
+}
+
+export const FretboardSettingsControls: React.FC<FretboardSettingsControlProps> =
+    ({ appStore, audioStore }) => {
+        const [getState, setState] = useStateRef(() => ({
+            strumMode: appStore.state.strumMode,
+            isMuted: audioStore.state.isMuted,
+        }));
+        const { strumMode, isMuted } = getState();
+
+        useEffect(() => {
+            const destroyAppStateListener = appStore.addListener(
+                ({ strumMode }) => {
+                    if (getState().strumMode !== strumMode)
+                        setState({ strumMode });
+                }
+            );
+            const destroyAudioStateListener = audioStore.addListener(
+                ({ isMuted }) => {
+                    if (getState().isMuted !== isMuted) setState({ isMuted });
+                }
+            );
+            return () => {
+                destroyAppStateListener();
+                destroyAudioStateListener();
+            };
+        }, []);
+
+        const onStrumModeChange = (event: MouseEvent | TouchEvent) => {
+            event.preventDefault();
+            const { strumMode } = appStore.state;
+            appStore.dispatch.setStrumMode(
+                strumMode === STRUM_LOW_TO_HIGH
+                    ? ARPEGGIATE_LOW_TO_HIGH
+                    : STRUM_LOW_TO_HIGH
+            );
+        };
+
+        return (
+            <CircleControlsContainer>
+                <Div className="circle-button-container">
+                    <CircleIconButton
+                        onClick={appStore.dispatch.toggleLeftHand}
+                        imageSrc={ClearIcon}
+                    />
+                    <Label>Left Hand</Label>
+                </Div>
+                <Div className="circle-button-container">
+                    <CircleIconButton
+                        onClick={appStore.dispatch.toggleInvert}
+                        imageSrc={ClearIcon}
+                    />
+                    <Label>Invert</Label>
+                </Div>
+                <Div className="circle-button-container">
+                    <CircleIconButton
+                        onClick={onStrumModeChange}
+                        imageSrc={ClearIcon}
+                    />
+                    <Label>
+                        {strumMode === STRUM_LOW_TO_HIGH
+                            ? "strum"
+                            : "arpeggiate"}
+                    </Label>
+                </Div>
+                <Div className="circle-button-container">
+                    <CircleIconButton
+                        onClick={audioStore.dispatch.toggleMute}
+                        imageSrc={ClearIcon}
+                    />
+                    <Label>{isMuted ? "mute" : "unmute"}</Label>
+                </Div>
+            </CircleControlsContainer>
+        );
+    };
+
+interface PlayButtonProps extends Props {
+    audioStore: AudioStore;
+}
+
+export const PlayButton: React.FC<PlayButtonProps> = ({
     appStore,
     audioStore,
 }) => {
-    const [getState, setState] = useStateRef(() => ({
-        strumMode: appStore.state.strumMode,
-        isMuted: audioStore.state.isMuted,
-    }));
-    const { strumMode, isMuted } = getState();
-
-    useEffect(() => {
-        const destroyAppStateListener = appStore.addListener(
-            ({ strumMode }) => {
-                if (getState().strumMode !== strumMode) setState({ strumMode });
-            }
-        );
-        const destroyAudioStateListener = audioStore.addListener(
-            ({ isMuted }) => {
-                if (getState().isMuted !== isMuted) setState({ isMuted });
-            }
-        );
-        return () => {
-            destroyAppStateListener();
-            destroyAudioStateListener();
-        };
-    }, []);
-
-    const onStrumModeChange = (event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
-        const { strumMode } = appStore.state;
-        appStore.dispatch.setStrumMode(
-            strumMode === STRUM_LOW_TO_HIGH
-                ? ARPEGGIATE_LOW_TO_HIGH
-                : STRUM_LOW_TO_HIGH
-        );
+    const onPlayNotes = () => {
+        const { fretboard, strumMode } = appStore.getComputedState();
+        if (strumMode === STRUM_LOW_TO_HIGH) {
+            audioStore.strumChord(fretboard);
+        } else {
+            audioStore.arpeggiateChord(fretboard);
+        }
     };
 
     return (
         <CircleControlsContainer>
-            <div className="circle-button-container">
+            <Div className="circle-button-container">
+                <CircleIconButton onClick={onPlayNotes} imageSrc={PlusIcon} />
+            </Div>
+        </CircleControlsContainer>
+    );
+};
+
+export const SettingsButton: React.FC<Props> = ({ appStore }) => {
+    // const [getState, setState] = useStateRef(() => ({
+    //     showSettings: appStore.state.showSettings,
+    // }));
+    // const { showSettings } = getState(); // use to flip arrow around
+
+    // useEffect(() => {
+    //     return appStore.addListener(({ showSettings }) => {
+    //         if (getState().showSettings !== showSettings) {
+    //             setState({ showSettings });
+    //         }
+    //     });
+    // }, []);
+
+    const onShowSettings = () => {
+        appStore.dispatch.setShowSettings(!appStore.state.showSettings);
+    };
+
+    return (
+        <CircleControlsContainer>
+            <Div className="circle-button-container">
                 <CircleIconButton
-                    onClick={appStore.dispatch.toggleLeftHand}
+                    onClick={onShowSettings}
                     imageSrc={ClearIcon}
                 />
-                <Label>Left Hand</Label>
-            </div>
-            <div className="circle-button-container">
-                <CircleIconButton
-                    onClick={appStore.dispatch.toggleInvert}
-                    imageSrc={ClearIcon}
-                />
-                <Label>Invert</Label>
-            </div>
-            <div className="circle-button-container">
-                <CircleIconButton
-                    onClick={onStrumModeChange}
-                    imageSrc={ClearIcon}
-                />
-                <Label>
-                    {strumMode === STRUM_LOW_TO_HIGH ? "strum" : "arpeggiate"}
-                </Label>
-            </div>
-            <div className="circle-button-container">
-                <CircleIconButton
-                    onClick={audioStore.dispatch.toggleMute}
-                    imageSrc={ClearIcon}
-                />
-                <Label>{isMuted ? "mute" : "unmute"}</Label>
-            </div>
+                <Label>Settings</Label>
+            </Div>
         </CircleControlsContainer>
     );
 };

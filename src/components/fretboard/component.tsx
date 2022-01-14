@@ -25,6 +25,7 @@ import {
     FretboardDiv,
     OverflowContainerDiv,
 } from "./style";
+import { ArrowTypes } from "../../types";
 
 // Component
 interface Props {
@@ -55,7 +56,7 @@ export const Fretboard: React.FC<Props> = ({
     const scrollToFretRef = useRef(0);
 
     useEffect(() => {
-        const destroyListener = appStore.addListener((newState) => {
+        const destroyAppStoreListener = appStore.addListener((newState) => {
             const { showInput, progression, invert, leftHand, showSettings } =
                 getComputedAppState(newState);
             const { scrollToFret } = progression;
@@ -95,10 +96,16 @@ export const Fretboard: React.FC<Props> = ({
 
                 const halfContainerWidth =
                     fretboardContainerRef.current.offsetWidth / 2;
+                const scrollCenter = invert
+                    ? FRETBOARD_WIDTH - fretXPosition - halfContainerWidth
+                    : fretXPosition - halfContainerWidth;
+                // const left = invert
+                //     ? FRETBOARD_WIDTH - scrollCenter
+                //     : scrollCenter;
 
                 fretboardContainerRef.current.scrollTo({
                     top: 0,
-                    left: fretXPosition - halfContainerWidth,
+                    left: scrollCenter,
                     behavior: "smooth",
                 });
                 scrollToFretRef.current = scrollToFret;
@@ -107,36 +114,27 @@ export const Fretboard: React.FC<Props> = ({
 
         window.addEventListener("keydown", onKeyPress);
         return () => {
-            destroyListener();
+            destroyAppStoreListener();
             window.removeEventListener("keydown", onKeyPress);
         };
     }, []);
 
     const onKeyPress = useCallback((event: KeyboardEvent) => {
-        const { invert, leftHand, progression } = appStore.getComputedState();
+        const { progression } = appStore.getComputedState();
         const { label } = progression;
-        const highEBottom = invert !== leftHand;
-
-        // Get the action direction based on orientation of fretboard
-        // could maybe move this to reducer.
-        // highEBottom
-        // 	- whether the high E string appears on the top or bottom of the fretboard,
-        // 	- depending on invert/leftHand views
         let dir = event.key;
-        const up = (dir === "ArrowDown" && highEBottom) || dir === "ArrowUp";
-        const down = (dir === "ArrowUp" && highEBottom) || dir === "ArrowDown";
-        const right = (dir === "ArrowLeft" && invert) || dir === "ArrowRight";
-        const left = (dir === "ArrowRight" && invert) || dir === "ArrowLeft";
-        let playSound = up || down || left || right;
+        const isArrowDir =
+            dir === "ArrowUp" ||
+            dir === "ArrowDown" ||
+            dir === "ArrowLeft" ||
+            dir === "ArrowRight";
 
-        if (up) {
-            appStore.dispatch.incrementPositionY();
-        } else if (down) {
-            appStore.dispatch.decrementPositionY();
-        } else if (right) {
-            appStore.dispatch.incrementPositionX();
-        } else if (left) {
-            appStore.dispatch.decrementPositionX();
+        if (isArrowDir) {
+            appStore.dispatch.setHighlightedPosition(dir as ArrowTypes);
+            const { fretboard, strumMode } = appStore.getComputedState();
+            strumMode === STRUM_LOW_TO_HIGH
+                ? audioStore.strumChord(fretboard)
+                : audioStore.arpeggiateChord(fretboard);
         } else {
             const naturalNotesKeyMap = NATURAL_NOTE_KEYMAP[label];
             if (naturalNotesKeyMap.hasOwnProperty(event.key)) {
@@ -146,15 +144,6 @@ export const Fretboard: React.FC<Props> = ({
                     naturalNotesKeyMap[event.key],
                     SELECTED
                 );
-            }
-        }
-
-        if (playSound) {
-            const { fretboard, strumMode } = appStore.getComputedState();
-            if (strumMode === STRUM_LOW_TO_HIGH)
-                audioStore.strumChord(fretboard);
-            else {
-                audioStore.arpeggiateChord(fretboard);
             }
         }
     }, []);

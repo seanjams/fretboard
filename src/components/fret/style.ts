@@ -6,6 +6,7 @@ import { CIRCLE_SIZE, SP, darkGrey, lightGrey } from "../../utils";
 interface CSSProps extends CSS.Properties {
     legendTop?: boolean;
     fretBorder?: string;
+    animationBackground?: string;
 }
 
 export const FretDiv = styled.div.attrs((props: CSSProps) => ({
@@ -22,6 +23,11 @@ export const FretDiv = styled.div.attrs((props: CSSProps) => ({
     -moz-user-select: none; /* mozilla browsers */
     -khtml-user-select: none; /* webkit (konqueror) browsers */
     -ms-user-select: none; /* IE10+ */
+
+    .fret-animation {
+        background: ${(props) => props.animationBackground};
+        transition: background 150ms ease-in-out;
+    }
 `;
 
 export const CircleDiv = styled.div.attrs((props: CSSProps) => ({

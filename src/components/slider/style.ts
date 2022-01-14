@@ -12,15 +12,6 @@ interface CSSProps extends CSS.Properties {
     maxSliderSize?: number;
 }
 
-export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-`;
-
 export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`

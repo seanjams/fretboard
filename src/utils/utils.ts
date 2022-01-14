@@ -338,7 +338,7 @@ export function list(fretboard: StringSwitchType): number[] {
 }
 
 export function getName(
-    notes: NoteSwitchType,
+    fretboard: StringSwitchType,
     label: LabelTypes
 ): {
     rootIdx: number;
@@ -346,9 +346,7 @@ export function getName(
     chordName: string;
     foundChordName: ChordTypes | "";
 }[] {
-    function getNoteName(idx: number): NoteTypes {
-        return label === "sharp" ? SHARP_NAMES[idx] : FLAT_NAMES[idx];
-    }
+    const notes = getNotes(fretboard);
 
     // find chord
     for (let shapeName of Object.keys(SHAPES) as Array<ChordTypes>) {
@@ -364,7 +362,10 @@ export function getName(
             if (isEqual(tempNotes, chordShape)) {
                 matchingChordShapes.push({
                     rootIdx: +chordNote,
-                    rootName: getNoteName(+chordNote),
+                    rootName:
+                        label === "sharp"
+                            ? SHARP_NAMES[+chordNote]
+                            : FLAT_NAMES[+chordNote],
                     chordName: shapeName,
                     foundChordName: shapeName,
                 });
@@ -380,7 +381,10 @@ export function getName(
     // if not found, build comma separated list of note names
     const noteNames: NoteTypes[] = [];
     for (let i in notes) {
-        if (notes[i]) noteNames.push(getNoteName(+i));
+        if (notes[i])
+            noteNames.push(
+                label === "sharp" ? SHARP_NAMES[+i] : FLAT_NAMES[+i]
+            );
     }
 
     return [
@@ -474,8 +478,6 @@ export function moveHighight(
         }
     }
 
-    // debugger;
-
     if (valid) {
         for (let change of turnOff) {
             setFret(fretboard, change[0], change[1], SELECTED);
@@ -489,7 +491,7 @@ export function moveHighight(
     return valid && !!turnOff.length && !!turnOn.length;
 }
 
-export function getNotesForAnimation(rootIdx: number, chordName: ChordTypes) {
+export function getNotesByChordName(rootIdx: number, chordName: ChordTypes) {
     let notes = SHAPES[chordName].map((i) => mod(i + rootIdx, 12));
     notes.sort((a, b) => a - b);
     return notes;
