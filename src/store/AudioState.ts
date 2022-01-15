@@ -1,4 +1,5 @@
 import { Howl, Howler } from "howler";
+// import * as Tone from "tone";
 import { StringSwitchType } from "../types";
 import {
     STANDARD_TUNING,
@@ -36,6 +37,7 @@ const VOLUME = 0.1;
 
 // Types
 export interface AudioStateType {
+    // stringSounds: Tone.Player[];
     stringSounds: Howl[];
     isLoaded: boolean;
     isPlaying: Set<any>;
@@ -89,6 +91,37 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
             "b"
         )}`;
         const stringSound = this.state.stringSounds[stringIndex];
+        // if (stringSound) {
+        // // stringSound.pause();
+        // const fretName = `${stringIndex}_${fretIndex}`;
+        // this.dispatch.clearIsPlaying();
+        // this.dispatch.setIsPlaying(fretName, true);
+        // const soundId = stringSound.play(fretKey);
+        // stringSound.on(
+        //     "end",
+        //     (e) => {
+        //         this.dispatch.setIsPlaying(fretName, false);
+        //     },
+        //     soundId
+        // );
+        // const stringJson = [
+        //     String_0_E,
+        //     String_1_A,
+        //     String_2_D,
+        //     String_3_G,
+        //     String_4_B,
+        //     String_5_E,
+        // ];
+
+        // const spriteLocation = stringJson[stringIndex].sprite[fretKey];
+        // const spriteStart = stringJson[stringIndex].sprite[fretKey][0];
+        // const spriteLength = stringJson[stringIndex].sprite[fretKey][1];
+        // console.log(stringSound, spriteLocation, spriteStart, spriteLength);
+        // stringSound.stop();
+        // stringSound.seek(spriteStart);
+        // stringSound.start(0, 0, spriteLength);
+        // stringSound.stop(spriteLength);
+        // }
 
         if (stringSound) {
             // stringSound.pause();
@@ -128,6 +161,27 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
             // set the speed and start the ticks
             this.timerWorker.postMessage({ interval });
             this.timerWorker.postMessage("start");
+
+            // Tone.Transport.cancel(0);
+            // if (Tone.context.state !== "running") Tone.context.resume();
+
+            // const pattern = new Tone.Loop((time) => {
+            //     if (sounds.length) {
+            //         console.log("INHERE", sounds);
+
+            //         this.playNote(...sounds[0]);
+            //         sounds.splice(0, 1);
+            //     } else {
+            //         for (let stringSound of this.state.stringSounds) {
+            //             stringSound.stop(2000);
+            //         }
+            //     }
+            // });
+
+            // // pattern.loop = 0;
+            // pattern.iterations = sounds.length;
+            // pattern.start();
+            // Tone.Transport.start();
         }
     }
 
@@ -229,7 +283,32 @@ export function DEFAULT_AUDIO_STATE(): AudioStateType {
         });
     }
 
+    // function createTone(name: keyof typeof stringJson): Tone.Player {
+    //     const sprite = stringJson[name].sprite as {
+    //         [name: string]: [number, number];
+    //     };
+    //     const urls = soundUrls[name];
+
+    //     console.log(urls);
+
+    //     const tone = new Tone.Player({
+    //         url: urls[1],
+    //     }).toDestination();
+
+    //     tone.volume.value = 0.1;
+
+    //     return tone;
+    // }
+
     return {
+        // stringSounds: [
+        //     createTone("String_0_E"),
+        //     createTone("String_1_A"),
+        //     createTone("String_2_D"),
+        //     createTone("String_3_G"),
+        //     createTone("String_4_B"),
+        //     createTone("String_5_E"),
+        // ],
         stringSounds: [
             createHowl("String_0_E"),
             createHowl("String_1_A"),

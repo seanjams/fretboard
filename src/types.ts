@@ -69,3 +69,5 @@ export type ChordTypes =
     | "Neopolitan";
 
 export type DragStatusTypes = "on" | "off" | null;
+
+export type DisplayTypes = "normal" | "slider" | "input" | "settings";

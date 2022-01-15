@@ -13,7 +13,6 @@ import {
 import {
     useStateRef,
     AppStore,
-    SliderStore,
     getComputedAppState,
     AudioStore,
 } from "../../store";
@@ -30,83 +29,75 @@ import { isEqual } from "lodash";
 
 interface SliderProps {
     appStore: AppStore;
-    sliderStore: SliderStore;
     audioStore: AudioStore;
 }
 
-export const Slider: React.FC<SliderProps> = ({
-    appStore,
-    sliderStore,
-    audioStore,
-}) => {
+export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     // state
-    const { progression } = appStore.getComputedState();
+    const { progression, visibleFretboards, currentFretboardIndex } =
+        appStore.getComputedState();
     const [getState, setState] = useStateRef(() => ({
         label: progression.label,
-        hiddenFretboardIndices: progression.hiddenFretboardIndices,
-        rehydrateSuccess: sliderStore.state.rehydrateSuccess,
+        hiddenFretboardIndex: appStore.state.hiddenFretboardIndex,
+        rehydrateSuccess: appStore.state.rehydrateSuccess,
         currentProgressionIndex: appStore.state.currentProgressionIndex,
-        visibleFretboards: getVisibleFretboards(
-            progression.fretboards,
-            progression.hiddenFretboardIndices
-        ),
+        fretboards: visibleFretboards,
         left: -1000000,
         dragging: false,
     }));
     const {
         label,
         left,
-        rehydrateSuccess,
-        currentProgressionIndex,
-        visibleFretboards,
+        // rehydrateSuccess,
+        // currentProgressionIndex,
+        fretboards,
         dragging,
     } = getState();
 
     // refs
-    // const draggingRef = useRef(false);
+    const currentFretboardIndexRef = useRef(currentFretboardIndex);
     const deltaRef = useRef(0);
     const progressBarRef = useRef<HTMLDivElement>(null);
     const sliderBarRef = useRef<HTMLDivElement>(null);
     const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
 
     useEffect(() => {
-        const destroySliderStoreListener = sliderStore.addListener(
-            (newSliderData) => {
-                const { rehydrateSuccess } = newSliderData;
-                if (getState().rehydrateSuccess !== rehydrateSuccess)
-                    setState({ rehydrateSuccess });
-            }
-        );
-
         const destroyAppStoreListener = appStore.addListener((newState) => {
-            const { currentProgressionIndex, progression } =
-                getComputedAppState(newState);
-            const { label, fretboards, hiddenFretboardIndices } = progression;
-            const visibleFretboards = getVisibleFretboards(
-                fretboards,
-                hiddenFretboardIndices
-            );
+            const {
+                currentProgressionIndex,
+                progression,
+                visibleFretboards,
+                rehydrateSuccess,
+                currentFretboardIndex,
+                hiddenFretboardIndex,
+            } = getComputedAppState(newState);
+            const { label } = progression;
 
             const visibleFretboardsChanged = !isEqual(
-                getState().visibleFretboards,
+                getState().fretboards,
                 visibleFretboards
             );
+
             if (
                 visibleFretboardsChanged ||
                 getState().label !== label ||
-                getState().hiddenFretboardIndices !== hiddenFretboardIndices ||
-                getState().currentProgressionIndex !== currentProgressionIndex
+                getState().hiddenFretboardIndex !== hiddenFretboardIndex ||
+                getState().currentProgressionIndex !==
+                    currentProgressionIndex ||
+                getState().rehydrateSuccess !== rehydrateSuccess
             ) {
                 setState({
-                    visibleFretboards: JSON.parse(
-                        JSON.stringify(visibleFretboards)
-                    ),
+                    fretboards: JSON.parse(JSON.stringify(visibleFretboards)),
                     label,
-                    hiddenFretboardIndices,
+                    hiddenFretboardIndex,
                     currentProgressionIndex,
+                    rehydrateSuccess,
                 });
                 // if (visibleFretboardsChanged) snapToGridAnimation(true);
             }
+
+            if (currentFretboardIndexRef.current !== currentFretboardIndex)
+                currentFretboardIndexRef.current = currentFretboardIndex;
         });
 
         window.addEventListener("mousemove", onMouseMove);
@@ -118,14 +109,12 @@ export const Slider: React.FC<SliderProps> = ({
         if (progressBarRef.current && sliderBarRef.current) {
             const origin = progressBarRef.current.offsetLeft;
             const sliderBarWidth = sliderBarRef.current.offsetWidth;
-            const fragmentWidth =
-                getProgressBarFragmentWidth(visibleFretboards);
+            const fragmentWidth = getProgressBarFragmentWidth(fretboards);
             setState({ left: origin + fragmentWidth / 2 - sliderBarWidth / 2 });
         }
 
         return () => {
             destroyAppStoreListener();
-            destroySliderStoreListener();
             window.removeEventListener("mousemove", onMouseMove);
             window.removeEventListener("mouseup", onMouseUp);
             window.removeEventListener("touchmove", onMouseMove);
@@ -134,18 +123,19 @@ export const Slider: React.FC<SliderProps> = ({
     }, []);
 
     // useEffect(() => {
-    //     // set default position to be halfway through the fragment of the current focusedIndex
-    // if (sliderBarRef.current && progressBarRef.current) {
-    //     const { focusedIndex, fretboards } = appStore.getComputedState().progression;
+    //     // set default position to be halfway through the fragment of the current currentFretboardIndex
+    //     if (sliderBarRef.current && progressBarRef.current) {
+    //         const { currentFretboardIndex, fretboards } =
+    //             appStore.getComputedState().progression;
 
     //         // dont update if in middle of animation
-    //         const { visibleFretboards, hiddenFretboardIndices } = getState();
+    //         const { visibleFretboards, hiddenFretboardIndex } = getState();
 
-    //         if (hiddenFretboardIndices && hiddenFretboardIndices.length) return;
+    //         if (hiddenFretboardIndex >= 0) return;
 
     //         const newVisibleFretboards = getVisibleFretboards(
     //             fretboards,
-    //             hiddenFretboardIndices
+    //             hiddenFretboardIndex
     //         );
     //         const visibleFretboardsChanged = !isEqual(
     //             visibleFretboards,
@@ -156,7 +146,7 @@ export const Slider: React.FC<SliderProps> = ({
     //             getProgressBarFragmentWidth(newVisibleFretboards);
     //         const origin = progressBarRef.current.offsetLeft;
     //         const newLeft =
-    //             progressBarFragmentWidth * (focusedIndex + 0.5) -
+    //             progressBarFragmentWidth * (currentFretboardIndex + 0.5) -
     //             sliderBarRef.current.offsetWidth / 2 +
     //             origin;
 
@@ -186,8 +176,7 @@ export const Slider: React.FC<SliderProps> = ({
 
         // get widths, maxwidth is how far the left of the slider can move
         // aka full bar - width of slider
-        const { visibleFretboards, dragging } = getState();
-        const { focusedIndex } = appStore.getComputedState().progression;
+        const { fretboards, dragging } = getState();
         const origin = progressBarRef.current.offsetLeft;
         const progressBarWidth = progressBarRef.current.offsetWidth;
         const sliderBarWidth = sliderBarRef.current.offsetWidth;
@@ -200,33 +189,15 @@ export const Slider: React.FC<SliderProps> = ({
 
         // get the current focused fretboard index from progress of slider
         const progressBarFragmentWidth =
-            getProgressBarFragmentWidth(visibleFretboards);
+            getProgressBarFragmentWidth(fretboards);
         const sliderProgressFragment = newLeft + sliderBarWidth / 2 - origin;
 
-        const newFocusedIndex = Math.min(
-            Math.max(
-                Math.floor(sliderProgressFragment / progressBarFragmentWidth),
-                0
-            ),
-            visibleFretboards.length - 1
-        );
-
-        // progress is decimal value of focusedIndex.
+        // progress is decimal value of currentFretboardIndex.
         // If you treat the slider bar as a number line, where the fretboard divisions
         // are the integers, progress is location on this number line.
-        sliderStore.dispatch.setProgress(
-            Math.max(sliderProgressFragment / progressBarFragmentWidth, 0)
+        appStore.dispatch.setProgress(
+            sliderProgressFragment / progressBarFragmentWidth
         );
-
-        if (newFocusedIndex !== focusedIndex) {
-            appStore.dispatch.setFocusedIndex(newFocusedIndex || 0);
-            const { fretboard, strumMode } = appStore.getComputedState();
-            if (strumMode === STRUM_LOW_TO_HIGH)
-                audioStore.strumChord(fretboard);
-            else {
-                audioStore.arpeggiateChord(fretboard);
-            }
-        }
 
         // update slider position
         setState({
@@ -240,23 +211,18 @@ export const Slider: React.FC<SliderProps> = ({
         // cancel past animation if pressed quickly
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
-        const { progression } = appStore.getComputedState();
-        const { focusedIndex, fretboards, hiddenFretboardIndices } =
-            progression;
-        const visibleFretboards = getVisibleFretboards(
-            fretboards,
-            hiddenFretboardIndices
-        );
+        const { visibleFretboards, currentFretboardIndex } =
+            appStore.getComputedState();
         const origin = progressBarRef.current.offsetLeft;
         const sliderBarWidth = sliderBarRef.current.offsetWidth;
 
         // aliases for
-        const leftSlideWindow = focusedIndex + SLIDER_LEFT_WINDOW;
-        const rightSlideWindow = focusedIndex + SLIDER_RIGHT_WINDOW;
-        const halfSlideWindow = focusedIndex + 0.5;
+        const leftSlideWindow = currentFretboardIndex + SLIDER_LEFT_WINDOW;
+        const rightSlideWindow = currentFretboardIndex + SLIDER_RIGHT_WINDOW;
+        const halfSlideWindow = currentFretboardIndex + 0.5;
 
         // only go to edge of slider window to make animation smoother
-        let nextProgress = sliderStore.state.progress;
+        let nextProgress = appStore.state.progress;
         let lastProgress =
             nextProgress > rightSlideWindow
                 ? rightSlideWindow
@@ -294,12 +260,12 @@ export const Slider: React.FC<SliderProps> = ({
 
             // increment progress and left on each frame
             setState({ left: nextLeft });
-            sliderStore.dispatch.setProgress(nextProgress);
+            appStore.dispatch.setProgress(nextProgress);
             if (frameCount === totalFrames) {
                 // clear interval
                 cancelAnimationFrame(animationRef.current);
                 setState({ left: lastLeft });
-                sliderStore.dispatch.setProgress(halfSlideWindow);
+                appStore.dispatch.setProgress(halfSlideWindow);
             }
         };
         requestAnimationFrame(performAnimation);
@@ -312,10 +278,9 @@ export const Slider: React.FC<SliderProps> = ({
         if (getState().dragging) {
             setState({ dragging: false });
             stopClick();
+            // snap to grid if click or drag release
+            snapToGridAnimation();
         }
-
-        // snap to grid if click or drag release
-        snapToGridAnimation();
     };
 
     // slider grab
@@ -387,7 +352,7 @@ export const Slider: React.FC<SliderProps> = ({
 
     return (
         <FlexRow width="100%">
-            {visibleFretboards.length > 1 && (
+            {fretboards.length > 1 && (
                 <ProgressBar
                     id="progress-bar"
                     ref={progressBarRef}
@@ -398,7 +363,7 @@ export const Slider: React.FC<SliderProps> = ({
                     <AnimationWrapper minSliderSize={44} maxSliderSize={50}>
                         <CSSTransition
                             in={dragging}
-                            timeout={300}
+                            timeout={50}
                             classNames="slider-grow"
                             // onEnter={() => setShowButton(false)}
                             // onExited={() => setShowButton(true)}
@@ -413,7 +378,7 @@ export const Slider: React.FC<SliderProps> = ({
                             />
                         </CSSTransition>
                     </AnimationWrapper>
-                    {visibleFretboards.map((fretboard, i) => {
+                    {fretboards.map((fretboard, i) => {
                         const { rootName, chordName } = getName(
                             fretboard,
                             label
@@ -421,9 +386,9 @@ export const Slider: React.FC<SliderProps> = ({
                         return (
                             <ProgressBarFragment
                                 key={`button-pad-${i}`}
-                                width={`${100 / visibleFretboards.length}%`}
+                                width={`${100 / fretboards.length}%`}
                                 isFirst={i === 0}
-                                isLast={i === visibleFretboards.length - 1}
+                                isLast={i === fretboards.length - 1}
                             >
                                 <ProgressBarName>
                                     <ChordSymbol

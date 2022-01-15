@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useStateRef, AppStore, AudioStore } from "../../store";
-import { ArrowTypes } from "../../types";
+import { ArrowTypes, DisplayTypes } from "../../types";
 import {
     HIGHLIGHTED,
     SELECTED,
@@ -101,10 +101,6 @@ export const HighlightControls: React.FC<Props> = ({ appStore }) => {
 
     const onClearHighlight = () => {
         appStore.dispatch.clearHighlight();
-    };
-
-    const onShowBottomDrawer = () => {
-        appStore.dispatch.setShowBottomDrawer(!appStore.state.showBottomDrawer);
     };
 
     return (
@@ -244,10 +240,31 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
         }
     };
 
+    const onShowSlider = () => {
+        let display: DisplayTypes =
+            appStore.state.display === "slider" ? "normal" : "slider";
+        appStore.dispatch.setDisplay(display);
+    };
+
+    const onShowInput = () => {
+        let display: DisplayTypes =
+            appStore.state.display === "input" ? "normal" : "input";
+        appStore.dispatch.setDisplay(display);
+    };
+
     return (
         <CircleControlsContainer>
             <Div className="circle-button-container">
                 <CircleIconButton onClick={onPlayNotes} imageSrc={PlusIcon} />
+                <Label>Play</Label>
+            </Div>
+            <Div className="circle-button-container">
+                <CircleIconButton onClick={onShowSlider} imageSrc={PlusIcon} />
+                <Label>Slider</Label>
+            </Div>
+            <Div className="circle-button-container">
+                <CircleIconButton onClick={onShowInput} imageSrc={PlusIcon} />
+                <Label>Input</Label>
             </Div>
         </CircleControlsContainer>
     );
@@ -267,15 +284,17 @@ export const SettingsButton: React.FC<Props> = ({ appStore }) => {
     //     });
     // }, []);
 
-    const onShowBottomDrawer = () => {
-        appStore.dispatch.setShowBottomDrawer(!appStore.state.showBottomDrawer);
+    const onShowSettings = () => {
+        let display: DisplayTypes =
+            appStore.state.display === "settings" ? "normal" : "settings";
+        appStore.dispatch.setDisplay(display);
     };
 
     return (
         <CircleControlsContainer>
             <Div className="circle-button-container">
                 <CircleIconButton
-                    onClick={onShowBottomDrawer}
+                    onClick={onShowSettings}
                     imageSrc={ClearIcon}
                 />
                 <Label>Settings</Label>

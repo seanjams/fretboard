@@ -1,27 +1,62 @@
 import React, { useEffect } from "react";
 import { AppStore, getComputedAppState, useStateRef } from "../../store";
-import { getName } from "../../utils";
+import { DisplayTypes } from "../../types";
+import { getName, darkGrey } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
-import { TitleContainerDiv } from "./style";
+import { FlexRow } from "../Common";
+import {
+    TitleContainerDiv,
+    EmptyTitleContainerDiv,
+    CurrentFretboardMarker,
+} from "./style";
 
 // Component
 interface Props {
     appStore: AppStore;
+    fretboardIndex: number;
 }
 
-export const Title: React.FC<Props> = ({ appStore }) => {
-    const { fretboard, progression } = appStore.getComputedState();
+const defaultName = {
+    rootIdx: -1,
+    rootName: "",
+    chordName: "",
+    foundChordName: "",
+};
+
+export const Title: React.FC<Props> = ({ appStore, fretboardIndex }) => {
+    const { progression, currentVisibleFretboardIndex, visibleFretboards } =
+        appStore.getComputedState();
+    const fretboard = visibleFretboards[fretboardIndex];
+    // const fretboard = progression.fretboards[fretboardIndex];
     const [getState, setState] = useStateRef(() => ({
-        name: getName(fretboard, progression.label)[0],
+        name: fretboard
+            ? getName(fretboard, progression.label)[0]
+            : defaultName,
+        isCurrentFretboard: fretboardIndex === currentVisibleFretboardIndex,
     }));
-    const { name } = getState();
+    const { name, isCurrentFretboard } = getState();
     const { rootName, chordName } = name;
 
     useEffect(() => {
         return appStore.addListener((newState) => {
-            const { fretboard, progression } = getComputedAppState(newState);
-            const name = getName(fretboard, progression.label)[0];
-            if (getState().name !== name) setState({ name });
+            const {
+                progression,
+                currentVisibleFretboardIndex,
+                visibleFretboards,
+            } = getComputedAppState(newState);
+            const fretboard = visibleFretboards[fretboardIndex];
+            // const fretboard = progression.fretboards[fretboardIndex];
+            const name = fretboard
+                ? getName(fretboard, progression.label)[0]
+                : defaultName;
+            const isCurrentFretboard =
+                fretboardIndex === currentVisibleFretboardIndex;
+
+            if (
+                getState().name !== name ||
+                getState().isCurrentFretboard !== isCurrentFretboard
+            )
+                setState({ name, isCurrentFretboard });
         });
     }, []);
 
@@ -51,18 +86,37 @@ export const Title: React.FC<Props> = ({ appStore }) => {
             | React.MouseEvent<HTMLDivElement, MouseEvent>
             | React.TouchEvent<HTMLDivElement>
     ) => {
-        return appStore.dispatch.setShowTopDrawer(
-            !appStore.state.showTopDrawer
-        );
+        const { currentFretboardIndex, visibleFretboards } =
+            appStore.getComputedState();
+        if (currentFretboardIndex !== fretboardIndex) {
+            if (currentFretboardIndex < visibleFretboards.length)
+                appStore.switchFretboardAnimation(
+                    currentFretboardIndex,
+                    fretboardIndex
+                );
+        } else {
+            let display: DisplayTypes =
+                appStore.state.display === "input" ? "normal" : "input";
+            appStore.dispatch.setDisplay(display);
+        }
     };
 
     return (
         <TitleContainerDiv onClick={onClick} onTouchStart={onClick}>
-            <ChordSymbol
-                rootName={rootName}
-                chordName={chordName}
-                fontSize={fontSize}
+            <CurrentFretboardMarker
+                markerColor={isCurrentFretboard ? darkGrey : "transparent"}
             />
+            {fretboard ? (
+                <FlexRow height="calc(100% - 12px)">
+                    <ChordSymbol
+                        rootName={rootName}
+                        chordName={chordName}
+                        fontSize={fontSize}
+                    />
+                </FlexRow>
+            ) : (
+                <EmptyTitleContainerDiv />
+            )}
         </TitleContainerDiv>
     );
 };

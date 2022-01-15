@@ -3,7 +3,6 @@ import { CSSTransition } from "react-transition-group";
 import {
     useStateRef,
     AppStore,
-    SliderStore,
     AudioStore,
     TouchStore,
     getComputedAppState,
@@ -30,14 +29,12 @@ import { ArrowTypes } from "../../types";
 // Component
 interface Props {
     appStore: AppStore;
-    sliderStore: SliderStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
 }
 
 export const Fretboard: React.FC<Props> = ({
     appStore,
-    sliderStore,
     audioStore,
     touchStore,
 }) => {
@@ -159,7 +156,6 @@ export const Fretboard: React.FC<Props> = ({
             base={value}
             key={`string-${i}`}
             appStore={appStore}
-            sliderStore={sliderStore}
             audioStore={audioStore}
             touchStore={touchStore}
         />

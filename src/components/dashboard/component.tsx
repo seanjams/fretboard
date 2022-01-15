@@ -1,16 +1,11 @@
 import React, { useEffect, useCallback } from "react";
-import {
-    useStateRef,
-    AppStore,
-    SliderStore,
-    AudioStore,
-    TouchStore,
-} from "../../store";
+import { useStateRef, AppStore, AudioStore, TouchStore } from "../../store";
 import {
     SAFETY_AREA_MARGIN,
     getScreenDimensions,
     getFretboardDimensions,
     SP,
+    updateIfChanged,
 } from "../../utils";
 import { Fretboard } from "../Fretboard";
 import { Div } from "../Common";
@@ -31,23 +26,22 @@ import { BottomDrawer, TopDrawer } from "../Drawer";
 
 interface Props {
     appStore: AppStore;
-    sliderStore: SliderStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
 }
 
 export const Dashboard: React.FC<Props> = ({
     appStore,
-    sliderStore,
     audioStore,
     touchStore,
 }) => {
     const [getState, setState] = useStateRef(() => ({
         orientation: "portrait-primary",
         dimensions: getScreenDimensions(),
+        display: appStore.state.display,
     }));
 
-    const { orientation, dimensions } = getState();
+    const { orientation, dimensions, display } = getState();
     // const width = orientation.startsWith("portrait")
     //     ? windowHeight
     //     : windowWidth;
@@ -58,8 +52,19 @@ export const Dashboard: React.FC<Props> = ({
     const { gutterHeight } = getFretboardDimensions();
 
     useEffect(() => {
+        // const destroyAppStateListener = appStore.addListener(({ display }) => {
+        //     if (getState().display !== display) setState({ display });
+        // });
+
+        const destroyAppStateListener = appStore.addListener((newState) => {
+            updateIfChanged(getState(), newState, ["display"], () =>
+                setState({ display: newState.display })
+            );
+        });
+
         window.addEventListener("orientationchange", onOrientationChange);
         return () => {
+            destroyAppStateListener();
             window.removeEventListener(
                 "orientationchange",
                 onOrientationChange
@@ -85,45 +90,54 @@ export const Dashboard: React.FC<Props> = ({
                 <Div
                     display="flex"
                     justifyContent="space-evenly"
-                    alignItems="end"
+                    alignItems="center"
+                    height="100%"
                     padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 >
-                    <Div flex={1}>
-                        <Title appStore={appStore} />
+                    <Div flex={1} height="100%">
+                        <Title appStore={appStore} fretboardIndex={0} />
                     </Div>
-                    <Div flex={2}>
+                    <Div flex={1} height="100%">
+                        <Title appStore={appStore} fretboardIndex={1} />
+                    </Div>
+                    <Div flex={1} height="100%">
+                        <Title appStore={appStore} fretboardIndex={2} />
+                    </Div>
+                    <Div flex={1} height="100%">
+                        <Title appStore={appStore} fretboardIndex={3} />
+                    </Div>
+                    {/* <Div flex={2}>
                         <Slider
                             appStore={appStore}
-                            sliderStore={sliderStore}
                             audioStore={audioStore}
                         />
                     </Div>
                     <Div flexShrink={1}>
                         <SliderControls appStore={appStore} />
-                    </Div>
+                    </Div> */}
                 </Div>
             </Div>
             <Div height={`${height}px`} width={`${width}px`}>
-                <TopDrawer appStore={appStore}>
-                    <ChordInput
-                        appStore={appStore}
-                        sliderStore={sliderStore}
-                        audioStore={audioStore}
-                    />
-                </TopDrawer>
-
+                <TopDrawer appStore={appStore} />
                 <Fretboard
                     appStore={appStore}
-                    sliderStore={sliderStore}
                     audioStore={audioStore}
                     touchStore={touchStore}
                 />
-
                 <BottomDrawer appStore={appStore}>
-                    <FretboardSettings
-                        appStore={appStore}
-                        audioStore={audioStore}
-                    />
+                    {display === "slider" ? (
+                        <Slider appStore={appStore} audioStore={audioStore} />
+                    ) : display === "input" ? (
+                        <ChordInput
+                            appStore={appStore}
+                            audioStore={audioStore}
+                        />
+                    ) : display === "settings" ? (
+                        <FretboardSettings
+                            appStore={appStore}
+                            audioStore={audioStore}
+                        />
+                    ) : null}
                 </BottomDrawer>
             </Div>
             <Div

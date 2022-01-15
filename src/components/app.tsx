@@ -4,7 +4,6 @@ import {
     DEFAULT_MAIN_STATE,
     AppStateType,
     AppStore,
-    SliderStore,
     AudioStore,
     useTouchStore,
     getComputedAppState,
@@ -18,7 +17,6 @@ interface Props {
 
 export const App: React.FC<Props> = ({ oldState }) => {
     const appStore = useMemo(() => new AppStore(), []);
-    const sliderStore = useMemo(() => new SliderStore(), []);
     const audioStore = useMemo(() => new AudioStore(), []);
     const touchStore = useTouchStore();
 
@@ -54,20 +52,15 @@ export const App: React.FC<Props> = ({ oldState }) => {
                 ...parsedState,
             };
         }
-        appStore.setState(newState);
 
-        // rehydrate slider state
-        const { focusedIndex } = getComputedAppState(newState).progression;
-        sliderStore.setState({
-            progress: focusedIndex + 0.5,
-            rehydrateSuccess: true,
-        });
+        newState.progress = 0.5;
+        newState.rehydrateSuccess = true;
+        appStore.setState(newState);
     };
 
     return (
         <Dashboard
             appStore={appStore}
-            sliderStore={sliderStore}
             audioStore={audioStore}
             touchStore={touchStore}
         />

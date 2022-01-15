@@ -12,6 +12,14 @@ interface CSSProps extends CSS.Properties {
     maxSliderSize?: number;
 }
 
+const getSliderMargin = (
+    maxSliderSize: number | undefined,
+    minSliderSize: number | undefined
+) => {
+    // returns negative
+    return ((minSliderSize || 0) - (maxSliderSize || 0)) / 2;
+};
+
 export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
@@ -80,28 +88,37 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .slider-bar {
         height: ${(props) => props.minSliderSize}px;
         width: ${(props) => props.minSliderSize}px;
+        margin-left: 0;
     }
 
     .slider-grow-enter {
         height: ${(props) => props.minSliderSize}px;
         width: ${(props) => props.minSliderSize}px;
+        margin-left: 0;
     }
     .slider-grow-enter-active {
         height: ${(props) => props.maxSliderSize}px;
         width: ${(props) => props.maxSliderSize}px;
-        transition: all 150ms ease-in-out;
+        margin-left: ${(props) =>
+            getSliderMargin(props.maxSliderSize, props.minSliderSize)}px;
+        transition: all 50ms ease-in-out;
     }
     .slider-grow-enter-done {
         height: ${(props) => props.maxSliderSize}px;
         width: ${(props) => props.maxSliderSize}px;
+        margin-left: ${(props) =>
+            getSliderMargin(props.maxSliderSize, props.minSliderSize)}px;
     }
     .slider-grow-exit {
         height: ${(props) => props.maxSliderSize}px;
         width: ${(props) => props.maxSliderSize}px;
+        margin-left: ${(props) =>
+            getSliderMargin(props.maxSliderSize, props.minSliderSize)}px;
     }
     .slider-grow-exit-active {
         height: ${(props) => props.minSliderSize}px;
         width: ${(props) => props.minSliderSize}px;
-        transition: all 150ms ease-in-out;
+        margin-left: 0;
+        transition: all 50ms ease-in-out;
     }
 `;

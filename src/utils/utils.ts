@@ -174,13 +174,13 @@ export const rebuildDiffs = (fretboards: StringSwitchType[]) => {
 
 export function cascadeDiffs(
     fretboards: StringSwitchType[],
-    focusedIndex: number
+    currentFretboardIndex: number
 ) {
     fretboards = JSON.parse(JSON.stringify(fretboards));
     const diffs = rebuildDiffs(fretboards);
 
     // left
-    for (let i = focusedIndex; i >= 0; i--) {
+    for (let i = currentFretboardIndex; i >= 0; i--) {
         let diff = diffs.leftDiffs[i];
         let fretboardA = fretboards[i];
         let fretboardB = fretboards[i - 1];
@@ -189,7 +189,7 @@ export function cascadeDiffs(
     }
 
     // right
-    for (let i = focusedIndex; i < fretboards.length; i++) {
+    for (let i = currentFretboardIndex; i < fretboards.length; i++) {
         let diff = diffs.rightDiffs[i];
         let fretboardA = fretboards[i];
         let fretboardB = fretboards[i + 1];
@@ -499,10 +499,10 @@ export function getNotesByChordName(rootIdx: number, chordName: ChordTypes) {
 
 export function getVisibleFretboards(
     fretboards: StringSwitchType[],
-    hiddenFretboardIndices: number[]
+    hiddenFretboardIndex: number
 ): StringSwitchType[] {
-    if (hiddenFretboardIndices.length) {
-        return fretboards.filter((_, i) => !hiddenFretboardIndices.includes(i));
+    if (hiddenFretboardIndex >= 0) {
+        return fretboards.filter((_, i) => i !== hiddenFretboardIndex);
     }
     return [...fretboards];
 }
@@ -578,3 +578,21 @@ export const getFretboardDimensions = () => {
         maxFretboardHeight,
     };
 };
+
+export function updateIfChanged(
+    oldState: { [key in string]: any },
+    newState: { [key in string]: any },
+    fields: string[],
+    cb: () => any
+) {
+    for (let field of fields) {
+        if (
+            oldState.hasOwnProperty(field) &&
+            newState.hasOwnProperty(field) &&
+            oldState[field] !== newState[field]
+        ) {
+            cb();
+            return;
+        }
+    }
+}
