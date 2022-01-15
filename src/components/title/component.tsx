@@ -51,8 +51,9 @@ export const Title: React.FC<Props> = ({ appStore }) => {
             | React.MouseEvent<HTMLDivElement, MouseEvent>
             | React.TouchEvent<HTMLDivElement>
     ) => {
-        // event.preventDefault();
-        return appStore.dispatch.setShowInput(!appStore.state.showInput);
+        return appStore.dispatch.setShowTopDrawer(
+            !appStore.state.showTopDrawer
+        );
     };
 
     return (

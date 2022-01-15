@@ -45,11 +45,11 @@ export const Fretboard: React.FC<Props> = ({
     // depending on invert/leftHand views
     const [getState, setState] = useStateRef(() => ({
         highEBottom: appStore.state.invert !== appStore.state.leftHand,
-        showInput: appStore.state.showInput,
-        showSettings: appStore.state.showSettings,
+        showTopDrawer: appStore.state.showTopDrawer,
+        showBottomDrawer: appStore.state.showBottomDrawer,
         transformOrigin: "bottom",
     }));
-    const { highEBottom, showInput, showSettings, transformOrigin } =
+    const { highEBottom, showTopDrawer, showBottomDrawer, transformOrigin } =
         getState();
 
     const fretboardContainerRef = useRef<HTMLDivElement>(null);
@@ -57,26 +57,31 @@ export const Fretboard: React.FC<Props> = ({
 
     useEffect(() => {
         const destroyAppStoreListener = appStore.addListener((newState) => {
-            const { showInput, progression, invert, leftHand, showSettings } =
-                getComputedAppState(newState);
+            const {
+                showTopDrawer,
+                progression,
+                invert,
+                leftHand,
+                showBottomDrawer,
+            } = getComputedAppState(newState);
             const { scrollToFret } = progression;
             const highEBottom = invert !== leftHand;
 
             if (
                 getState().highEBottom !== highEBottom ||
-                getState().showInput !== showInput ||
-                getState().showSettings !== showSettings
+                getState().showTopDrawer !== showTopDrawer ||
+                getState().showBottomDrawer !== showBottomDrawer
             ) {
                 let transformOrigin =
-                    showInput && !getState().showInput
+                    showTopDrawer && !getState().showTopDrawer
                         ? "bottom"
-                        : showSettings && !getState().showSettings
+                        : showBottomDrawer && !getState().showBottomDrawer
                         ? "top"
                         : getState().transformOrigin;
                 setState({
                     highEBottom,
-                    showInput,
-                    showSettings,
+                    showTopDrawer,
+                    showBottomDrawer,
                     transformOrigin,
                 });
             }
@@ -171,7 +176,7 @@ export const Fretboard: React.FC<Props> = ({
             transformOrigin={transformOrigin}
         >
             <CSSTransition
-                in={showInput || showSettings}
+                in={showTopDrawer || showBottomDrawer}
                 timeout={{ enter: 150, exit: 300 }}
                 classNames="fretboard-shrink"
                 // onEnter={() => console.log("ENTER")}

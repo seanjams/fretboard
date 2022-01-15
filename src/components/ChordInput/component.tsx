@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { CSSTransition } from "react-transition-group";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div, FlexRow } from "../Common";
 import {
@@ -29,13 +28,7 @@ import {
     getScrollToFret,
     getFretboardDimensions,
 } from "../../utils";
-import {
-    AnimationWrapper,
-    ChordInputContainer,
-    OverflowContainerDiv,
-    Tag,
-    Title,
-} from "./style";
+import { ChordInputContainer, OverflowContainerDiv, Tag, Title } from "./style";
 
 interface TagButtonProps {
     highlighted?: boolean;
@@ -107,9 +100,8 @@ export const ChordInput: React.FC<Props> = ({
     const [getState, setState] = useStateRef(() => ({
         label: progression.label,
         name: getName(fretboard, progression.label)[0],
-        showInput: appStore.state.showInput,
     }));
-    const { label, name, showInput } = getState();
+    const { label, name } = getState();
     const { rootIdx, chordName } = name;
     const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
 
@@ -118,17 +110,12 @@ export const ChordInput: React.FC<Props> = ({
 
     useEffect(() => {
         return appStore.addListener((newState) => {
-            const { fretboard, progression, showInput } =
-                getComputedAppState(newState);
+            const { fretboard, progression } = getComputedAppState(newState);
             const name = getName(fretboard, progression.label)[0];
 
-            if (
-                getState().name !== name ||
-                getState().showInput !== showInput
-            ) {
+            if (getState().name !== name) {
                 setState({
                     name,
-                    showInput,
                 });
             }
         });
@@ -262,107 +249,93 @@ export const ChordInput: React.FC<Props> = ({
     ) => {
         // event.preventDefault();
         // event.stopPropagation();
-        // if (appStore.state.showInput) appStore.dispatch.setShowInput(false);
+        // if (appStore.state.showTopDrawer) appStore.dispatch.setShowTopDrawer(false);
     };
 
     const { maxInputHeight, minInputHeight } = getFretboardDimensions();
 
     return (
-        <AnimationWrapper
-            minInputHeight={minInputHeight}
-            maxInputHeight={maxInputHeight}
+        <ChordInputContainer
+            onClick={onClick}
+            onTouchStart={onClick}
+            height={`${maxInputHeight}px`}
         >
-            <CSSTransition
-                in={showInput}
-                timeout={{ enter: 300, exit: 150 }}
-                classNames="input-grow"
-                // onEnter={() => setShowButton(false)}
-                // onExited={() => setShowButton(true)}
+            <FlexRow
+                // onClick={preventDefault}
+                // onTouchStart={preventDefault}
+                width="100%"
             >
-                <ChordInputContainer
-                    onClick={onClick}
-                    onTouchStart={onClick}
-                    className="input-form"
-                    height={`${maxInputHeight}px`}
+                <Title
+                    marginLeft={`${SP[2]}px`}
+                    width={`calc(15% - ${SP[2]}px)`}
+                    flexShrink={0}
+                    textAlign="right"
+                    fontWeight="bold"
+                    // marginTop={`${SP[2]}px`}
                 >
-                    <FlexRow
-                        // onClick={preventDefault}
-                        // onTouchStart={preventDefault}
-                        width="100%"
-                    >
-                        <Title
-                            marginLeft={`${SP[2]}px`}
-                            width={`calc(15% - ${SP[2]}px)`}
-                            flexShrink={0}
-                            textAlign="right"
-                            fontWeight="bold"
-                            // marginTop={`${SP[2]}px`}
+                    Root:
+                </Title>
+                <FlexRow
+                    marginLeft={`${SP[2]}px`}
+                    marginRight={`${SP[2]}px`}
+                    width={`calc(85% - ${2 * SP[2]}px)`}
+                >
+                    {noteNames.map((name, j) => (
+                        <TagButton
+                            key={`${name}-key`}
+                            onClick={onRootChange(j)}
+                            highlighted={rootIdx === j}
                         >
-                            Root:
-                        </Title>
+                            <ChordSymbol
+                                rootName={name}
+                                chordName=""
+                                fontSize={12}
+                            />
+                        </TagButton>
+                    ))}
+                </FlexRow>
+            </FlexRow>
+            <FlexRow
+                // onClick={preventDefault}
+                // onTouchStart={preventDefault}
+                width="100%"
+            >
+                <Title
+                    marginLeft={`${SP[2]}px`}
+                    width={`calc(15% - ${SP[2]}px)`}
+                    textAlign="right"
+                    fontWeight="bold"
+                    // marginTop={`${SP[2]}px`}
+                >
+                    Chord/Scale:
+                </Title>
+                <OverflowContainerDiv
+                    marginLeft={`${SP[2]}px`}
+                    marginRight={`${SP[2]}px`}
+                    width={`calc(85% - ${2 * SP[2]}px)`}
+                >
+                    <Div>
                         <FlexRow
-                            marginLeft={`${SP[2]}px`}
-                            marginRight={`${SP[2]}px`}
-                            width={`calc(85% - ${2 * SP[2]}px)`}
+                            paddingLeft={`calc(30% + ${SP[3]}px)`}
+                            paddingRight={`calc(30% + ${SP[3]}px)`}
                         >
-                            {noteNames.map((name, j) => (
+                            {CHORD_NAMES.map((name) => (
                                 <TagButton
                                     key={`${name}-key`}
-                                    onClick={onRootChange(j)}
-                                    highlighted={rootIdx === j}
+                                    onClick={onChordChange(name)}
+                                    highlighted={chordName === name}
                                 >
                                     <ChordSymbol
-                                        rootName={name}
-                                        chordName=""
+                                        rootName=""
+                                        chordName={name}
                                         fontSize={12}
                                     />
                                 </TagButton>
                             ))}
                         </FlexRow>
-                    </FlexRow>
-                    <FlexRow
-                        // onClick={preventDefault}
-                        // onTouchStart={preventDefault}
-                        width="100%"
-                    >
-                        <Title
-                            marginLeft={`${SP[2]}px`}
-                            width={`calc(15% - ${SP[2]}px)`}
-                            textAlign="right"
-                            fontWeight="bold"
-                            // marginTop={`${SP[2]}px`}
-                        >
-                            Chord/Scale:
-                        </Title>
-                        <OverflowContainerDiv
-                            marginLeft={`${SP[2]}px`}
-                            marginRight={`${SP[2]}px`}
-                            width={`calc(85% - ${2 * SP[2]}px)`}
-                        >
-                            <Div>
-                                <FlexRow
-                                    paddingLeft={`calc(30% + ${SP[3]}px)`}
-                                    paddingRight={`calc(30% + ${SP[3]}px)`}
-                                >
-                                    {CHORD_NAMES.map((name) => (
-                                        <TagButton
-                                            key={`${name}-key`}
-                                            onClick={onChordChange(name)}
-                                            highlighted={chordName === name}
-                                        >
-                                            <ChordSymbol
-                                                rootName=""
-                                                chordName={name}
-                                                fontSize={12}
-                                            />
-                                        </TagButton>
-                                    ))}
-                                </FlexRow>
-                            </Div>
-                        </OverflowContainerDiv>
-                    </FlexRow>
-                </ChordInputContainer>
-            </CSSTransition>
-        </AnimationWrapper>
+                    </Div>
+                </OverflowContainerDiv>
+            </FlexRow>
+        </ChordInputContainer>
     );
 };

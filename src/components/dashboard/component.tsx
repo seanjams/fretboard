@@ -27,6 +27,7 @@ import { FretboardSettings } from "../FretboardSettings";
 import { Slider } from "../Slider";
 import { Title } from "../Title";
 import { ContainerDiv } from "./style";
+import { BottomDrawer, TopDrawer } from "../Drawer";
 
 interface Props {
     appStore: AppStore;
@@ -103,22 +104,27 @@ export const Dashboard: React.FC<Props> = ({
                 </Div>
             </Div>
             <Div height={`${height}px`} width={`${width}px`}>
-                <ChordInput
-                    appStore={appStore}
-                    sliderStore={sliderStore}
-                    audioStore={audioStore}
-                />
+                <TopDrawer appStore={appStore}>
+                    <ChordInput
+                        appStore={appStore}
+                        sliderStore={sliderStore}
+                        audioStore={audioStore}
+                    />
+                </TopDrawer>
+
                 <Fretboard
                     appStore={appStore}
                     sliderStore={sliderStore}
                     audioStore={audioStore}
                     touchStore={touchStore}
                 />
-                <FretboardSettings
-                    appStore={appStore}
-                    sliderStore={sliderStore}
-                    audioStore={audioStore}
-                />
+
+                <BottomDrawer appStore={appStore}>
+                    <FretboardSettings
+                        appStore={appStore}
+                        audioStore={audioStore}
+                    />
+                </BottomDrawer>
             </Div>
             <Div
                 height={`${gutterHeight}px`}

@@ -4,58 +4,7 @@ import { SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
-    maxInputHeight?: number;
-    minInputHeight?: number;
 }
-
-export const getOverflowMargin = (height: number | undefined) => {
-    return -(height || 0);
-};
-
-export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    .input-form {
-        opacity: 0;
-        height: 100%;
-        width: 100%;
-        max-height: ${(props) => props.minInputHeight}px;
-    }
-
-    .input-grow-enter {
-        opacity: 0;
-        max-height: ${(props) => props.minInputHeight}px;
-        margin-bottom: 0;
-    }
-    .input-grow-enter-active {
-        opacity: 1;
-        max-height: ${(props) => props.maxInputHeight}px;
-        margin-bottom: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
-        transition: all 150ms ease-in-out;
-        transition-delay: 150ms;
-    }
-    .input-grow-enter-done {
-        opacity: 1;
-        max-height: ${(props) => props.maxInputHeight}px;
-        margin-bottom: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
-    }
-    .input-grow-exit {
-        opacity: 1;
-        max-height: ${(props) => props.maxInputHeight}px;
-        margin-bottom: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
-    }
-    .input-grow-exit-active {
-        opacity: 0;
-        max-height: ${(props) => props.minInputHeight}px;
-        margin-bottom: 0;
-        transition: all 150ms ease-in-out;
-    }
-    .input-grow-exit-done {
-        opacity: 0;
-        max-height: ${(props) => props.minInputHeight}px;
-        margin-bottom: 0;
-    }
-`;
 
 export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },

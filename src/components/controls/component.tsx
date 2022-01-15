@@ -103,8 +103,8 @@ export const HighlightControls: React.FC<Props> = ({ appStore }) => {
         appStore.dispatch.clearHighlight();
     };
 
-    const onShowSettings = () => {
-        appStore.dispatch.setShowSettings(!appStore.state.showSettings);
+    const onShowBottomDrawer = () => {
+        appStore.dispatch.setShowBottomDrawer(!appStore.state.showBottomDrawer);
     };
 
     return (
@@ -255,27 +255,27 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
 
 export const SettingsButton: React.FC<Props> = ({ appStore }) => {
     // const [getState, setState] = useStateRef(() => ({
-    //     showSettings: appStore.state.showSettings,
+    //     showBottomDrawer: appStore.state.showBottomDrawer,
     // }));
-    // const { showSettings } = getState(); // use to flip arrow around
+    // const { showBottomDrawer } = getState(); // use to flip arrow around
 
     // useEffect(() => {
-    //     return appStore.addListener(({ showSettings }) => {
-    //         if (getState().showSettings !== showSettings) {
-    //             setState({ showSettings });
+    //     return appStore.addListener(({ showBottomDrawer }) => {
+    //         if (getState().showBottomDrawer !== showBottomDrawer) {
+    //             setState({ showBottomDrawer });
     //         }
     //     });
     // }, []);
 
-    const onShowSettings = () => {
-        appStore.dispatch.setShowSettings(!appStore.state.showSettings);
+    const onShowBottomDrawer = () => {
+        appStore.dispatch.setShowBottomDrawer(!appStore.state.showBottomDrawer);
     };
 
     return (
         <CircleControlsContainer>
             <Div className="circle-button-container">
                 <CircleIconButton
-                    onClick={onShowSettings}
+                    onClick={onShowBottomDrawer}
                     imageSrc={ClearIcon}
                 />
                 <Label>Settings</Label>

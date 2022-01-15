@@ -39,8 +39,8 @@ export interface AppStateType {
     invert?: boolean;
     leftHand?: boolean;
     status: StatusTypes;
-    showInput: boolean;
-    showSettings: boolean;
+    showTopDrawer: boolean;
+    showBottomDrawer: boolean;
     currentProgressionIndex: number;
     strumMode: StrumTypes;
 }
@@ -242,14 +242,14 @@ export const appReducers = {
         });
     },
 
-    setShowInput(state: AppStateType, showInput: boolean) {
-        const showSettings = showInput ? false : state.showSettings;
-        return { ...state, showSettings, showInput };
+    setShowTopDrawer(state: AppStateType, showTopDrawer: boolean) {
+        const showBottomDrawer = showTopDrawer ? false : state.showBottomDrawer;
+        return { ...state, showBottomDrawer, showTopDrawer };
     },
 
-    setShowSettings(state: AppStateType, showSettings: boolean) {
-        const showInput = showSettings ? false : state.showInput;
-        return { ...state, showSettings, showInput };
+    setShowBottomDrawer(state: AppStateType, showBottomDrawer: boolean) {
+        const showTopDrawer = showBottomDrawer ? false : state.showTopDrawer;
+        return { ...state, showBottomDrawer, showTopDrawer };
     },
 
     setStatus(state: AppStateType, status: StatusTypes) {
@@ -348,8 +348,8 @@ export function DEFAULT_MAIN_STATE(): AppStateType {
         invert: false,
         leftHand: false,
         status: 1,
-        showInput: false,
-        showSettings: false,
+        showTopDrawer: false,
+        showBottomDrawer: false,
         currentProgressionIndex: 0,
         strumMode: STRUM_LOW_TO_HIGH,
     };
