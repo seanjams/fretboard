@@ -9,6 +9,7 @@ import {
     StatusTypes,
     HighlightTypes,
     LabelTypes,
+    FretboardNameType,
 } from "../types";
 
 export const C = "C";
@@ -53,14 +54,14 @@ export function DEFAULT_NOTESWITCH(): NoteSwitchType {
 }
 
 export function DEFAULT_STRINGSWITCH(): StringSwitchType {
-    const fretboard: StringSwitchType = [{}, {}, {}, {}, {}, {}];
+    const fretboard: StringSwitchType = [[], [], [], [], [], []];
     for (let i = 0; i < STRING_SIZE; i++) {
-        fretboard[0][STANDARD_TUNING[0] + i] = NOT_SELECTED;
-        fretboard[1][STANDARD_TUNING[1] + i] = NOT_SELECTED;
-        fretboard[2][STANDARD_TUNING[2] + i] = NOT_SELECTED;
-        fretboard[3][STANDARD_TUNING[3] + i] = NOT_SELECTED;
-        fretboard[4][STANDARD_TUNING[4] + i] = NOT_SELECTED;
-        fretboard[5][STANDARD_TUNING[5] + i] = NOT_SELECTED;
+        fretboard[0][i] = NOT_SELECTED;
+        fretboard[1][i] = NOT_SELECTED;
+        fretboard[2][i] = NOT_SELECTED;
+        fretboard[3][i] = NOT_SELECTED;
+        fretboard[4][i] = NOT_SELECTED;
+        fretboard[5][i] = NOT_SELECTED;
     }
     return fretboard;
 }
@@ -225,3 +226,10 @@ export const COLORS = [
     // ["#D7BEA8", "#744253"],
     // ["#CAD2C5", "#52489C"],
 ];
+
+export const defaultFretboardName: FretboardNameType = {
+    rootIdx: -1,
+    rootName: "",
+    chordName: "",
+    foundChordName: "",
+};

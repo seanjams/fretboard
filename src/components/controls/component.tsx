@@ -19,24 +19,25 @@ import UpIcon from "../../assets/icons/up-arrow.png";
 import RightIcon from "../../assets/icons/right-arrow.png";
 import ClearIcon from "../../assets/icons/clear.png";
 
-interface Props {
+interface ControlsProps {
     appStore: AppStore;
 }
 
-interface PositionControlProps extends Props {
+interface PositionControlsProps extends ControlsProps {
     audioStore: AudioStore;
 }
 
-export const PositionControls: React.FC<PositionControlProps> = ({
+export const PositionControls: React.FC<PositionControlsProps> = ({
     appStore,
     audioStore,
 }) => {
     const onArrowPress = (dir: ArrowTypes) => () => {
         appStore.dispatch.setHighlightedPosition(dir);
         const { fretboard, strumMode } = appStore.getComputedState();
+        // add small delay to chordSound for scrolling to complete, less jarring
         strumMode === STRUM_LOW_TO_HIGH
-            ? audioStore.strumChord(fretboard)
-            : audioStore.arpeggiateChord(fretboard);
+            ? setTimeout(() => audioStore.strumChord(fretboard), 150)
+            : setTimeout(() => audioStore.arpeggiateChord(fretboard), 150);
     };
 
     return (
@@ -73,7 +74,7 @@ export const PositionControls: React.FC<PositionControlProps> = ({
     );
 };
 
-export const HighlightControls: React.FC<Props> = ({ appStore }) => {
+export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
     const [getState, setState] = useStateRef(() => ({
         status: appStore.state.status,
     }));
@@ -126,7 +127,7 @@ export const HighlightControls: React.FC<Props> = ({ appStore }) => {
     );
 };
 
-export const SliderControls: React.FC<Props> = ({ appStore }) => {
+export const SliderControls: React.FC<ControlsProps> = ({ appStore }) => {
     return (
         <CircleControlsContainer>
             <Div className="circle-button-container">
@@ -145,11 +146,11 @@ export const SliderControls: React.FC<Props> = ({ appStore }) => {
     );
 };
 
-interface FretboardSettingsControlProps extends Props {
+interface FretboardSettingsControlsProps extends ControlsProps {
     audioStore: AudioStore;
 }
 
-export const FretboardSettingsControls: React.FC<FretboardSettingsControlProps> =
+export const FretboardSettingsControls: React.FC<FretboardSettingsControlsProps> =
     ({ appStore, audioStore }) => {
         const [getState, setState] = useStateRef(() => ({
             strumMode: appStore.state.strumMode,
@@ -223,7 +224,7 @@ export const FretboardSettingsControls: React.FC<FretboardSettingsControlProps> 
         );
     };
 
-interface PlayButtonProps extends Props {
+interface PlayButtonProps extends ControlsProps {
     audioStore: AudioStore;
 }
 
@@ -270,7 +271,7 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
     );
 };
 
-export const SettingsButton: React.FC<Props> = ({ appStore }) => {
+export const SettingsButton: React.FC<ControlsProps> = ({ appStore }) => {
     // const [getState, setState] = useStateRef(() => ({
     //     showBottomDrawer: appStore.state.showBottomDrawer,
     // }));

@@ -27,13 +27,13 @@ import {
 import { ArrowTypes } from "../../types";
 
 // Component
-interface Props {
+interface FretboardProps {
     appStore: AppStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
 }
 
-export const Fretboard: React.FC<Props> = ({
+export const Fretboard: React.FC<FretboardProps> = ({
     appStore,
     audioStore,
     touchStore,
@@ -135,8 +135,8 @@ export const Fretboard: React.FC<Props> = ({
             appStore.dispatch.setHighlightedPosition(dir as ArrowTypes);
             const { fretboard, strumMode } = appStore.getComputedState();
             strumMode === STRUM_LOW_TO_HIGH
-                ? audioStore.strumChord(fretboard)
-                : audioStore.arpeggiateChord(fretboard);
+                ? setTimeout(() => audioStore.strumChord(fretboard), 150)
+                : setTimeout(() => audioStore.arpeggiateChord(fretboard), 150);
         } else {
             const naturalNotesKeyMap = NATURAL_NOTE_KEYMAP[label];
             if (naturalNotesKeyMap.hasOwnProperty(event.key)) {

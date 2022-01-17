@@ -23,17 +23,13 @@ export type NoteSwitchType = [
     StatusTypes
 ];
 
-export type FretSwitchType = {
-    [key: number]: StatusTypes;
-};
-
 export type StringSwitchType = [
-    FretSwitchType,
-    FretSwitchType,
-    FretSwitchType,
-    FretSwitchType,
-    FretSwitchType,
-    FretSwitchType
+    StatusTypes[],
+    StatusTypes[],
+    StatusTypes[],
+    StatusTypes[],
+    StatusTypes[],
+    StatusTypes[]
 ];
 
 export type ArrowTypes = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
@@ -71,3 +67,10 @@ export type ChordTypes =
 export type DragStatusTypes = "on" | "off" | null;
 
 export type DisplayTypes = "normal" | "slider" | "input" | "settings";
+
+export type FretboardNameType = {
+    rootIdx: number;
+    rootName: NoteTypes | "";
+    chordName: string;
+    foundChordName: ChordTypes | "";
+};

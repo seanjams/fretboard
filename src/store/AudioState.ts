@@ -192,13 +192,14 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         let strumSounds: [number, number][] = [];
 
         for (let stringIndex in fretboard) {
-            let fretIndex = -1;
+            let foundFretIndex = -1;
             let fretString = fretboard[stringIndex];
-            for (let i = 0; i < STRING_SIZE; i++) {
-                let fretValue = fretString[i + STANDARD_TUNING[stringIndex]];
-                if (fretValue === HIGHLIGHTED) fretIndex = i;
+            for (let fretIndex in fretString) {
+                let fretValue = fretString[fretIndex];
+                if (fretValue === HIGHLIGHTED) foundFretIndex = +fretIndex;
             }
-            if (fretIndex >= 0) strumSounds.push([+stringIndex, fretIndex]);
+            if (foundFretIndex >= 0)
+                strumSounds.push([+stringIndex, foundFretIndex]);
         }
 
         const strumDelay = 70;
@@ -213,10 +214,10 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
 
         for (let stringIndex in fretboard) {
             let fretString = fretboard[stringIndex];
-            for (let i = 0; i < STRING_SIZE; i++) {
-                let fretValue = fretString[i + STANDARD_TUNING[stringIndex]];
+            for (let fretIndex in fretString) {
+                let fretValue = fretString[fretIndex];
                 if (fretValue === HIGHLIGHTED)
-                    arpeggiateSounds.push([+stringIndex, i]);
+                    arpeggiateSounds.push([+stringIndex, +fretIndex]);
             }
         }
 

@@ -35,4 +35,5 @@ export const CurrentFretboardMarker = styled.div.attrs((props: CSSProps) => ({
     height: 12px;
     position: relative;
     top: -12px;
+    transition: background-color 150ms ease-in-out;
 `;

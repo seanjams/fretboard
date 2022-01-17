@@ -3,12 +3,12 @@ import { AppStore, AudioStore } from "../../store";
 import { FretboardSettingsControls } from "../Controls";
 
 // Component
-interface Props {
+interface FretboardSettingsProps {
     appStore: AppStore;
     audioStore: AudioStore;
 }
 
-export const FretboardSettings: React.FC<Props> = ({
+export const FretboardSettings: React.FC<FretboardSettingsProps> = ({
     audioStore,
     appStore,
 }) => {

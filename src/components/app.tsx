@@ -11,11 +11,11 @@ import {
 import { Dashboard } from "./Dashboard";
 // import { Menu } from "./menu";
 
-interface Props {
+interface AppProps {
     oldState?: AppStateType;
 }
 
-export const App: React.FC<Props> = ({ oldState }) => {
+export const App: React.FC<AppProps> = ({ oldState }) => {
     const appStore = useMemo(() => new AppStore(), []);
     const audioStore = useMemo(() => new AudioStore(), []);
     const touchStore = useTouchStore();

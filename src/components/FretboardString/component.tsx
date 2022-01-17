@@ -5,7 +5,7 @@ import { Fret } from "../Fret";
 import { StringDiv } from "./style";
 
 // Component
-interface Props {
+interface FretboardStringProps {
     base: number;
     stringIndex: number;
     appStore: AppStore;
@@ -13,7 +13,7 @@ interface Props {
     touchStore: TouchStore;
 }
 
-export const FretboardString: React.FC<Props> = ({
+export const FretboardString: React.FC<FretboardStringProps> = ({
     base,
     stringIndex,
     appStore,
@@ -25,16 +25,15 @@ export const FretboardString: React.FC<Props> = ({
     const frets = Array(STRING_SIZE)
         .fill(0)
         .map((_, i) => {
-            const value = base + i;
             return (
                 <Fret
-                    value={value}
-                    openString={i === 0}
-                    key={`fret-${value}`}
-                    stringIndex={stringIndex}
+                    key={`string-${stringIndex}-fret-${i}`}
                     appStore={appStore}
                     audioStore={audioStore}
                     touchStore={touchStore}
+                    fretIndex={i}
+                    stringIndex={stringIndex}
+                    openString={i === 0}
                 />
             );
         });

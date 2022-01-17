@@ -87,7 +87,7 @@ export const LegendDot = styled.div.attrs((props: CSSProps) => ({
     height: ${SP[0]}px;
     border-radius: 100%;
     position: absolute;
-    background-color: #000;
+    background-color: ${lightGrey};
     margin-top: -${SP[0] / 2}px;
 `;
 
@@ -104,6 +104,6 @@ export const OctaveDot = styled.div.attrs((props: CSSProps) => ({
     height: ${SP[0]}px;
     border-radius: 100%;
     position: absolute;
-    background-color: #000;
+    background-color: ${lightGrey};
     margin-top: -${SP[0] / 2}px;
 `;

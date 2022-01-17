@@ -12,25 +12,23 @@ import { Div } from "../Common";
 import {
     PositionControls,
     HighlightControls,
-    SliderControls,
     PlayButton,
     SettingsButton,
 } from "../Controls";
 import { ChordInput } from "../ChordInput";
 import { FretboardSettings } from "../FretboardSettings";
-// import { Menu } from "../menu";
 import { Slider } from "../Slider";
 import { Title } from "../Title";
 import { ContainerDiv } from "./style";
 import { BottomDrawer, TopDrawer } from "../Drawer";
 
-interface Props {
+interface DashboardProps {
     appStore: AppStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
 }
 
-export const Dashboard: React.FC<Props> = ({
+export const Dashboard: React.FC<DashboardProps> = ({
     appStore,
     audioStore,
     touchStore,
@@ -95,26 +93,33 @@ export const Dashboard: React.FC<Props> = ({
                     padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 >
                     <Div flex={1} height="100%">
-                        <Title appStore={appStore} fretboardIndex={0} />
-                    </Div>
-                    <Div flex={1} height="100%">
-                        <Title appStore={appStore} fretboardIndex={1} />
-                    </Div>
-                    <Div flex={1} height="100%">
-                        <Title appStore={appStore} fretboardIndex={2} />
-                    </Div>
-                    <Div flex={1} height="100%">
-                        <Title appStore={appStore} fretboardIndex={3} />
-                    </Div>
-                    {/* <Div flex={2}>
-                        <Slider
+                        <Title
                             appStore={appStore}
                             audioStore={audioStore}
+                            fretboardIndex={0}
                         />
                     </Div>
-                    <Div flexShrink={1}>
-                        <SliderControls appStore={appStore} />
-                    </Div> */}
+                    <Div flex={1} height="100%">
+                        <Title
+                            appStore={appStore}
+                            audioStore={audioStore}
+                            fretboardIndex={1}
+                        />
+                    </Div>
+                    <Div flex={1} height="100%">
+                        <Title
+                            appStore={appStore}
+                            audioStore={audioStore}
+                            fretboardIndex={2}
+                        />
+                    </Div>
+                    <Div flex={1} height="100%">
+                        <Title
+                            appStore={appStore}
+                            audioStore={audioStore}
+                            fretboardIndex={3}
+                        />
+                    </Div>
                 </Div>
             </Div>
             <Div height={`${height}px`} width={`${width}px`}>

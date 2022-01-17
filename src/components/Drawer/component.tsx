@@ -1,18 +1,18 @@
 import React, { useEffect } from "react";
 import { CSSTransition } from "react-transition-group";
 import { useStateRef, AppStore } from "../../store";
-import { getFretboardDimensions } from "../../utils";
+import { getFretboardDimensions, SAFETY_AREA_MARGIN } from "../../utils";
 import { FlexRow } from "../Common";
 import {
     BottomDrawerAnimationWrapper,
     TopDrawerAnimationWrapper,
 } from "./style";
 
-interface Props {
+interface DrawerProps {
     appStore: AppStore;
 }
 
-export const TopDrawer: React.FC<Props> = ({ appStore, children }) => {
+export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     // state
     const [getState, setState] = useStateRef(() => ({
         showTopDrawer: appStore.state.showTopDrawer,
@@ -43,7 +43,8 @@ export const TopDrawer: React.FC<Props> = ({ appStore, children }) => {
                 <FlexRow
                     className="top-drawer-form"
                     height={`${maxInputHeight}px`}
-                    width="100%"
+                    width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
+                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 >
                     {showTopDrawer ? children : null}
                 </FlexRow>
@@ -52,7 +53,7 @@ export const TopDrawer: React.FC<Props> = ({ appStore, children }) => {
     );
 };
 
-export const BottomDrawer: React.FC<Props> = ({ appStore, children }) => {
+export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     const [getState, setState] = useStateRef(() => ({
         // custom state for component
         showBottomDrawer: appStore.state.showBottomDrawer,
@@ -83,7 +84,8 @@ export const BottomDrawer: React.FC<Props> = ({ appStore, children }) => {
                 <FlexRow
                     className="bottom-drawer-form"
                     height={`${maxInputHeight}px`}
-                    width="100%"
+                    width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
+                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 >
                     {showBottomDrawer ? children : null}
                 </FlexRow>

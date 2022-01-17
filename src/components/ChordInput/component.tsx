@@ -7,99 +7,68 @@ import {
     getComputedAppState,
     AudioStore,
 } from "../../store";
-import { ChordTypes, NoteTypes } from "../../types";
+import {
+    ChordTypes,
+    FretboardNameType,
+    LabelTypes,
+    NoteTypes,
+} from "../../types";
 import {
     FLAT_NAMES,
     SHARP_NAMES,
     CHORD_NAMES,
-    getName,
-    getNotesByChordName,
+    getFretboardName,
     majorChord,
     SP,
     getFretboardDimensions,
+    defaultFretboardName,
 } from "../../utils";
 import { ChordInputContainer, OverflowContainerDiv, Tag, Title } from "./style";
 
-interface TagButtonProps {
-    highlighted?: boolean;
-    onClick?: (event: MouseEvent | TouchEvent) => void;
-}
-
-export const TagButton: React.FC<TagButtonProps> = ({
-    onClick,
-    highlighted,
-    children,
-}) => {
-    const [active, setActive] = useState(highlighted);
-    const activeRef = useRef(active);
-    activeRef.current = active;
-
-    useEffect(() => {
-        window.addEventListener("mouseup", onMouseUp);
-        window.addEventListener("touchend", onMouseUp);
-        return () => {
-            window.removeEventListener("mouseup", onMouseUp);
-            window.removeEventListener("touchend", onMouseUp);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!highlighted) setActive(false);
-    }, [highlighted]);
-
-    const onMouseDown = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        event.stopPropagation();
-
-        if (!activeRef.current) setActive(true);
-    };
-
-    const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
-        event.stopPropagation();
-
-        if (activeRef.current && onClick) onClick(event);
-    }, []);
-
-    return (
-        <Tag
-            onTouchStart={onMouseDown}
-            onMouseDown={onMouseDown}
-            highlighted={highlighted || active}
-        >
-            {children}
-        </Tag>
-    );
-};
-
-interface Props {
+interface ChordInputProps {
     appStore: AppStore;
     audioStore: AudioStore;
 }
 
-export const ChordInput: React.FC<Props> = ({ appStore, audioStore }) => {
+interface ChordInputState {
+    label: LabelTypes;
+    name: FretboardNameType;
+}
+
+export const ChordInput: React.FC<ChordInputProps> = ({
+    appStore,
+    audioStore,
+}) => {
     // state
-    const { fretboard, progression } = appStore.getComputedState();
-    const [getState, setState] = useStateRef(() => ({
+    const { visibleFretboards, currentVisibleFretboardIndex, progression } =
+        appStore.getComputedState();
+    const fretboard = visibleFretboards[currentVisibleFretboardIndex];
+    const [getState, setState] = useStateRef<ChordInputState>(() => ({
         label: progression.label,
-        name: getName(fretboard, progression.label)[0],
+        name: fretboard
+            ? getFretboardName(fretboard, progression.label)[0]
+            : defaultFretboardName,
     }));
     const { label, name } = getState();
     const { rootIdx, chordName } = name;
     const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
 
-    // refs
-    const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
-
     useEffect(() => {
         return appStore.addListener((newState) => {
-            const { fretboard, progression } = getComputedAppState(newState);
-            const name = getName(fretboard, progression.label)[0];
+            const {
+                progression,
+                visibleFretboards,
+                currentVisibleFretboardIndex,
+            } = getComputedAppState(newState);
+            const fretboard = visibleFretboards[currentVisibleFretboardIndex];
+            const { label } = progression;
+            const name = fretboard
+                ? getFretboardName(fretboard, label)[0]
+                : defaultFretboardName;
 
-            if (getState().name !== name) {
+            if (getState().label !== label || getState().name !== name) {
                 setState({
+                    label,
                     name,
                 });
             }
@@ -116,38 +85,45 @@ export const ChordInput: React.FC<Props> = ({ appStore, audioStore }) => {
     // };
 
     const onRootChange =
-        (newRootIdx: number) => (event: MouseEvent | TouchEvent) => {
-            event.preventDefault();
-            event.stopPropagation();
+        (newRootIdx: number) =>
+        (
+            event:
+                | React.MouseEvent<HTMLDivElement, MouseEvent>
+                | React.TouchEvent<HTMLDivElement>
+        ) => {
             const { name } = getState();
             const { rootIdx, foundChordName } = name;
             if (newRootIdx === rootIdx) return;
             // default chordName to "maj" if not set
             appStore.chordInputAnimation(
-                getNotesByChordName(newRootIdx, foundChordName || majorChord),
+                newRootIdx,
+                foundChordName || majorChord,
                 () => {
-                    // // strum fretboard
-                    // const { fretboard } = this.getComputedState();
-                    // audioStore.strumChord(fretboard);
+                    // strum fretboard
+                    const { fretboard } = appStore.getComputedState();
+                    audioStore.strumChord(fretboard);
                 }
             );
         };
 
     const onChordChange =
-        (newChordName: ChordTypes) => (event: MouseEvent | TouchEvent) => {
-            event.preventDefault();
-            event.stopPropagation();
-
+        (newChordName: ChordTypes) =>
+        (
+            event:
+                | React.MouseEvent<HTMLDivElement, MouseEvent>
+                | React.TouchEvent<HTMLDivElement>
+        ) => {
             const { name } = getState();
             const { rootIdx, foundChordName } = name;
             if (newChordName === foundChordName) return;
             // default rootIdx to "C" if not set
             appStore.chordInputAnimation(
-                getNotesByChordName(Math.max(rootIdx, 0), newChordName),
+                Math.max(rootIdx, 0),
+                newChordName,
                 () => {
-                    // // strum fretboard
-                    // const { fretboard } = this.getComputedState();
-                    // audioStore.strumChord(fretboard);
+                    // strum fretboard
+                    const { fretboard } = appStore.getComputedState();
+                    audioStore.strumChord(fretboard);
                 }
             );
         };
@@ -191,9 +167,10 @@ export const ChordInput: React.FC<Props> = ({ appStore, audioStore }) => {
                     width={`calc(85% - ${2 * SP[2]}px)`}
                 >
                     {noteNames.map((name, j) => (
-                        <TagButton
-                            key={`${name}-key`}
+                        <Tag
+                            key={`${name}-key-${j}`}
                             onClick={onRootChange(j)}
+                            onTouchStart={onRootChange(j)}
                             highlighted={rootIdx === j}
                         >
                             <ChordSymbol
@@ -201,7 +178,7 @@ export const ChordInput: React.FC<Props> = ({ appStore, audioStore }) => {
                                 chordName=""
                                 fontSize={12}
                             />
-                        </TagButton>
+                        </Tag>
                     ))}
                 </FlexRow>
             </FlexRow>
@@ -224,26 +201,26 @@ export const ChordInput: React.FC<Props> = ({ appStore, audioStore }) => {
                     marginRight={`${SP[2]}px`}
                     width={`calc(85% - ${2 * SP[2]}px)`}
                 >
-                    <Div>
-                        <FlexRow
-                            paddingLeft={`calc(30% + ${SP[3]}px)`}
-                            paddingRight={`calc(30% + ${SP[3]}px)`}
-                        >
-                            {CHORD_NAMES.map((name) => (
-                                <TagButton
-                                    key={`${name}-key`}
-                                    onClick={onChordChange(name)}
-                                    highlighted={chordName === name}
-                                >
-                                    <ChordSymbol
-                                        rootName=""
-                                        chordName={name}
-                                        fontSize={12}
-                                    />
-                                </TagButton>
-                            ))}
-                        </FlexRow>
-                    </Div>
+                    <FlexRow
+                        paddingLeft={`calc(26% + ${3 * SP[7]}px)`}
+                        paddingRight={`calc(26% + ${3 * SP[7]}px)`}
+                        width="100%"
+                    >
+                        {CHORD_NAMES.map((name, j) => (
+                            <Tag
+                                key={`${name}-key-${j}`}
+                                onClick={onChordChange(name)}
+                                onTouchStart={onChordChange(name)}
+                                highlighted={chordName === name}
+                            >
+                                <ChordSymbol
+                                    rootName=""
+                                    chordName={name}
+                                    fontSize={12}
+                                />
+                            </Tag>
+                        ))}
+                    </FlexRow>
                 </OverflowContainerDiv>
             </FlexRow>
         </ChordInputContainer>

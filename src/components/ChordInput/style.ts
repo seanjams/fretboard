@@ -39,6 +39,7 @@ export const Tag = styled.div.attrs((props: CSSProps) => ({
     justify-content: center;
     padding: 2px;
     flex-shrink: 0;
+    transition: border 150ms ease-in-out;
 `;
 
 export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
@@ -46,12 +47,7 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     position: relative;
     z-index: 999;
-
-    & > div {
-        overflow-x: auto;
-        width: 100%;
-        height: 100%;
-    }
+    overflow-x: auto;
 
     ::before {
         content: "";

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef } from "react";
 import {
     AppStore,
     getComputedAppState,
-    useStateRef,
     AudioStore,
     TouchStore,
 } from "../../store";
@@ -23,10 +22,9 @@ import {
     FLAT_NAMES,
     FRETBOARD_WIDTH,
     STRING_SIZE,
-    getFretboardDimensions,
     darkGrey,
     lightGrey,
-    mediumGrey,
+    getFretValue,
 } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import {
@@ -91,8 +89,8 @@ const Legend: React.FC<LegendProps> = ({ stringIndex, fretIndex }) => (
     </>
 );
 
-interface Props {
-    value: number;
+interface FretProps {
+    fretIndex: number;
     stringIndex: number;
     openString?: boolean;
     appStore: AppStore;
@@ -100,16 +98,15 @@ interface Props {
     touchStore: TouchStore;
 }
 
-export const Fret: React.FC<Props> = ({
-    value,
+export const Fret: React.FC<FretProps> = ({
+    fretIndex,
     openString,
     stringIndex,
     appStore,
     audioStore,
     touchStore,
 }) => {
-    const noteValue = mod(value, 12);
-    const fretIndex = value - STANDARD_TUNING[stringIndex];
+    const fretValue = getFretValue(stringIndex, fretIndex);
     const fretName = `${stringIndex}_${fretIndex}`;
 
     // makes frets progressively smaller
@@ -118,15 +115,10 @@ export const Fret: React.FC<Props> = ({
     const { fretboard, progression } = appStore.getComputedState();
     const { label } = progression;
 
-    // const [getState, setState] = useStateRef(() => ({
-    //     status: appStore.state.status,
-    // }));
-    // const { status } = getState();
-
     const thickness = (6 - stringIndex + 1) / 2;
     const fretBorder = openString ? "none" : `1px solid ${lightGrey}`;
     const noteName =
-        label === "sharp" ? SHARP_NAMES[noteValue] : FLAT_NAMES[noteValue];
+        label === "sharp" ? SHARP_NAMES[fretValue] : FLAT_NAMES[fretValue];
 
     // init refs
     const progressRef = useRef(appStore.state.progress);
@@ -134,11 +126,13 @@ export const Fret: React.FC<Props> = ({
     const shadowRef = useRef<HTMLDivElement>(null);
 
     const getIsSelected = (fretboard: StringSwitchType) => {
-        return [SELECTED, HIGHLIGHTED].includes(fretboard[stringIndex][value]);
+        return [SELECTED, HIGHLIGHTED].includes(
+            fretboard[stringIndex][fretIndex]
+        );
     };
 
     const getIsHighlighted = (fretboard: StringSwitchType) => {
-        return fretboard[stringIndex][value] === HIGHLIGHTED;
+        return fretboard[stringIndex][fretIndex] === HIGHLIGHTED;
     };
 
     const statusRef = useRef(appStore.state.status);
@@ -230,32 +224,32 @@ export const Fret: React.FC<Props> = ({
         );
 
         // this fret has a destination in the fretboard to the left/right
-        // const leftExists = isNot(leftDiff, noteValue, undefined);
-        // const rightExists = isNot(rightDiff, noteValue, undefined);
-        const leftExists = leftDiff && leftDiff[noteValue] !== undefined;
-        const rightExists = rightDiff && rightDiff[noteValue] !== undefined;
+        // const leftExists = isNot(leftDiff, fretValue, undefined);
+        // const rightExists = isNot(rightDiff, fretValue, undefined);
+        const leftExists = leftDiff && leftDiff[fretValue] !== undefined;
+        const rightExists = rightDiff && rightDiff[fretValue] !== undefined;
 
         // this fret is filled now,
         // and does not have a destination in the fretboard to the left/right
         const leftEmpty =
             isSelectedRef.current &&
             leftExists &&
-            leftDiff[noteValue] === -9999;
+            leftDiff[fretValue] === -9999;
         const rightEmpty =
             isSelectedRef.current &&
             rightExists &&
-            rightDiff[noteValue] === -9999;
+            rightDiff[fretValue] === -9999;
 
         // this fret is empty now,
         // and has a destination in the fretboard to the left/right
         const leftFill =
             !isSelectedRef.current &&
             leftExists &&
-            leftDiff[noteValue] === 9999;
+            leftDiff[fretValue] === 9999;
         const rightFill =
             !isSelectedRef.current &&
             rightExists &&
-            rightDiff[noteValue] === 9999;
+            rightDiff[fretValue] === 9999;
 
         // consts
         const origin = 50;
@@ -284,7 +278,7 @@ export const Fret: React.FC<Props> = ({
             } else if (leftFill) {
                 fillPercentage = 0;
             } else {
-                newLeft = direction * leftDiff[noteValue] * 50 + origin;
+                newLeft = direction * leftDiff[fretValue] * 50 + origin;
             }
         } else if (insideLeft) {
             // all altered notes should be x% to the left
@@ -295,7 +289,7 @@ export const Fret: React.FC<Props> = ({
                 fillPercentage = x;
                 backgroundColor = secondaryColor;
             } else {
-                diffSteps = leftDiff[noteValue];
+                diffSteps = leftDiff[fretValue];
                 newLeft = direction * diffSteps * x + origin;
             }
         } else if (middle) {
@@ -315,7 +309,7 @@ export const Fret: React.FC<Props> = ({
                 fillPercentage = x;
                 backgroundColor = secondaryColor;
             } else {
-                diffSteps = rightDiff[noteValue];
+                diffSteps = rightDiff[fretValue];
                 newLeft = direction * diffSteps * x + origin;
             }
         } else if (outsideRight) {
@@ -325,7 +319,7 @@ export const Fret: React.FC<Props> = ({
             } else if (rightFill) {
                 fillPercentage = 0;
             } else {
-                diffSteps = rightDiff[noteValue];
+                diffSteps = rightDiff[fretValue];
                 newLeft = direction * diffSteps * 50 + origin;
             }
         }
@@ -367,10 +361,10 @@ export const Fret: React.FC<Props> = ({
     // highlight note on right click
     // const { fretboard } = appStore.getComputedState();
     // const status =
-    //     fretboard[stringIndex][value] === HIGHLIGHTED
+    //     fretboard[stringIndex][fretIndex] === HIGHLIGHTED
     //         ? SELECTED
     //         : HIGHLIGHTED;
-    // appStore.dispatch.setHighlightedNote(stringIndex, value, status);
+    // appStore.dispatch.setHighlightedNote(stringIndex, fretIndex, status);
     // }
 
     function onTouchStart(
@@ -397,7 +391,7 @@ export const Fret: React.FC<Props> = ({
         // }
 
         // toggle selection of note
-        const fromStatus = fretboard[stringIndex][value];
+        const fromStatus = fretboard[stringIndex][fretIndex];
         let toStatus = fromStatus;
         let toDragStatus = dragStatus;
         if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
@@ -409,7 +403,11 @@ export const Fret: React.FC<Props> = ({
         }
 
         if (toStatus !== fromStatus) {
-            appStore.dispatch.setHighlightedNote(stringIndex, value, toStatus);
+            appStore.dispatch.setHighlightedNote(
+                stringIndex,
+                fretIndex,
+                toStatus
+            );
             playNoteAudio();
         }
         if (toDragStatus !== dragStatus)
@@ -452,7 +450,7 @@ export const Fret: React.FC<Props> = ({
             clientY >= top
         ) {
             if (!isMouseOverRef.current) {
-                const fromStatus = fretboard[stringIndex][value];
+                const fromStatus = fretboard[stringIndex][fretIndex];
                 let toStatus = fromStatus;
                 let toDragStatus = dragStatus;
 
@@ -489,7 +487,7 @@ export const Fret: React.FC<Props> = ({
                 if (toStatus !== fromStatus) {
                     appStore.dispatch.setHighlightedNote(
                         stringIndex,
-                        value,
+                        fretIndex,
                         toStatus
                     );
                     playNoteAudio();
@@ -532,7 +530,7 @@ export const Fret: React.FC<Props> = ({
                 border={`1px solid ${circleBorderColor}`}
             >
                 {label === "value" ? (
-                    noteValue
+                    fretValue
                 ) : (
                     <ChordSymbol
                         rootName={noteName}

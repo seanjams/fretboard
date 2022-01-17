@@ -2,12 +2,6 @@ import React from "react";
 import { Div, FlexRow } from "../Common";
 import { StandardScript, SuperScript, SymbolSpan } from "./style";
 
-interface Props {
-    rootName: string;
-    chordName: string;
-    fontSize: number;
-}
-
 const cleanSymbol = (name: string, crumbFontSize: number) => {
     // cleans string passed.
     // If the string contains sharp/flat symbol, it wraps in sizing span
@@ -67,7 +61,13 @@ const generateCrumbs = (name: string, fontSize: number) => {
     return crumbs;
 };
 
-export const ChordSymbol: React.FC<Props> = ({
+interface ChordSymbolProps {
+    rootName: string;
+    chordName: string;
+    fontSize: number;
+}
+
+export const ChordSymbol: React.FC<ChordSymbolProps> = ({
     rootName,
     chordName,
     fontSize,

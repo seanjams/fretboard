@@ -1,7 +1,12 @@
 import React, { useEffect } from "react";
-import { AppStore, getComputedAppState, useStateRef } from "../../store";
-import { DisplayTypes } from "../../types";
-import { getName, darkGrey } from "../../utils";
+import {
+    AppStore,
+    AudioStore,
+    getComputedAppState,
+    useStateRef,
+} from "../../store";
+import { DisplayTypes, FretboardNameType } from "../../types";
+import { getFretboardName, darkGrey, defaultFretboardName } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { FlexRow } from "../Common";
 import {
@@ -11,27 +16,29 @@ import {
 } from "./style";
 
 // Component
-interface Props {
+interface TitleProps {
     appStore: AppStore;
+    audioStore: AudioStore;
     fretboardIndex: number;
 }
 
-const defaultName = {
-    rootIdx: -1,
-    rootName: "",
-    chordName: "",
-    foundChordName: "",
-};
+interface TitleState {
+    name: FretboardNameType;
+    isCurrentFretboard: boolean;
+}
 
-export const Title: React.FC<Props> = ({ appStore, fretboardIndex }) => {
+export const Title: React.FC<TitleProps> = ({
+    appStore,
+    audioStore,
+    fretboardIndex,
+}) => {
     const { progression, currentVisibleFretboardIndex, visibleFretboards } =
         appStore.getComputedState();
     const fretboard = visibleFretboards[fretboardIndex];
-    // const fretboard = progression.fretboards[fretboardIndex];
-    const [getState, setState] = useStateRef(() => ({
+    const [getState, setState] = useStateRef<TitleState>(() => ({
         name: fretboard
-            ? getName(fretboard, progression.label)[0]
-            : defaultName,
+            ? getFretboardName(fretboard, progression.label)[0]
+            : defaultFretboardName,
         isCurrentFretboard: fretboardIndex === currentVisibleFretboardIndex,
     }));
     const { name, isCurrentFretboard } = getState();
@@ -44,11 +51,11 @@ export const Title: React.FC<Props> = ({ appStore, fretboardIndex }) => {
                 currentVisibleFretboardIndex,
                 visibleFretboards,
             } = getComputedAppState(newState);
+
             const fretboard = visibleFretboards[fretboardIndex];
-            // const fretboard = progression.fretboards[fretboardIndex];
             const name = fretboard
-                ? getName(fretboard, progression.label)[0]
-                : defaultName;
+                ? getFretboardName(fretboard, progression.label)[0]
+                : defaultFretboardName;
             const isCurrentFretboard =
                 fretboardIndex === currentVisibleFretboardIndex;
 
@@ -68,33 +75,43 @@ export const Title: React.FC<Props> = ({ appStore, fretboardIndex }) => {
     // y - 13 = (-15 / 21) ( x - 39)
     // y -12x + 481
 
-    const x0 = 10;
-    const y0 = 28;
-    const x1 = 37;
-    const y1 = 12;
-    const buffer = 0;
+    const getFontSize = () => {
+        const { name } = getState();
+        const { chordName } = name;
 
-    const fontSize =
-        chordName.length < x0
+        const x0 = 10;
+        const y0 = 28;
+        const x1 = 37;
+        const y1 = 12;
+        const buffer = 0;
+
+        return chordName.length < x0
             ? y0
             : chordName.length > x1
             ? y1
             : ((y0 - y1 + buffer) / (x0 - x1)) * (chordName.length - x1) + y1;
+    };
 
     const onClick = (
         event:
             | React.MouseEvent<HTMLDivElement, MouseEvent>
             | React.TouchEvent<HTMLDivElement>
     ) => {
-        const { currentFretboardIndex, visibleFretboards } =
-            appStore.getComputedState();
+        const { currentFretboardIndex } = appStore.getComputedState();
+
         if (currentFretboardIndex !== fretboardIndex) {
-            if (currentFretboardIndex < visibleFretboards.length)
-                appStore.switchFretboardAnimation(
-                    currentFretboardIndex,
-                    fretboardIndex
-                );
+            // if clicking on a different title than the current fretboard,
+            // animate the switch between the fretboards
+            appStore.switchFretboardAnimation(
+                currentFretboardIndex,
+                fretboardIndex,
+                () => {
+                    const { fretboard } = appStore.getComputedState();
+                    audioStore.strumChord(fretboard);
+                }
+            );
         } else {
+            // otherwise toggle input mode for current fretboard
             let display: DisplayTypes =
                 appStore.state.display === "input" ? "normal" : "input";
             appStore.dispatch.setDisplay(display);
@@ -111,7 +128,7 @@ export const Title: React.FC<Props> = ({ appStore, fretboardIndex }) => {
                     <ChordSymbol
                         rootName={rootName}
                         chordName={chordName}
-                        fontSize={fontSize}
+                        fontSize={getFontSize()}
                     />
                 </FlexRow>
             ) : (

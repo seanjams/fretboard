@@ -6,6 +6,7 @@ import {
     StrumTypes,
     ArrowTypes,
     DisplayTypes,
+    ChordTypes,
 } from "../types";
 import {
     rebuildDiffs,
@@ -15,13 +16,13 @@ import {
     setFret,
     clearHighlight,
     DEFAULT_STRINGSWITCH,
-    STANDARD_TUNING,
     SELECTED,
     HIGHLIGHTED,
     STRUM_LOW_TO_HIGH,
-    getNotes,
+    getFretboardNotes,
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
+    buildFretboardByChordName,
 } from "../utils";
 import { Store } from "./store";
 
@@ -48,9 +49,7 @@ export interface AppStateType {
     progress: number;
     rehydrateSuccess: boolean;
     // for fretboard animations
-    isAnimating: boolean;
     hiddenFretboardIndex: number;
-    currentVisibleFretboardIndex: number;
 }
 
 // Helper functions
@@ -68,18 +67,27 @@ export function getComputedAppState(state: AppStateType): AppStateType & {
     fretboard: StringSwitchType;
     visibleFretboards: StringSwitchType[];
     currentFretboardIndex: number;
+    currentVisibleFretboardIndex: number;
+    isAnimating: boolean;
 } {
+    const { progress, hiddenFretboardIndex } = state;
     const progression = currentProgression(state);
     const { fretboards } = progression;
+    const currentFretboardIndex = Math.floor(progress);
+    const isAnimating = hiddenFretboardIndex >= 0;
 
     return {
         ...state,
         progression,
         fretboard: currentFretboard(state),
         visibleFretboards: fretboards.filter(
-            (_, i) => state.hiddenFretboardIndex !== i
+            (_, i) => hiddenFretboardIndex !== i
         ),
-        currentFretboardIndex: Math.floor(state.progress),
+        currentFretboardIndex,
+        currentVisibleFretboardIndex: isAnimating
+            ? hiddenFretboardIndex
+            : currentFretboardIndex,
+        isAnimating,
     };
 }
 
@@ -187,7 +195,7 @@ export const appReducers = {
     setHighlightedNote(
         state: AppStateType,
         stringIndex: number,
-        value: number,
+        fretIndex: number,
         status: StatusTypes
     ) {
         let { progression, currentFretboardIndex } = getComputedAppState(state);
@@ -195,13 +203,13 @@ export const appReducers = {
 
         for (let i = 0; i < fretboards.length; i++) {
             if (i === currentFretboardIndex) {
-                setFret(fretboards[i], stringIndex, value, status);
+                setFret(fretboards[i], stringIndex, fretIndex, status);
             } else {
                 clearHighlight(fretboards[i]);
             }
         }
 
-        const notes = getNotes(fretboards[currentFretboardIndex]);
+        const notes = getFretboardNotes(fretboards[currentFretboardIndex]);
         let empty = !notes.some((note) => note === SELECTED);
 
         return this.setCurrentProgression(
@@ -324,8 +332,6 @@ export const appReducers = {
                 ...state,
                 progress: startIndex + SLIDER_RIGHT_WINDOW,
                 hiddenFretboardIndex: startIndex,
-                currentVisibleFretboardIndex: startIndex,
-                isAnimating: true,
             },
             {
                 ...progression,
@@ -339,36 +345,28 @@ export const appReducers = {
         // startIndex: number
     ): AppStateType {
         // dangerous method, does not return new state object on purpose, use with caution
-        const { progression, currentVisibleFretboardIndex } =
+        const { progression, hiddenFretboardIndex } =
             getComputedAppState(state);
         let { fretboards } = progression;
 
-        // remove old fretboard, update diffs, reset progress and currentFretboardIndex
-        fretboards = [...fretboards];
-        fretboards.splice(currentVisibleFretboardIndex, 1);
-        return this.setCurrentProgression(
-            {
-                ...state,
-                progress: currentVisibleFretboardIndex + 0.5,
-                hiddenFretboardIndex: -1,
-                isAnimating: false,
-            },
-            {
-                ...progression,
-                ...cascadeDiffs(fretboards, currentVisibleFretboardIndex),
-            }
-        );
-    },
-    setCurrentVisibleFretboardIndex(
-        state: AppStateType,
-        currentVisibleFretboardIndex: number
-    ) {
-        const { visibleFretboards } = getComputedAppState(state);
-        state.currentVisibleFretboardIndex = Math.min(
-            Math.max(currentVisibleFretboardIndex, 0),
-            visibleFretboards.length
-        );
-        return state;
+        if (hiddenFretboardIndex >= 0) {
+            // remove old fretboard, update diffs, reset progress and currentFretboardIndex
+            fretboards = [...fretboards];
+            fretboards.splice(hiddenFretboardIndex, 1);
+            return this.setCurrentProgression(
+                {
+                    ...state,
+                    progress: hiddenFretboardIndex + 0.5,
+                    hiddenFretboardIndex: -1,
+                },
+                {
+                    ...progression,
+                    ...cascadeDiffs(fretboards, hiddenFretboardIndex),
+                }
+            );
+        } else {
+            return state;
+        }
     },
 };
 
@@ -432,18 +430,21 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
         requestAnimationFrame(performAnimation);
     }
 
-    chordInputAnimation(notes: number[], onComplete?: () => void) {
+    chordInputAnimation(
+        rootIdx: number,
+        chordName: ChordTypes,
+        onComplete?: () => void
+    ) {
         // animation triggered when changing notes on the current fretboard
-        const { progression, currentFretboardIndex } = this.getComputedState();
+        const { progression, currentFretboardIndex, isAnimating } =
+            this.getComputedState();
         let { fretboards } = progression;
 
-        // create new fretboard from notes, set all on E string arbitrarily
-        let newFretboard = DEFAULT_STRINGSWITCH();
-        for (let i = 0; i < notes.length; i++) {
-            let fretValue = notes[i];
-            while (fretValue < STANDARD_TUNING[0]) fretValue += 12;
-            setFret(newFretboard, 0, fretValue, SELECTED);
-        }
+        // don't run animation if already animating
+        if (isAnimating) return;
+
+        // create new fretboard from chordName
+        let newFretboard = buildFretboardByChordName(rootIdx, chordName);
         newFretboard = cascadeDiffs(
             [fretboards[currentFretboardIndex], newFretboard],
             0
@@ -463,8 +464,11 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
         onComplete?: () => void
     ) {
         // animation triggered when switching between two fretboards
-        const { progression } = this.getComputedState();
+        const { progression, isAnimating } = this.getComputedState();
         let { fretboards } = progression;
+
+        // don't run animation if already animating
+        if (isAnimating) return;
 
         // create new fretboard from fromIndex
         let newFretboard = JSON.parse(JSON.stringify(fretboards[fromIndex]));
@@ -481,31 +485,16 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
 
 // Default State
 const fretboards1: StringSwitchType[] = [
-    DEFAULT_STRINGSWITCH(),
-    DEFAULT_STRINGSWITCH(),
-    DEFAULT_STRINGSWITCH(),
+    buildFretboardByChordName(9, "min__7"),
+    buildFretboardByChordName(2, "min__7"),
+    buildFretboardByChordName(7, "__7"),
+    buildFretboardByChordName(0, "maj__7"),
 ];
 
-setFret(fretboards1[0], 0, STANDARD_TUNING[0] + 7, SELECTED);
-setFret(fretboards1[0], 1, STANDARD_TUNING[1] + 10, HIGHLIGHTED);
-setFret(fretboards1[0], 2, STANDARD_TUNING[2] + 7, HIGHLIGHTED);
-setFret(fretboards1[0], 3, STANDARD_TUNING[3] + 9, HIGHLIGHTED);
-setFret(fretboards1[0], 4, STANDARD_TUNING[4] + 9, HIGHLIGHTED);
-setFret(fretboards1[0], 5, STANDARD_TUNING[5] + 7, SELECTED);
-
-setFret(fretboards1[1], 0, STANDARD_TUNING[0] + 5, SELECTED);
-setFret(fretboards1[1], 1, STANDARD_TUNING[1] + 7, SELECTED);
-setFret(fretboards1[1], 2, STANDARD_TUNING[2] + 5, SELECTED);
-setFret(fretboards1[1], 3, STANDARD_TUNING[3] + 6, SELECTED);
-setFret(fretboards1[1], 4, STANDARD_TUNING[4] + 5, SELECTED);
-setFret(fretboards1[1], 5, STANDARD_TUNING[5] + 5, SELECTED);
-
-setFret(fretboards1[2], 0, STANDARD_TUNING[0] + 5, SELECTED);
-setFret(fretboards1[2], 1, STANDARD_TUNING[1] + 5, SELECTED);
-setFret(fretboards1[2], 2, STANDARD_TUNING[2] + 7, SELECTED);
-setFret(fretboards1[2], 3, STANDARD_TUNING[3] + 6, SELECTED);
-setFret(fretboards1[2], 4, STANDARD_TUNING[4] + 7, SELECTED);
-setFret(fretboards1[2], 5, STANDARD_TUNING[5] + 5, SELECTED);
+setFret(fretboards1[0], 1, 7, HIGHLIGHTED);
+setFret(fretboards1[0], 2, 7, HIGHLIGHTED);
+setFret(fretboards1[0], 3, 5, HIGHLIGHTED);
+setFret(fretboards1[0], 4, 8, HIGHLIGHTED);
 
 const progression1: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
@@ -536,8 +525,6 @@ export function DEFAULT_MAIN_STATE(): AppStateType {
         display: "normal",
         progress: 0.5,
         rehydrateSuccess: false,
-        isAnimating: false,
         hiddenFretboardIndex: -1,
-        currentVisibleFretboardIndex: 0,
     };
 }
