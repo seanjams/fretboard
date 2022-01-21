@@ -44,6 +44,10 @@ const getTopMargin = (diameter: number) => {
     return `calc((100% - ${diameter}px) / 2)`;
 };
 
+const inRange = (value: number, leftBound: number, rightBound: number) => {
+    return value >= leftBound && value <= rightBound;
+};
+
 const getBackgroundColor = (
     isSelected: boolean,
     isHighlighted: boolean,
@@ -202,87 +206,61 @@ export const Fret: React.FC<FretProps> = ({
         if (!shadowRef.current || !circleRef.current) return;
 
         const progress = progressRef.current;
-        const { progression, invert } = appStore.getComputedState();
+        const { progression, invert, currentFretboardIndex } =
+            appStore.getComputedState();
         const { leftDiffs, rightDiffs } = progression;
-        const i = Math.floor(progress); // to battle verbosity
-        const leftDiff = leftDiffs[i];
-        const rightDiff = rightDiffs[i];
+        const leftDiff = leftDiffs[currentFretboardIndex];
+        const rightDiff = rightDiffs[currentFretboardIndex];
+        const isSelected = isSelectedRef.current;
 
-        let direction = invert ? -1 : 1;
-        let newLeft;
-        let fillPercentage;
+        // consts
+        const leftWindow = currentFretboardIndex + SLIDER_LEFT_WINDOW;
+        const rightWindow = currentFretboardIndex + SLIDER_RIGHT_WINDOW;
         let diameter = CIRCLE_SIZE;
+        let direction = invert ? -1 : 1;
 
         let backgroundColor = getBackgroundColor(
-            isSelectedRef.current,
+            isSelected,
             isHighlightedRef.current,
             isPlayingRef.current
         );
         const circleBorderColor = getCircleBorderColor(
             statusRef.current,
-            isSelectedRef.current
+            isSelected
         );
-
-        // this fret has a destination in the fretboard to the left/right
-        // const leftExists = isNot(leftDiff, fretValue, undefined);
-        // const rightExists = isNot(rightDiff, fretValue, undefined);
-        const leftExists = leftDiff && leftDiff[fretValue] !== undefined;
-        const rightExists = rightDiff && rightDiff[fretValue] !== undefined;
 
         // this fret is filled now,
         // and does not have a destination in the fretboard to the left/right
         const leftEmpty =
-            isSelectedRef.current &&
-            leftExists &&
-            leftDiff[fretValue] === -9999;
+            isSelected && leftDiff && leftDiff[fretValue] === -9999;
         const rightEmpty =
-            isSelectedRef.current &&
-            rightExists &&
-            rightDiff[fretValue] === -9999;
+            isSelected && rightDiff && rightDiff[fretValue] === -9999;
 
         // this fret is empty now,
         // and has a destination in the fretboard to the left/right
         const leftFill =
-            !isSelectedRef.current &&
-            leftExists &&
-            leftDiff[fretValue] === 9999;
+            !isSelected && leftDiff && leftDiff[fretValue] === 9999;
         const rightFill =
-            !isSelectedRef.current &&
-            rightExists &&
-            rightDiff[fretValue] === 9999;
-
-        // consts
-        const origin = 50;
-        const leftWindow = SLIDER_LEFT_WINDOW;
-        const rightWindow = SLIDER_RIGHT_WINDOW;
-        const windowLength = SLIDER_WINDOW_LENGTH;
+            !isSelected && rightDiff && rightDiff[fretValue] === 9999;
 
         // slider range booleans
-        const outsideLeft = leftExists && progress < i;
         const insideLeft =
-            leftExists && i <= progress && progress <= i + leftWindow;
-        const middle = i + leftWindow < progress && progress <= i + rightWindow;
+            leftDiff &&
+            leftDiff[fretValue] !== undefined &&
+            inRange(progress, currentFretboardIndex, leftWindow);
+        const middle = inRange(progress, leftWindow, rightWindow);
         const insideRight =
-            rightExists && i + rightWindow < progress && progress < i + 1;
-        const outsideRight = rightExists && i + 1 <= progress;
+            rightDiff &&
+            rightDiff[fretValue] !== undefined &&
+            inRange(progress, rightWindow, currentFretboardIndex + 1);
 
-        // percentage of journey between slider windows
-        let x: number;
-        // how many frets to move
-        let diffSteps: number;
-
-        if (outsideLeft) {
-            // all altered notes should be 50% to the left
-            if (leftEmpty) {
-                fillPercentage = 100;
-            } else if (leftFill) {
-                fillPercentage = 0;
-            } else {
-                newLeft = direction * leftDiff[fretValue] * 50 + origin;
-            }
-        } else if (insideLeft) {
+        let x: number; // percentage of journey between slider windows
+        let diffSteps: number; // how many frets to move
+        let newLeft; // new left position for sliding shadowDiv
+        let fillPercentage; // new diameter for growing/shrinking shadowDiv
+        if (insideLeft) {
             // all altered notes should be x% to the left
-            x = ((i + leftWindow - progress) * 100) / windowLength;
+            x = ((leftWindow - progress) * 100) / SLIDER_WINDOW_LENGTH;
             if (leftEmpty) {
                 fillPercentage = 100 - x;
             } else if (leftFill) {
@@ -290,7 +268,7 @@ export const Fret: React.FC<FretProps> = ({
                 backgroundColor = secondaryColor;
             } else {
                 diffSteps = leftDiff[fretValue];
-                newLeft = direction * diffSteps * x + origin;
+                newLeft = direction * diffSteps * x + 50;
             }
         } else if (middle) {
             // all altered notes should be in the middle
@@ -299,10 +277,10 @@ export const Fret: React.FC<FretProps> = ({
             } else if (leftFill || rightFill) {
                 fillPercentage = 0;
             }
-            newLeft = origin;
+            newLeft = 50;
         } else if (insideRight) {
             // all altered notes should be x% to the left
-            x = ((progress - (i + rightWindow)) * 100) / windowLength;
+            x = ((progress - rightWindow) * 100) / SLIDER_WINDOW_LENGTH;
             if (rightEmpty) {
                 fillPercentage = 100 - x;
             } else if (rightFill) {
@@ -310,17 +288,7 @@ export const Fret: React.FC<FretProps> = ({
                 backgroundColor = secondaryColor;
             } else {
                 diffSteps = rightDiff[fretValue];
-                newLeft = direction * diffSteps * x + origin;
-            }
-        } else if (outsideRight) {
-            // all altered notes should be 50% to the right
-            if (rightEmpty) {
-                fillPercentage = 100;
-            } else if (rightFill) {
-                fillPercentage = 0;
-            } else {
-                diffSteps = rightDiff[fretValue];
-                newLeft = direction * diffSteps * 50 + origin;
+                newLeft = direction * diffSteps * x + 50;
             }
         }
 
@@ -374,7 +342,7 @@ export const Fret: React.FC<FretProps> = ({
     ) {
         // highlight note if brush mode is highlight
         const { status, fretboard } = appStore.getComputedState();
-        const { dragStatus } = touchStore.state;
+        const { fretDragStatus } = touchStore.state;
         // const highlightConditions = [status === HIGHLIGHTED];
 
         // if (event.nativeEvent instanceof MouseEvent) {
@@ -393,7 +361,7 @@ export const Fret: React.FC<FretProps> = ({
         // toggle selection of note
         const fromStatus = fretboard[stringIndex][fretIndex];
         let toStatus = fromStatus;
-        let toDragStatus = dragStatus;
+        let toDragStatus = fretDragStatus;
         if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
             toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
             toDragStatus = fromStatus === HIGHLIGHTED ? "off" : "on";
@@ -410,22 +378,18 @@ export const Fret: React.FC<FretProps> = ({
             );
             playNoteAudio();
         }
-        if (toDragStatus !== dragStatus)
-            touchStore.dispatch.setDragStatus(toDragStatus);
+        if (toDragStatus !== fretDragStatus)
+            touchStore.dispatch.setFretDragStatus(toDragStatus);
 
         isMouseOverRef.current = true;
     }
 
-    // const onTouchMove = (
-    //     event:
-    //         | React.MouseEvent<HTMLDivElement, MouseEvent>
-    //         | React.TouchEvent<HTMLDivElement>
-    // ) => {
     const onTouchMove = useCallback((event: MouseEvent | TouchEvent) => {
         // event.preventDefault();
         const { fretboard, status } = appStore.getComputedState();
-        const { isDragging, dragStatus } = touchStore.state;
-        if (!isDragging || !circleRef.current) return;
+        const { fretDragStatus } = touchStore.state;
+
+        if (!fretDragStatus || !circleRef.current) return;
 
         let clientX;
         let clientY;
@@ -452,36 +416,16 @@ export const Fret: React.FC<FretProps> = ({
             if (!isMouseOverRef.current) {
                 const fromStatus = fretboard[stringIndex][fretIndex];
                 let toStatus = fromStatus;
-                let toDragStatus = dragStatus;
+                let toDragStatus = fretDragStatus;
 
                 if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
                     // case when dragging over a selected/highlighted note in highlight mode
                     toStatus =
-                        dragStatus === "off"
-                            ? SELECTED
-                            : dragStatus === "on"
-                            ? HIGHLIGHTED
-                            : fromStatus === HIGHLIGHTED
-                            ? SELECTED
-                            : HIGHLIGHTED;
-
-                    // if this is the first note in the drag sequence, set dragStatus based off what we just did
-                    if (dragStatus === null)
-                        toDragStatus = toStatus === SELECTED ? "off" : "on";
+                        fretDragStatus === "off" ? SELECTED : HIGHLIGHTED;
                 } else if (status === SELECTED) {
                     // case when dragging over any note in standard mode
                     toStatus =
-                        dragStatus === "on"
-                            ? SELECTED
-                            : dragStatus === "off"
-                            ? NOT_SELECTED
-                            : fromStatus === NOT_SELECTED
-                            ? SELECTED
-                            : NOT_SELECTED;
-
-                    // if this is the first note in the drag sequence, set dragStatus based off what we just did
-                    if (dragStatus === null)
-                        toDragStatus = toStatus === SELECTED ? "on" : "off";
+                        fretDragStatus === "on" ? SELECTED : NOT_SELECTED;
                 }
 
                 if (toStatus !== fromStatus) {
@@ -492,8 +436,8 @@ export const Fret: React.FC<FretProps> = ({
                     );
                     playNoteAudio();
                 }
-                if (toDragStatus !== dragStatus) {
-                    touchStore.dispatch.setDragStatus(dragStatus);
+                if (toDragStatus !== fretDragStatus) {
+                    touchStore.dispatch.setFretDragStatus(fretDragStatus);
                     playNoteAudio();
                 }
 

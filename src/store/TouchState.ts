@@ -6,7 +6,7 @@ export interface TouchStateType {
     isDragging: boolean;
     isPressed: boolean;
     isMultiPressed: boolean;
-    dragStatus: DragStatusTypes;
+    fretDragStatus: DragStatusTypes;
 }
 
 // Reducers
@@ -32,8 +32,8 @@ export const touchReducers = {
             isMultiPressed,
         };
     },
-    setDragStatus(state: TouchStateType, dragStatus: DragStatusTypes) {
-        return { ...state, dragStatus };
+    setFretDragStatus(state: TouchStateType, fretDragStatus: DragStatusTypes) {
+        return { ...state, fretDragStatus };
     },
     clearState(state: TouchStateType) {
         return {
@@ -58,6 +58,6 @@ export function DEFAULT_TOUCH_STATE(): TouchStateType {
         isDragging: false,
         isPressed: false,
         isMultiPressed: false,
-        dragStatus: null,
+        fretDragStatus: null,
     };
 }

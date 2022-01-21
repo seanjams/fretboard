@@ -43,8 +43,8 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 26px;
-    height: 26px;
+    width: ${CIRCLE_SIZE}px;
+    height: ${CIRCLE_SIZE}px;
     border-radius: 100%;
     background-color: transparent;
     z-index: 9999;
