@@ -258,14 +258,19 @@ export const Fret: React.FC<FretProps> = ({
         let diffSteps: number; // how many frets to move
         let newLeft; // new left position for sliding shadowDiv
         let fillPercentage; // new diameter for growing/shrinking shadowDiv
+        let fillOpacityPercentage;
         if (insideLeft) {
             // all altered notes should be x% to the left
             x = ((leftWindow - progress) * 100) / SLIDER_WINDOW_LENGTH;
             if (leftEmpty) {
-                fillPercentage = 100 - x;
+                fillPercentage = 100 - (x / 100) * 50;
             } else if (leftFill) {
-                fillPercentage = x;
-                backgroundColor = secondaryColor;
+                // fillPercentage = x;
+                fillPercentage = 50 + (x / 100) * 50;
+                backgroundColor =
+                    leftDiff[fretValue] === 10000
+                        ? primaryColor
+                        : secondaryColor;
             } else {
                 diffSteps = leftDiff[fretValue];
                 newLeft = direction * diffSteps * x + 50;
@@ -282,10 +287,14 @@ export const Fret: React.FC<FretProps> = ({
             // all altered notes should be x% to the left
             x = ((progress - rightWindow) * 100) / SLIDER_WINDOW_LENGTH;
             if (rightEmpty) {
-                fillPercentage = 100 - x;
+                fillPercentage = 100 - (x / 100) * 50;
             } else if (rightFill) {
-                fillPercentage = x;
-                backgroundColor = secondaryColor;
+                // fillPercentage = x;
+                fillPercentage = 50 + (x / 100) * 50;
+                backgroundColor =
+                    rightDiff[fretValue] === 10000
+                        ? primaryColor
+                        : secondaryColor;
             } else {
                 diffSteps = rightDiff[fretValue];
                 newLeft = direction * diffSteps * x + 50;
@@ -299,10 +308,14 @@ export const Fret: React.FC<FretProps> = ({
 
         if (fillPercentage !== undefined) {
             diameter = (diameter * fillPercentage) / 100;
+            fillOpacityPercentage = (fillPercentage - 50) * 2;
+        } else {
+            fillOpacityPercentage = 100;
         }
 
         // set shadow diameter
         const radius = diameter / 2;
+        shadowRef.current.style.opacity = `${fillOpacityPercentage / 100}`;
         shadowRef.current.style.width = `${diameter}px`;
         shadowRef.current.style.height = `${diameter}px`;
         shadowRef.current.style.marginLeft = `-${radius}px`;
@@ -311,7 +324,7 @@ export const Fret: React.FC<FretProps> = ({
 
         // set circle colors
         circleRef.current.style.color = circleBorderColor;
-        circleRef.current.style.border = `1px solid ${circleBorderColor}`;
+        // circleRef.current.style.border = `1px solid ${circleBorderColor}`;
 
         // set background color
         shadowRef.current.style.backgroundColor = backgroundColor;
@@ -471,7 +484,6 @@ export const Fret: React.FC<FretProps> = ({
                 onTouchStart={onTouchStart}
                 ref={circleRef}
                 color={circleBorderColor}
-                border={`1px solid ${circleBorderColor}`}
             >
                 {label === "value" ? (
                     fretValue

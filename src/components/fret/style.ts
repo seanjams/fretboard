@@ -37,7 +37,6 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     margin-left: -${CIRCLE_SIZE / 2}px;
     margin-right: -${CIRCLE_SIZE / 2}px;
-    border: 1px solid ${lightGrey};
     box-sizing: border-box;
     color: ${lightGrey};
     display: flex;
@@ -49,6 +48,12 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     background-color: transparent;
     z-index: 9999;
     touch-action: none;
+
+    box-shadow: 0px 0px 4px 0px #aaa;
+
+    // &:hover {
+    //     background: linear-gradient(#e9e9e9, #f9f9f9);
+    // }
 `;
 
 export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
@@ -63,6 +68,10 @@ export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     border-radius: 100%;
     z-index: 9998;
     position: absolute;
+
+    // box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0);
+    // text-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0);
+    // background: linear-gradient(rgba(255, 255, 255, 0), rgba(220, 220, 220, 1));
 `;
 
 export const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
