@@ -97,6 +97,11 @@ export function useTouchStore(): TouchStore {
         // }
     }, []);
 
+    // Context Menu
+    const onContextMenu = (event: MouseEvent | TouchEvent) => {
+        event.preventDefault();
+    };
+
     // Click
     // const onClick = () => console.log("CLICK");
 
@@ -107,6 +112,7 @@ export function useTouchStore(): TouchStore {
         window.addEventListener("touchstart", onTouchStart);
         window.addEventListener("touchmove", onTouchMove);
         window.addEventListener("touchend", onTouchEnd);
+        window.addEventListener("contextmenu", onContextMenu);
         // window.addEventListener("click", onClick);
         return () => {
             window.removeEventListener("mousedown", onMouseDown);
@@ -115,6 +121,7 @@ export function useTouchStore(): TouchStore {
             window.removeEventListener("touchstart", onTouchStart);
             window.removeEventListener("touchmove", onTouchMove);
             window.removeEventListener("touchend", onTouchEnd);
+            window.removeEventListener("contextmenu", onContextMenu);
             // window.removeEventListener("click", onClick);
         };
     }, []);

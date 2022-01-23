@@ -138,15 +138,22 @@ export const Fret: React.FC<FretProps> = ({
         return fretboard[stringIndex][fretIndex] === HIGHLIGHTED;
     };
 
+    // refs
     const statusRef = useRef(appStore.state.status);
     const isHighlightedRef = useRef(getIsHighlighted(fretboard));
     const isSelectedRef = useRef(getIsSelected(fretboard));
     const isPlayingRef = useRef(audioStore.state.isPlaying.has(fretName));
     const isMouseOverRef = useRef(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // for fretIsPlaying color fade animation
     const fretIsPlayingAnimationRef =
         useRef<ReturnType<typeof requestAnimationFrame>>();
     const fretIsPlayingProgressRef = useRef(1);
+    // for long touch timout
+    const isLongTouchRef = useRef(false);
+    const isLongTouchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
 
     const backgroundColor = getBackgroundColor(
         isSelectedRef.current,
@@ -202,11 +209,15 @@ export const Fret: React.FC<FretProps> = ({
 
         window.addEventListener("mousemove", onTouchMove);
         window.addEventListener("touchmove", onTouchMove);
+        window.addEventListener("mouseup", onTouchEnd);
+        window.addEventListener("touchend", onTouchEnd);
         return () => {
             destroyAppStoreListener();
             destroyAudioStoreListener();
             window.removeEventListener("mousemove", onTouchMove);
             window.removeEventListener("touchmove", onTouchMove);
+            window.removeEventListener("mouseup", onTouchEnd);
+            window.removeEventListener("touchend", onTouchEnd);
         };
     }, []);
 
@@ -376,6 +387,24 @@ export const Fret: React.FC<FretProps> = ({
     // appStore.dispatch.setHighlightedNote(stringIndex, fretIndex, status);
     // }
 
+    const onTouchEnd = useCallback((event: MouseEvent | TouchEvent) => {
+        isMouseOverRef.current = false;
+        // isLongTouch should be turned off. It its on, it should trigger the
+        if (isLongTouchRef.current) {
+            isLongTouchRef.current = false;
+            if (appStore.state.status === HIGHLIGHTED)
+                appStore.dispatch.setStatus(SELECTED);
+        }
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+        if (isLongTouchTimeoutRef.current) {
+            clearTimeout(isLongTouchTimeoutRef.current);
+            isLongTouchTimeoutRef.current = null;
+        }
+    }, []);
+
     function onTouchStart(
         event:
             | React.TouchEvent<HTMLDivElement>
@@ -404,11 +433,34 @@ export const Fret: React.FC<FretProps> = ({
         let toStatus = fromStatus;
         let toDragStatus = fretDragStatus;
         if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
+            // only handle events on selected notes, the rest are disabled
             toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
             toDragStatus = fromStatus === HIGHLIGHTED ? "off" : "on";
         } else if (status === SELECTED) {
-            toStatus = fromStatus === NOT_SELECTED ? SELECTED : NOT_SELECTED;
+            // Demote the selection status, or select if not selected already
+            toStatus =
+                fromStatus === HIGHLIGHTED
+                    ? SELECTED
+                    : fromStatus === SELECTED
+                    ? NOT_SELECTED
+                    : fromStatus === NOT_SELECTED
+                    ? SELECTED
+                    : NOT_SELECTED;
             toDragStatus = fromStatus === NOT_SELECTED ? "on" : "off";
+        }
+
+        isLongTouchRef.current = false;
+        if (toStatus !== HIGHLIGHTED) {
+            isLongTouchTimeoutRef.current = setTimeout(() => {
+                isLongTouchRef.current = true;
+                appStore.dispatch.setStatus(HIGHLIGHTED);
+                appStore.dispatch.setHighlightedNote(
+                    stringIndex,
+                    fretIndex,
+                    HIGHLIGHTED
+                );
+                touchStore.dispatch.setFretDragStatus("on");
+            }, 700);
         }
 
         if (toStatus !== fromStatus) {
@@ -485,11 +537,27 @@ export const Fret: React.FC<FretProps> = ({
                 isMouseOverRef.current = true;
             }
         } else {
+            // remove isMouseOver when leaving the circle boundaries,
+            // with small delay to prevent flickering
             if (!timeoutRef.current && isMouseOverRef.current) {
                 timeoutRef.current = setTimeout(() => {
                     isMouseOverRef.current = false;
                     timeoutRef.current = null;
                 }, 50);
+            }
+
+            // remove isLongTouchTimeout when leaving the circle boundaries + a threshold
+            const longTouchDelta = 10;
+            if (
+                !(
+                    clientX <= right + longTouchDelta &&
+                    clientX >= left - longTouchDelta &&
+                    clientY <= bottom + longTouchDelta &&
+                    clientY >= top - longTouchDelta
+                )
+            ) {
+                if (isLongTouchTimeoutRef.current)
+                    clearTimeout(isLongTouchTimeoutRef.current);
             }
         }
     }, []);
