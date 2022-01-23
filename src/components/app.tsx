@@ -20,6 +20,9 @@ export const App: React.FC<AppProps> = ({ oldState }) => {
     const audioStore = useMemo(() => new AudioStore(), []);
     const touchStore = useTouchStore();
 
+    const w = window as any;
+    w.reset = () => appStore.setState(DEFAULT_MAIN_STATE());
+
     useEffect(() => {
         rehydrateState();
         window.addEventListener("beforeunload", saveToLocalStorage);

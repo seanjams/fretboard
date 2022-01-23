@@ -26,6 +26,7 @@ import {
     lightGrey,
     getFretValue,
 } from "../../utils";
+import { fade } from "../../utils/colorFade";
 import { ChordSymbol } from "../ChordSymbol";
 import {
     CircleDiv,
@@ -37,7 +38,7 @@ import {
 } from "./style";
 
 const [secondaryColor, primaryColor] = COLORS[0];
-const playingColor = "#FF4000";
+const playingColor = "#44FF00";
 
 const getTopMargin = (diameter: number) => {
     // As circles resize, this top margin keeps them centered
@@ -51,18 +52,16 @@ const inRange = (value: number, leftBound: number, rightBound: number) => {
 const getBackgroundColor = (
     isSelected: boolean,
     isHighlighted: boolean,
-    isPlaying: boolean
+    playProgress: number
 ) => {
     // return isHighlighted
     //     ? primaryColor
     //     : isSelected
     //     ? secondaryColor
     //     : "transparent";
-
-    return isPlaying && isHighlighted
-        ? playingColor
-        : isHighlighted
-        ? primaryColor
+    const progress = Math.min(Math.max(0, playProgress), 1);
+    return isHighlighted
+        ? fade(playingColor, primaryColor, progress) || primaryColor
         : isSelected
         ? secondaryColor
         : "transparent";
@@ -145,11 +144,14 @@ export const Fret: React.FC<FretProps> = ({
     const isPlayingRef = useRef(audioStore.state.isPlaying.has(fretName));
     const isMouseOverRef = useRef(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const fretIsPlayingAnimationRef =
+        useRef<ReturnType<typeof requestAnimationFrame>>();
+    const fretIsPlayingProgressRef = useRef(1);
 
     const backgroundColor = getBackgroundColor(
         isSelectedRef.current,
         isHighlightedRef.current,
-        isPlayingRef.current
+        fretIsPlayingProgressRef.current
     );
     const circleBorderColor = getCircleBorderColor(
         statusRef.current,
@@ -187,7 +189,13 @@ export const Fret: React.FC<FretProps> = ({
                 const fretIsPlaying = isPlaying.has(fretName);
                 if (isPlaying.has(fretName) !== isPlayingRef.current) {
                     isPlayingRef.current = fretIsPlaying;
-                    setFretStyles();
+
+                    if (fretIsPlaying && shadowRef.current) {
+                        fretIsPlayingProgressRef.current = 0;
+                        fretIsPlayingAnimation(setFretStyles);
+                    } else {
+                        setFretStyles();
+                    }
                 }
             }
         );
@@ -201,6 +209,28 @@ export const Fret: React.FC<FretProps> = ({
             window.removeEventListener("touchmove", onTouchMove);
         };
     }, []);
+
+    function fretIsPlayingAnimation(callback: () => void) {
+        const animationDuration = 1.2;
+        const totalFrames = Math.ceil(animationDuration * 60);
+        let frameCount = 0;
+
+        const performAnimation = () => {
+            fretIsPlayingAnimationRef.current =
+                requestAnimationFrame(performAnimation);
+
+            fretIsPlayingProgressRef.current += 1 / totalFrames;
+            frameCount++;
+
+            if (frameCount === totalFrames) {
+                cancelAnimationFrame(fretIsPlayingAnimationRef.current);
+                fretIsPlayingProgressRef.current = 1;
+            }
+
+            callback();
+        };
+        requestAnimationFrame(performAnimation);
+    }
 
     function setFretStyles() {
         if (!shadowRef.current || !circleRef.current) return;
@@ -222,7 +252,7 @@ export const Fret: React.FC<FretProps> = ({
         let backgroundColor = getBackgroundColor(
             isSelected,
             isHighlightedRef.current,
-            isPlayingRef.current
+            fretIsPlayingProgressRef.current
         );
         const circleBorderColor = getCircleBorderColor(
             statusRef.current,
@@ -258,15 +288,15 @@ export const Fret: React.FC<FretProps> = ({
         let diffSteps: number; // how many frets to move
         let newLeft; // new left position for sliding shadowDiv
         let fillPercentage; // new diameter for growing/shrinking shadowDiv
-        let fillOpacityPercentage;
+        let fillOpacityPercentage = 100; // new opacity for growing/shrinking shadowDiv
         if (insideLeft) {
             // all altered notes should be x% to the left
             x = ((leftWindow - progress) * 100) / SLIDER_WINDOW_LENGTH;
             if (leftEmpty) {
                 fillPercentage = 100 - (x / 100) * 50;
             } else if (leftFill) {
-                // fillPercentage = x;
                 fillPercentage = 50 + (x / 100) * 50;
+                fillOpacityPercentage = x;
                 backgroundColor =
                     leftDiff[fretValue] === 10000
                         ? primaryColor
@@ -281,6 +311,7 @@ export const Fret: React.FC<FretProps> = ({
                 fillPercentage = 100;
             } else if (leftFill || rightFill) {
                 fillPercentage = 0;
+                fillOpacityPercentage = 0;
             }
             newLeft = 50;
         } else if (insideRight) {
@@ -289,8 +320,8 @@ export const Fret: React.FC<FretProps> = ({
             if (rightEmpty) {
                 fillPercentage = 100 - (x / 100) * 50;
             } else if (rightFill) {
-                // fillPercentage = x;
                 fillPercentage = 50 + (x / 100) * 50;
+                fillOpacityPercentage = x;
                 backgroundColor =
                     rightDiff[fretValue] === 10000
                         ? primaryColor
@@ -308,9 +339,6 @@ export const Fret: React.FC<FretProps> = ({
 
         if (fillPercentage !== undefined) {
             diameter = (diameter * fillPercentage) / 100;
-            fillOpacityPercentage = (fillPercentage - 50) * 2;
-        } else {
-            fillOpacityPercentage = 100;
         }
 
         // set shadow diameter
@@ -471,8 +499,7 @@ export const Fret: React.FC<FretProps> = ({
             borderLeft={fretBorder}
             borderRight={fretBorder}
             width={`${fretWidth}px`}
-            height="100%"
-            animationBackground={playingColor}
+            // animationBackground={playingColor}
             // onContextMenu={onContextMenu}
         >
             <StringSegmentDiv
@@ -498,9 +525,7 @@ export const Fret: React.FC<FretProps> = ({
             <ShadowDiv
                 ref={shadowRef}
                 backgroundColor={backgroundColor}
-                left="50%"
-                top={`${top}`}
-                // className="fret-animation"
+                top={top}
             />
             <StringSegmentDiv
                 height={`${thickness}px`}

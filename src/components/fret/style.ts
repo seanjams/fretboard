@@ -18,16 +18,17 @@ export const FretDiv = styled.div.attrs((props: CSSProps) => ({
     justify-content: space-between;
     align-items: center;
     position: relative;
+    height: 100%;
     user-select: none; /* standard syntax */
     -webkit-user-select: none; /* webkit (safari, chrome) browsers */
     -moz-user-select: none; /* mozilla browsers */
     -khtml-user-select: none; /* webkit (konqueror) browsers */
     -ms-user-select: none; /* IE10+ */
 
-    .fret-animation {
-        background: ${(props) => props.animationBackground};
-        transition: background 150ms ease-in-out;
-    }
+    // .fret-animation {
+    //     background: ${(props) => props.animationBackground};
+    //     transition: background 150ms ease-in-out;
+    // }
 `;
 
 export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
@@ -68,6 +69,7 @@ export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     border-radius: 100%;
     z-index: 9998;
     position: absolute;
+    left: 50%;
 
     // box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0);
     // text-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0);
