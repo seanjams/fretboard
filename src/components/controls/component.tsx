@@ -224,6 +224,56 @@ export const FretboardSettingsControls: React.FC<FretboardSettingsControlsProps>
         );
     };
 
+interface SettingsButtonStateType {
+    display: DisplayTypes;
+}
+
+export const SettingsButton: React.FC<ControlsProps> = ({ appStore }) => {
+    const [getState, setState] = useStateRef<SettingsButtonStateType>(() => ({
+        display: appStore.state.display,
+    }));
+    const { display } = getState();
+
+    useEffect(() => {
+        return appStore.addListener(({ display }) => {
+            if (getState().display !== display) setState({ display });
+        });
+    }, []);
+
+    const onShowSettings = () => {
+        let display: DisplayTypes =
+            appStore.state.display === "settings" ? "normal" : "settings";
+        appStore.dispatch.setDisplay(display);
+    };
+
+    const onShowInput = () => {
+        let display: DisplayTypes =
+            appStore.state.display === "input" ? "normal" : "input";
+        appStore.dispatch.setDisplay(display);
+    };
+
+    return (
+        <CircleControlsContainer>
+            <Div className="circle-button-container">
+                <CircleIconButton
+                    onClick={onShowSettings}
+                    imageSrc={ClearIcon}
+                    selected={display === "settings"}
+                />
+                <Label>Settings</Label>
+            </Div>
+            <Div className="circle-button-container">
+                <CircleIconButton
+                    onClick={onShowInput}
+                    imageSrc={PlusIcon}
+                    selected={display === "input"}
+                />
+                <Label>Input</Label>
+            </Div>
+        </CircleControlsContainer>
+    );
+};
+
 interface PlayButtonProps extends ControlsProps {
     audioStore: AudioStore;
 }
@@ -241,64 +291,11 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
         }
     };
 
-    const onShowSlider = () => {
-        let display: DisplayTypes =
-            appStore.state.display === "slider" ? "normal" : "slider";
-        appStore.dispatch.setDisplay(display);
-    };
-
-    const onShowInput = () => {
-        let display: DisplayTypes =
-            appStore.state.display === "input" ? "normal" : "input";
-        appStore.dispatch.setDisplay(display);
-    };
-
     return (
         <CircleControlsContainer>
             <Div className="circle-button-container">
                 <CircleIconButton onClick={onPlayNotes} imageSrc={PlusIcon} />
                 <Label>Play</Label>
-            </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton onClick={onShowSlider} imageSrc={PlusIcon} />
-                <Label>Slider</Label>
-            </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton onClick={onShowInput} imageSrc={PlusIcon} />
-                <Label>Input</Label>
-            </Div>
-        </CircleControlsContainer>
-    );
-};
-
-export const SettingsButton: React.FC<ControlsProps> = ({ appStore }) => {
-    // const [getState, setState] = useStateRef(() => ({
-    //     showBottomDrawer: appStore.state.showBottomDrawer,
-    // }));
-    // const { showBottomDrawer } = getState(); // use to flip arrow around
-
-    // useEffect(() => {
-    //     return appStore.addListener(({ showBottomDrawer }) => {
-    //         if (getState().showBottomDrawer !== showBottomDrawer) {
-    //             setState({ showBottomDrawer });
-    //         }
-    //     });
-    // }, []);
-
-    const onShowSettings = () => {
-        let display: DisplayTypes =
-            appStore.state.display === "settings" ? "normal" : "settings";
-        appStore.dispatch.setDisplay(display);
-    };
-
-    return (
-        <CircleControlsContainer>
-            <Div className="circle-button-container">
-                <CircleIconButton
-                    onClick={onShowSettings}
-                    imageSrc={ClearIcon}
-                />
-                <Label>Settings</Label>
             </Div>
         </CircleControlsContainer>
     );

@@ -23,7 +23,7 @@ import {
     getFretboardDimensions,
     defaultFretboardName,
 } from "../../utils";
-import { ChordInputContainer, OverflowContainerDiv, Tag, Title } from "./style";
+import { ChordInputContainer, OverflowContainerDiv, Tag, Label } from "./style";
 
 interface ChordInputProps {
     appStore: AppStore;
@@ -128,43 +128,23 @@ export const ChordInput: React.FC<ChordInputProps> = ({
             );
         };
 
-    const onClick = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        // event.preventDefault();
-        // event.stopPropagation();
-        // if (appStore.state.showTopDrawer) appStore.dispatch.setShowTopDrawer(false);
-    };
-
-    const { maxInputHeight, minInputHeight } = getFretboardDimensions();
+    const { maxInputHeight } = getFretboardDimensions();
 
     return (
-        <ChordInputContainer
-            onClick={onClick}
-            onTouchStart={onClick}
-            height={`${maxInputHeight}px`}
-        >
-            <FlexRow
-                // onClick={preventDefault}
-                // onTouchStart={preventDefault}
-                width="100%"
-            >
-                <Title
+        <ChordInputContainer height={`${maxInputHeight}px`}>
+            <FlexRow width="100%" height="100%">
+                <Label
                     marginLeft={`${SP[2]}px`}
                     width={`calc(15% - ${SP[2]}px)`}
                     flexShrink={0}
-                    textAlign="right"
-                    fontWeight="bold"
-                    // marginTop={`${SP[2]}px`}
                 >
                     Root:
-                </Title>
+                </Label>
                 <FlexRow
                     marginLeft={`${SP[2]}px`}
                     marginRight={`${SP[2]}px`}
                     width={`calc(85% - ${2 * SP[2]}px)`}
+                    height="100%"
                 >
                     {noteNames.map((name, j) => (
                         <Tag
@@ -182,45 +162,43 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                     ))}
                 </FlexRow>
             </FlexRow>
-            <FlexRow
-                // onClick={preventDefault}
-                // onTouchStart={preventDefault}
-                width="100%"
-            >
-                <Title
+            <FlexRow width="100%" height="100%">
+                <Label
                     marginLeft={`${SP[2]}px`}
                     width={`calc(15% - ${SP[2]}px)`}
-                    textAlign="right"
-                    fontWeight="bold"
-                    // marginTop={`${SP[2]}px`}
                 >
                     Chord/Scale:
-                </Title>
+                </Label>
                 <OverflowContainerDiv
                     marginLeft={`${SP[2]}px`}
                     marginRight={`${SP[2]}px`}
                     width={`calc(85% - ${2 * SP[2]}px)`}
+                    height="100%"
+                    className="overflow-container"
                 >
-                    <FlexRow
-                        paddingLeft={`calc(26% + ${3 * SP[7]}px)`}
-                        paddingRight={`calc(26% + ${3 * SP[7]}px)`}
-                        width="100%"
-                    >
-                        {CHORD_NAMES.map((name, j) => (
-                            <Tag
-                                key={`${name}-key-${j}`}
-                                onClick={onChordChange(name)}
-                                onTouchStart={onChordChange(name)}
-                                highlighted={chordName === name}
-                            >
-                                <ChordSymbol
-                                    rootName=""
-                                    chordName={name}
-                                    fontSize={12}
-                                />
-                            </Tag>
-                        ))}
-                    </FlexRow>
+                    <Div>
+                        <FlexRow
+                            paddingLeft={`calc(14% + ${6 * SP[7]}px)`}
+                            paddingRight={`calc(14% + ${6 * SP[7]}px)`}
+                            width="100%"
+                            height="100%"
+                        >
+                            {CHORD_NAMES.map((name, j) => (
+                                <Tag
+                                    key={`${name}-key-${j}`}
+                                    onClick={onChordChange(name)}
+                                    onTouchStart={onChordChange(name)}
+                                    highlighted={chordName === name}
+                                >
+                                    <ChordSymbol
+                                        rootName=""
+                                        chordName={name}
+                                        fontSize={12}
+                                    />
+                                </Tag>
+                            ))}
+                        </FlexRow>
+                    </Div>
                 </OverflowContainerDiv>
             </FlexRow>
         </ChordInputContainer>

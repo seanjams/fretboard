@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useRef } from "react";
-import { CSSTransition } from "react-transition-group";
+import React, { useEffect, useRef } from "react";
 import {
     stopClick,
-    SLIDER_WINDOW_LENGTH,
     SLIDER_RIGHT_WINDOW,
     SLIDER_LEFT_WINDOW,
 } from "../../utils";
@@ -12,15 +10,9 @@ import {
     getComputedAppState,
     AudioStore,
 } from "../../store";
-import { ChordSymbol } from "../ChordSymbol";
 import { FlexRow } from "../Common";
-import {
-    AnimationWrapper,
-    ProgressBar,
-    ProgressBarFragment,
-    ProgressBarName,
-    SliderBar,
-} from "./style";
+import { Title } from "../Title";
+import { ProgressBar, SliderBar } from "./style";
 import { isEqual } from "lodash";
 
 interface SliderProps {
@@ -44,13 +36,11 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     const sliderBarRef = useRef<HTMLDivElement>(null);
     const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
     const isAnimatingRef = useRef(computedState.isAnimating);
-    const isSliderDisplayRef = useRef(appStore.state.display === "slider");
 
     useEffect(() => {
         const destroyAppStoreListener = appStore.addListener((newState) => {
             const { visibleFretboards, isAnimating, display } =
                 getComputedAppState(newState);
-            const isSliderDisplay = display === "slider";
             const visibleFretboardsChanged = !isEqual(
                 getState().visibleFretboards,
                 visibleFretboards
@@ -64,12 +54,8 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                 });
             }
 
-            if (
-                isAnimatingRef.current !== isAnimating ||
-                isSliderDisplayRef.current !== isSliderDisplay
-            ) {
+            if (isAnimatingRef.current !== isAnimating) {
                 isAnimatingRef.current = isAnimating;
-                isSliderDisplayRef.current = isSliderDisplay;
                 if (isAnimating) setLeftFromProgress();
             }
         });
@@ -288,51 +274,54 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             return;
         }
         if (progressBarRef.current && sliderBarRef.current) {
-            repositionSlider(clientX);
-            setTimeout(snapToGridAnimation, 0);
+            const { currentFretboardIndex, progression } =
+                appStore.getComputedState();
+            const origin = progressBarRef.current.offsetLeft;
+            const progressBarWidth = progressBarRef.current.offsetWidth;
+            const toIndex = Math.floor(
+                ((clientX - origin) * progression.fretboards.length) /
+                    progressBarWidth
+            );
+            appStore.switchFretboardAnimation(
+                currentFretboardIndex,
+                toIndex,
+                () => {
+                    const { fretboard } = appStore.getComputedState();
+                    audioStore.strumChord(fretboard);
+                }
+            );
         }
     };
 
     return (
         <FlexRow width="100%">
-            {visibleFretboards.length > 1 && (
-                <ProgressBar
-                    id="progress-bar"
-                    ref={progressBarRef}
-                    width="100%"
-                    onClick={onSliderClick}
-                    onTouchStart={onSliderClick}
-                >
-                    <AnimationWrapper minSliderSize={44} maxSliderSize={50}>
-                        <CSSTransition
-                            in={dragging}
-                            timeout={50}
-                            classNames="slider-grow"
-                            // onEnter={() => setShowButton(false)}
-                            // onExited={() => setShowButton(true)}
-                        >
-                            <SliderBar
-                                className="slider-bar"
-                                ref={sliderBarRef}
-                                left={`${left}px`}
-                                onMouseDown={onMouseDown}
-                                onTouchStart={onMouseDown}
-                                show={true}
-                            />
-                        </CSSTransition>
-                    </AnimationWrapper>
-                    {visibleFretboards.map((_, i) => {
-                        return (
-                            <ProgressBarFragment
-                                key={`button-pad-${i}`}
-                                width={`${100 / visibleFretboards.length}%`}
-                                isFirst={i === 0}
-                                isLast={i === visibleFretboards.length - 1}
-                            />
-                        );
-                    })}
-                </ProgressBar>
-            )}
+            <ProgressBar
+                id="progress-bar"
+                ref={progressBarRef}
+                width="100%"
+                onClick={onSliderClick}
+                onTouchStart={onSliderClick}
+            >
+                <SliderBar
+                    className="slider-bar"
+                    ref={sliderBarRef}
+                    left={`${left}px`}
+                    onMouseDown={onMouseDown}
+                    onTouchStart={onMouseDown}
+                    height="44px"
+                    width="44px"
+                />
+                {visibleFretboards.map((_, i) => {
+                    return (
+                        <Title
+                            key={`fretboard-${i}`}
+                            appStore={appStore}
+                            audioStore={audioStore}
+                            fretboardIndex={i}
+                        />
+                    );
+                })}
+            </ProgressBar>
         </FlexRow>
     );
 };

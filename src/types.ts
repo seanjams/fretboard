@@ -66,7 +66,7 @@ export type ChordTypes =
 
 export type DragStatusTypes = "on" | "off" | null;
 
-export type DisplayTypes = "normal" | "slider" | "input" | "settings";
+export type DisplayTypes = "normal" | "input" | "settings";
 
 export type FretboardNameType = {
     rootIdx: number;

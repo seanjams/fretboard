@@ -5,7 +5,7 @@ import {
     getComputedAppState,
     useStateRef,
 } from "../../store";
-import { DisplayTypes, FretboardNameType } from "../../types";
+import { FretboardNameType } from "../../types";
 import { getFretboardName, darkGrey, defaultFretboardName } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { FlexRow } from "../Common";
@@ -92,34 +92,8 @@ export const Title: React.FC<TitleProps> = ({
             : ((y0 - y1 + buffer) / (x0 - x1)) * (chordName.length - x1) + y1;
     };
 
-    const onClick = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        const { currentFretboardIndex } = appStore.getComputedState();
-
-        if (currentFretboardIndex !== fretboardIndex) {
-            // if clicking on a different title than the current fretboard,
-            // animate the switch between the fretboards
-            appStore.switchFretboardAnimation(
-                currentFretboardIndex,
-                fretboardIndex,
-                () => {
-                    const { fretboard } = appStore.getComputedState();
-                    audioStore.strumChord(fretboard);
-                }
-            );
-        } else {
-            // otherwise toggle input mode for current fretboard
-            let display: DisplayTypes =
-                appStore.state.display === "input" ? "normal" : "input";
-            appStore.dispatch.setDisplay(display);
-        }
-    };
-
     return (
-        <TitleContainerDiv onClick={onClick} onTouchStart={onClick}>
+        <TitleContainerDiv>
             <CurrentFretboardMarker
                 markerColor={isCurrentFretboard ? darkGrey : "transparent"}
             />

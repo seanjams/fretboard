@@ -14,6 +14,7 @@ export const TitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
 `;
 
 export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({

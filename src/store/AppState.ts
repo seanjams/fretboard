@@ -397,7 +397,7 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
         // let startingProgress = nextProgress;
 
         let frameCount = 0;
-        let animationDuration = 0.3; // 0.25 seconds roughly comes out to 15 frames
+        let animationDuration = 0.35; // 0.25 seconds roughly comes out to 15 frames
         let totalFrames = Math.ceil(animationDuration * 60);
         let animationSlideLength = SLIDER_WINDOW_LENGTH;
         let i = 0;

@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { SP } from "../../utils";
+import { CIRCLE_SIZE, SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
@@ -16,28 +16,33 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     height: 100%;
 `;
 
-export const Title = styled.div.attrs((props: CSSProps) => ({
+export const Label = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     font-size: 14px;
     margin: auto 0;
+    text-align: right;
+    font-weight: bold;
 `;
 
 export const Tag = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        border: props.highlighted ? "2px solid #000" : "2px solid transparent",
+        // border: props.highlighted ? "2px solid #000" : "2px solid transparent",
+        boxShadow: props.highlighted
+            ? "0px 0px 4px 0px #aaa"
+            : "0px 0px 0px 0px transparent",
     },
 }))<CSSProps>`
-    margin: 4px 8px 4px 0;
-    border-radius: 4px;
-    min-width: 26px;
-    min-height: 14px;
+    margin: 2px 8px;
+    border-radius: ${CIRCLE_SIZE - 4}px;
+    min-width: ${CIRCLE_SIZE - 4}px;
+    min-height: ${CIRCLE_SIZE - 4}px;
     font-size: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2px;
+    padding: ${2}px;
     flex-shrink: 0;
     transition: border 150ms ease-in-out;
 `;
@@ -47,9 +52,8 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     position: relative;
     z-index: 999;
-    overflow-x: auto;
 
-    ::before {
+    &:before {
         content: "";
         position: absolute;
         top: 0;
@@ -63,7 +67,8 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
         );
         pointer-events: none;
     }
-    ::after {
+
+    &:after {
         content: "";
         position: absolute;
         bottom: 0;
@@ -76,5 +81,10 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
             white 85%
         );
         pointer-events: none;
+    }
+
+    & > div {
+        width: 100%;
+        overflow-x: auto;
     }
 `;

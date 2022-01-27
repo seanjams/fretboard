@@ -12,6 +12,7 @@ interface ButtonProps {
     border?: string;
     diameter?: number;
     onClick?: (event: MouseEvent | TouchEvent) => void;
+    selected?: boolean;
 }
 
 export const CircleButton: React.FC<ButtonProps> = ({
@@ -20,11 +21,13 @@ export const CircleButton: React.FC<ButtonProps> = ({
     diameter,
     onClick,
     children,
+    selected,
 }) => {
     const [getState, setState] = useStateRef(() => ({
-        active: false,
+        active: selected || false,
     }));
     const { active } = getState();
+    const isPressedRef = useRef(false);
 
     useEffect(() => {
         window.addEventListener("mouseup", onMouseUp);
@@ -41,16 +44,20 @@ export const CircleButton: React.FC<ButtonProps> = ({
             | React.TouchEvent<HTMLDivElement>
     ) => {
         // event.preventDefault();
-        if (!getState().active) setState({ active: true });
+        isPressedRef.current = true;
+        if (selected === undefined && !getState().active)
+            setState({ active: true });
     };
 
     const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
-        event.stopPropagation();
+        // event.stopPropagation();
+        if (!isPressedRef.current) return;
+        isPressedRef.current = false;
 
-        if (getState().active) {
+        if (selected === undefined && getState().active)
             setState({ active: false });
-            if (onClick) onClick(event);
-        }
+
+        if (onClick) onClick(event);
     }, []);
 
     return (
@@ -58,7 +65,7 @@ export const CircleButton: React.FC<ButtonProps> = ({
             onTouchStart={onMouseDown}
             onMouseDown={onMouseDown}
             backgroundColor={backgroundColor}
-            active={active}
+            active={selected !== undefined ? selected : active}
             activeColor={activeColor}
             diameter={diameter}
             className="circle-button"
@@ -91,11 +98,13 @@ export const HighlightButton: React.FC<HighlightButtonProps> = ({
 export interface CircleButtonProps {
     imageSrc?: string;
     onClick?: (event: MouseEvent | TouchEvent) => void;
+    selected?: boolean;
 }
 
 export const CircleIconButton: React.FC<CircleButtonProps> = ({
     imageSrc,
     onClick,
+    selected,
 }) => {
     return (
         <CircleButton
@@ -103,6 +112,7 @@ export const CircleIconButton: React.FC<CircleButtonProps> = ({
             activeColor={darkGrey}
             onClick={onClick}
             diameter={44}
+            selected={selected}
         >
             {imageSrc && <img src={imageSrc} width="20px" height="20px" />}
         </CircleButton>

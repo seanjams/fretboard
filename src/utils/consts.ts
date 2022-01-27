@@ -211,8 +211,8 @@ export const STRUM_HIGH_TO_LOW = "strumHighToLow";
 export const ARPEGGIATE_LOW_TO_HIGH = "arpeggiateLowToHigh";
 export const ARPEGGIATE_HIGH_TO_LOW = "arpeggiateHighToLow";
 
-export const darkGrey = "#444";
-export const mediumGrey = "#888";
+export const darkGrey = "#404040";
+export const mediumGrey = "#808080";
 export const lightGrey = "#C1BFB5";
 
 export const COLORS = [

@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { darkGrey } from "../../utils";
+import { darkGrey, SP } from "../../utils";
 
 export interface CSSProps extends CSS.Properties {
     activeColor?: string;
@@ -11,9 +11,9 @@ export interface CSSProps extends CSS.Properties {
 export const Circle = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        backgroundColor: props.active
-            ? props.activeColor
-            : props.backgroundColor || "transparent",
+        boxShadow: props.active
+            ? `inset 0px 0px 4px 0px #aaa`
+            : `0px 0px 4px 0px #aaa`,
     },
 }))<CSSProps>`
     width: ${(props) => props.diameter || 0}px;
@@ -23,14 +23,6 @@ export const Circle = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid ${darkGrey};
     cursor: pointer;
-
-    // &:active {
-    //     background: #e5e5e5;
-    //     -webkit-box-shadow: inset 0px 0px 5px #c1c1c1;
-    //     -moz-box-shadow: inset 0px 0px 5px #c1c1c1;
-    //     box-shadow: inset 0px 0px 5px #c1c1c1;
-    //     outline: none;
-    // }
+    margin: 0 ${SP[1]}px;
 `;

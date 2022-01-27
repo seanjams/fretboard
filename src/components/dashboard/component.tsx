@@ -85,42 +85,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 marginBottom={0}
                 verticalAlign="top"
             >
-                <Div
-                    display="flex"
-                    justifyContent="space-evenly"
-                    alignItems="center"
-                    height="100%"
-                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
-                >
-                    <Div flex={1} height="100%">
-                        <Title
-                            appStore={appStore}
-                            audioStore={audioStore}
-                            fretboardIndex={0}
-                        />
-                    </Div>
-                    <Div flex={1} height="100%">
-                        <Title
-                            appStore={appStore}
-                            audioStore={audioStore}
-                            fretboardIndex={1}
-                        />
-                    </Div>
-                    <Div flex={1} height="100%">
-                        <Title
-                            appStore={appStore}
-                            audioStore={audioStore}
-                            fretboardIndex={2}
-                        />
-                    </Div>
-                    <Div flex={1} height="100%">
-                        <Title
-                            appStore={appStore}
-                            audioStore={audioStore}
-                            fretboardIndex={3}
-                        />
-                    </Div>
-                </Div>
+                <Slider appStore={appStore} audioStore={audioStore} />
             </Div>
             <Div height={`${height}px`} width={`${width}px`}>
                 <TopDrawer appStore={appStore} />
@@ -130,9 +95,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     touchStore={touchStore}
                 />
                 <BottomDrawer appStore={appStore}>
-                    {display === "slider" ? (
-                        <Slider appStore={appStore} audioStore={audioStore} />
-                    ) : display === "input" ? (
+                    {display === "input" ? (
                         <ChordInput
                             appStore={appStore}
                             audioStore={audioStore}
