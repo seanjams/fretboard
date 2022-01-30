@@ -95,7 +95,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     touchStore={touchStore}
                 />
                 <BottomDrawer appStore={appStore}>
-                    {display === "input" ? (
+                    {display === "chord-input" ? (
                         <ChordInput
                             appStore={appStore}
                             audioStore={audioStore}

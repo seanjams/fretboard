@@ -12,10 +12,12 @@ export const SymbolSpan = styled.div.attrs((props: CSSProps) => ({
         marginLeft: `${((props.scriptFontSize || 0) * 1.5) / -8}px`,
         marginRight: `${(props.scriptFontSize || 0) / -8}px`,
         height: `${props.scriptFontSize}px`,
+        width: `${((props.scriptFontSize || 0) * 2) / 3}px`,
     },
 }))<CSSProps>`
     font-size: 75%;
     white-space: nowrap;
+    text-align: center;
 `;
 
 export const SuperScript = styled.div.attrs((props: CSSProps) => ({

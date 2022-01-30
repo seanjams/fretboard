@@ -186,8 +186,21 @@ export const FretboardSettingsControls: React.FC<FretboardSettingsControlsProps>
             );
         };
 
+        const onLabelChange = (event: MouseEvent | TouchEvent) => {
+            event.preventDefault();
+            const { label } = appStore.getComputedState().progression;
+            appStore.dispatch.setLabel(label === "sharp" ? "flat" : "sharp");
+        };
+
         return (
             <CircleControlsContainer>
+                <Div className="circle-button-container">
+                    <CircleIconButton
+                        onClick={onLabelChange}
+                        imageSrc={ClearIcon}
+                    />
+                    <Label>Label</Label>
+                </Div>
                 <Div className="circle-button-container">
                     <CircleIconButton
                         onClick={appStore.dispatch.toggleLeftHand}
@@ -248,7 +261,7 @@ export const SettingsButton: React.FC<ControlsProps> = ({ appStore }) => {
 
     const onShowInput = () => {
         let display: DisplayTypes =
-            appStore.state.display === "input" ? "normal" : "input";
+            appStore.state.display === "chord-input" ? "normal" : "chord-input";
         appStore.dispatch.setDisplay(display);
     };
 
@@ -266,7 +279,7 @@ export const SettingsButton: React.FC<ControlsProps> = ({ appStore }) => {
                 <CircleIconButton
                     onClick={onShowInput}
                     imageSrc={PlusIcon}
-                    selected={display === "input"}
+                    selected={display === "chord-input"}
                 />
                 <Label>Input</Label>
             </Div>

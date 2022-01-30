@@ -271,6 +271,9 @@ export const appReducers = {
         if (display === "normal") {
             showTopDrawer = false;
             showBottomDrawer = false;
+        } else if (display === "change-name") {
+            showTopDrawer = true;
+            showBottomDrawer = false;
         } else {
             showTopDrawer = false;
             showBottomDrawer = true;
@@ -290,6 +293,14 @@ export const appReducers = {
 
     setStrumMode(state: AppStateType, strumMode: StrumTypes) {
         return { ...state, strumMode };
+    },
+
+    setLabel(state: AppStateType, label: LabelTypes) {
+        const { progression } = getComputedAppState(state);
+        return this.setCurrentProgression(state, {
+            ...progression,
+            label,
+        });
     },
 
     toggleLeftHand(state: AppStateType) {
