@@ -1,13 +1,7 @@
 import { Howl, Howler } from "howler";
 // import * as Tone from "tone";
-import { StringSwitchType } from "../types";
-import {
-    STANDARD_TUNING,
-    mod,
-    FLAT_NAMES,
-    STRING_SIZE,
-    HIGHLIGHTED,
-} from "../utils";
+import { FretboardType } from "../types";
+import { STANDARD_TUNING, mod, FLAT_NAMES, HIGHLIGHTED } from "../utils";
 import { Store } from "./store";
 
 import WebWorker from "../webworkers/WebWorker";
@@ -185,15 +179,15 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         }
     }
 
-    strumChord(fretboard: StringSwitchType) {
+    strumChord(fretboard: FretboardType) {
         // figure out which notes are highlighted on each string
         // get the rightmost value
         // play chord with very small delay between notes
         let strumSounds: [number, number][] = [];
 
-        for (let stringIndex in fretboard) {
+        for (let stringIndex in fretboard.strings) {
             let foundFretIndex = -1;
-            let fretString = fretboard[stringIndex];
+            let fretString = fretboard.strings[stringIndex];
             for (let fretIndex in fretString) {
                 let fretValue = fretString[fretIndex];
                 if (fretValue === HIGHLIGHTED) foundFretIndex = +fretIndex;
@@ -206,14 +200,14 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         this.playNotes(strumSounds, strumDelay);
     }
 
-    arpeggiateChord(fretboard: StringSwitchType) {
+    arpeggiateChord(fretboard: FretboardType) {
         // figure out which notes are highlighted on each string
         // construct notes to be played forward and backwards
         // play chord with medium delay between notes
         let arpeggiateSounds: [number, number][] = [];
 
-        for (let stringIndex in fretboard) {
-            let fretString = fretboard[stringIndex];
+        for (let stringIndex in fretboard.strings) {
+            let fretString = fretboard.strings[stringIndex];
             for (let fretIndex in fretString) {
                 let fretValue = fretString[fretIndex];
                 if (fretValue === HIGHLIGHTED)

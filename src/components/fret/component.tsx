@@ -6,7 +6,7 @@ import {
     TouchStore,
     useStateRef,
 } from "../../store";
-import { LabelTypes, StringSwitchType } from "../../types";
+import { LabelTypes, FretboardType } from "../../types";
 import {
     getFretWidth,
     mod,
@@ -123,14 +123,14 @@ export const Fret: React.FC<FretProps> = ({
     const circleRef = useRef<HTMLDivElement>(null);
     const shadowRef = useRef<HTMLDivElement>(null);
 
-    const getIsSelected = (fretboard: StringSwitchType) => {
+    const getIsSelected = (fretboard: FretboardType) => {
         return [SELECTED, HIGHLIGHTED].includes(
-            fretboard[stringIndex][fretIndex]
+            fretboard.strings[stringIndex][fretIndex]
         );
     };
 
-    const getIsHighlighted = (fretboard: StringSwitchType) => {
-        return fretboard[stringIndex][fretIndex] === HIGHLIGHTED;
+    const getIsHighlighted = (fretboard: FretboardType) => {
+        return fretboard.strings[stringIndex][fretIndex] === HIGHLIGHTED;
     };
 
     const getNoteName = (label: LabelTypes) => {
@@ -259,10 +259,14 @@ export const Fret: React.FC<FretProps> = ({
         const rightDiff = rightDiffs[currentFretboardIndex];
         const isSelected = isSelectedRef.current;
         const leftIsSelected = fretboards[currentFretboardIndex - 1]
-            ? !!fretboards[currentFretboardIndex - 1][stringIndex][fretIndex]
+            ? !!fretboards[currentFretboardIndex - 1].strings[stringIndex][
+                  fretIndex
+              ]
             : false;
         const rightIsSelected = fretboards[currentFretboardIndex + 1]
-            ? !!fretboards[currentFretboardIndex + 1][stringIndex][fretIndex]
+            ? !!fretboards[currentFretboardIndex + 1].strings[stringIndex][
+                  fretIndex
+              ]
             : false;
 
         // consts
@@ -459,7 +463,7 @@ export const Fret: React.FC<FretProps> = ({
         const { fretDragStatus } = touchStore.state;
 
         // toggle selection of note
-        const fromStatus = fretboard[stringIndex][fretIndex];
+        const fromStatus = fretboard.strings[stringIndex][fretIndex];
         let toStatus = fromStatus;
         let toDragStatus = fretDragStatus;
         if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
@@ -539,7 +543,7 @@ export const Fret: React.FC<FretProps> = ({
 
         if (isWithinBoundary()) {
             if (!isMouseOverRef.current) {
-                const fromStatus = fretboard[stringIndex][fretIndex];
+                const fromStatus = fretboard.strings[stringIndex][fretIndex];
                 let toStatus = fromStatus;
                 let toDragStatus = fretDragStatus;
 

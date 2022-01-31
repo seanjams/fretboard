@@ -16,9 +16,9 @@ import {
     SettingsButton,
 } from "../Controls";
 import { ChordInput } from "../ChordInput";
+import { ChordNameSelector } from "../ChordNameSelector";
 import { FretboardSettings } from "../FretboardSettings";
 import { Slider } from "../Slider";
-import { Title } from "../Title";
 import { ContainerDiv } from "./style";
 import { BottomDrawer, TopDrawer } from "../Drawer";
 
@@ -88,7 +88,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <Slider appStore={appStore} audioStore={audioStore} />
             </Div>
             <Div height={`${height}px`} width={`${width}px`}>
-                <TopDrawer appStore={appStore} />
+                <TopDrawer appStore={appStore}>
+                    {display === "change-name" ? (
+                        <ChordNameSelector
+                            appStore={appStore}
+                            audioStore={audioStore}
+                        />
+                    ) : null}
+                </TopDrawer>
                 <Fretboard
                     appStore={appStore}
                     audioStore={audioStore}

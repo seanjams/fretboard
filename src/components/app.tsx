@@ -21,7 +21,10 @@ export const App: React.FC<AppProps> = ({ oldState }) => {
     const touchStore = useTouchStore();
 
     const w = window as any;
-    w.reset = () => appStore.setState(DEFAULT_MAIN_STATE());
+    w.reset = () => {
+        localStorage.clear();
+        appStore.setState(DEFAULT_MAIN_STATE());
+    };
 
     useEffect(() => {
         rehydrateState();

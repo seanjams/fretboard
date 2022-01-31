@@ -6,7 +6,7 @@ import {
     useStateRef,
 } from "../../store";
 import { FretboardNameType } from "../../types";
-import { getFretboardName, darkGrey, defaultFretboardName } from "../../utils";
+import { darkGrey, DEFAULT_FRETBOARD_NAME } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { FlexRow } from "../Common";
 import {
@@ -37,8 +37,8 @@ export const Title: React.FC<TitleProps> = ({
     const fretboard = visibleFretboards[fretboardIndex];
     const [getState, setState] = useStateRef<TitleState>(() => ({
         name: fretboard
-            ? getFretboardName(fretboard, progression.label)[0]
-            : defaultFretboardName,
+            ? fretboard.names.filter((name) => name.isSelected)[0]
+            : DEFAULT_FRETBOARD_NAME(),
         isCurrentFretboard: fretboardIndex === currentVisibleFretboardIndex,
     }));
     const { name, isCurrentFretboard } = getState();
@@ -54,8 +54,10 @@ export const Title: React.FC<TitleProps> = ({
 
             const fretboard = visibleFretboards[fretboardIndex];
             const name = fretboard
-                ? getFretboardName(fretboard, progression.label)[0]
-                : defaultFretboardName;
+                ? fretboard.names.filter((name) => {
+                      return name.isSelected;
+                  })[0]
+                : DEFAULT_FRETBOARD_NAME();
             const isCurrentFretboard =
                 fretboardIndex === currentVisibleFretboardIndex;
 

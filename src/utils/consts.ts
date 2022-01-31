@@ -10,6 +10,7 @@ import {
     HighlightTypes,
     LabelTypes,
     FretboardNameType,
+    FretboardType,
 } from "../types";
 
 export const C = "C";
@@ -64,6 +65,26 @@ export function DEFAULT_STRINGSWITCH(): StringSwitchType {
         fretboard[5][i] = NOT_SELECTED;
     }
     return fretboard;
+}
+
+export function DEFAULT_FRETBOARD_NAME(): FretboardNameType {
+    return {
+        rootIdx: -1,
+        rootName: "",
+        chordName: "",
+        foundChordName: "",
+        isSelected: true,
+    };
+}
+
+export function DEFAULT_FRETBOARD(): FretboardType {
+    const strings = DEFAULT_STRINGSWITCH();
+    const names = [DEFAULT_FRETBOARD_NAME()];
+    return {
+        strings,
+        names,
+        currentRootIndex: names[0].rootIdx,
+    };
 }
 
 export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
@@ -147,6 +168,7 @@ export const dimChord = "dim";
 export const susChord = "sus";
 export const maj7Chord = "maj__7";
 export const min7Chord = "min__7";
+export const maj6Chord = "maj__6";
 export const domChord = "__7";
 export const min7b5Chord = "min__7♭5";
 export const dim7Chord = "dim__♭♭7";
@@ -166,6 +188,7 @@ export const CHORD_NAMES: ChordTypes[] = [
     susChord,
     maj7Chord,
     min7Chord,
+    maj6Chord,
     domChord,
     min7b5Chord,
     dim7Chord,
@@ -186,6 +209,7 @@ export const SHAPES: { [key in ChordTypes]: number[] } = {
     [susChord]: [0, 2, 7],
     [maj7Chord]: [0, 4, 7, 11],
     [min7Chord]: [0, 3, 7, 10],
+    [maj6Chord]: [0, 4, 7, 9],
     [domChord]: [0, 4, 7, 10],
     [min7b5Chord]: [0, 3, 6, 10],
     [dim7Chord]: [0, 3, 6, 9],
@@ -226,10 +250,3 @@ export const COLORS = [
     // ["#D7BEA8", "#744253"],
     // ["#CAD2C5", "#52489C"],
 ];
-
-export const defaultFretboardName: FretboardNameType = {
-    rootIdx: -1,
-    rootName: "",
-    chordName: "",
-    foundChordName: "",
-};

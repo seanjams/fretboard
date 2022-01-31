@@ -32,6 +32,20 @@ export type StringSwitchType = [
     StatusTypes[]
 ];
 
+export type FretboardNameType = {
+    rootIdx: number;
+    rootName: NoteTypes | "";
+    chordName: string;
+    foundChordName: ChordTypes | "";
+    isSelected: boolean;
+};
+
+export interface FretboardType {
+    strings: StringSwitchType;
+    names: FretboardNameType[];
+    currentRootIndex: number;
+}
+
 export type ArrowTypes = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
 
 export type DiffType = { [key in number]: number };
@@ -53,6 +67,7 @@ export type ChordTypes =
     | "sus"
     | "maj__7"
     | "min__7"
+    | "maj__6"
     | "__7"
     | "min__7♭5"
     | "dim__♭♭7"
@@ -71,10 +86,3 @@ export type DisplayTypes =
     | "chord-input"
     | "settings"
     | "change-name";
-
-export type FretboardNameType = {
-    rootIdx: number;
-    rootName: NoteTypes | "";
-    chordName: string;
-    foundChordName: ChordTypes | "";
-};

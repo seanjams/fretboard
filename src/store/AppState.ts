@@ -1,12 +1,12 @@
 import {
     StatusTypes,
-    StringSwitchType,
     DiffType,
     LabelTypes,
     StrumTypes,
     ArrowTypes,
     DisplayTypes,
     ChordTypes,
+    FretboardType,
 } from "../types";
 import {
     rebuildDiffs,
@@ -15,7 +15,6 @@ import {
     moveHighight,
     setFret,
     clearHighlight,
-    DEFAULT_STRINGSWITCH,
     SELECTED,
     HIGHLIGHTED,
     STRUM_LOW_TO_HIGH,
@@ -23,13 +22,14 @@ import {
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
     buildFretboardByChordName,
+    DEFAULT_FRETBOARD,
+    getFretboardName,
 } from "../utils";
 import { Store } from "./store";
 
 // Types
-
 export interface ProgressionStateType {
-    fretboards: StringSwitchType[];
+    fretboards: FretboardType[];
     leftDiffs: DiffType[];
     rightDiffs: DiffType[];
     scrollToFret: number;
@@ -57,15 +57,15 @@ export function currentProgression(state: AppStateType): ProgressionStateType {
     return state.progressions[state.currentProgressionIndex];
 }
 
-export function currentFretboard(state: AppStateType): StringSwitchType {
+export function currentFretboard(state: AppStateType): FretboardType {
     const progression = currentProgression(state);
     return progression.fretboards[Math.floor(state.progress)];
 }
 
 export function getComputedAppState(state: AppStateType): AppStateType & {
     progression: ProgressionStateType;
-    fretboard: StringSwitchType;
-    visibleFretboards: StringSwitchType[];
+    fretboard: FretboardType;
+    visibleFretboards: FretboardType[];
     currentFretboardIndex: number;
     currentVisibleFretboardIndex: number;
     isAnimating: boolean;
@@ -99,7 +99,7 @@ export const appReducers = {
 
         const newFretboards = Array(fretboards.length)
             .fill(0)
-            .map(() => DEFAULT_STRINGSWITCH());
+            .map(() => DEFAULT_FRETBOARD());
 
         return this.setCurrentProgression(
             { ...state, status: SELECTED },
@@ -114,7 +114,7 @@ export const appReducers = {
         let { progression, currentFretboardIndex } = getComputedAppState(state);
         let { fretboards } = progression;
 
-        fretboards[currentFretboardIndex] = DEFAULT_STRINGSWITCH();
+        fretboards[currentFretboardIndex] = DEFAULT_FRETBOARD();
         return this.setCurrentProgression(
             { ...state, status: SELECTED },
             {
@@ -297,9 +297,15 @@ export const appReducers = {
 
     setLabel(state: AppStateType, label: LabelTypes) {
         const { progression } = getComputedAppState(state);
+        const newFretboards = [...progression.fretboards];
+        newFretboards.forEach((fretboard) => {
+            fretboard.names = getFretboardName(fretboard, label);
+        });
+
         return this.setCurrentProgression(state, {
             ...progression,
             label,
+            fretboards: newFretboards,
         });
     },
 
@@ -313,6 +319,26 @@ export const appReducers = {
         return { ...state, invert };
     },
 
+    setFretboardName(state: AppStateType, rootIdx: number): AppStateType {
+        let { fretboard, progression, currentFretboardIndex } =
+            getComputedAppState(state);
+        let { fretboards } = progression;
+        const newFretboard = { ...fretboard };
+        newFretboard.names.forEach((name) => {
+            name.isSelected = name.rootIdx === rootIdx;
+            if (name.isSelected) newFretboard.currentRootIndex = name.rootIdx;
+        });
+        if (!newFretboard.names.filter((name) => name.isSelected)[0]) {
+            newFretboard.names[0].isSelected = true;
+            newFretboard.currentRootIndex = newFretboard.names[0].rootIdx;
+        }
+        fretboards[currentFretboardIndex] = newFretboard;
+        return this.setCurrentProgression(state, {
+            ...progression,
+            fretboards,
+        });
+    },
+
     setCurrentProgression(
         state: AppStateType,
         progression: ProgressionStateType
@@ -322,6 +348,7 @@ export const appReducers = {
         progressions[currentProgressionIndex] = progression;
         return { ...state, progressions };
     },
+
     setProgress(state: AppStateType, progress: number): AppStateType {
         // dangerous method, does not return new state object on purpose, use with caution
         const { progression } = getComputedAppState(state);
@@ -331,9 +358,10 @@ export const appReducers = {
         );
         return state;
     },
+
     prepareAnimation(
         state: AppStateType,
-        fretboards: StringSwitchType[],
+        fretboards: FretboardType[],
         startIndex: number
     ): AppStateType {
         // dangerous method, does not return new state object on purpose, use with caution
@@ -350,6 +378,7 @@ export const appReducers = {
             }
         );
     },
+
     cleanupAnimation(
         state: AppStateType
         // fretboards: StringSwitchType[],
@@ -449,13 +478,13 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
         // animation triggered when changing notes on the current fretboard
         const { progression, currentFretboardIndex, isAnimating } =
             this.getComputedState();
-        let { fretboards } = progression;
+        let { fretboards, label } = progression;
 
         // don't run animation if already animating
         if (isAnimating) return;
 
         // create new fretboard from chordName
-        let newFretboard = buildFretboardByChordName(rootIdx, chordName);
+        let newFretboard = buildFretboardByChordName(rootIdx, chordName, label);
         newFretboard = cascadeDiffs(
             [fretboards[currentFretboardIndex], newFretboard],
             0
@@ -495,7 +524,7 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
 }
 
 // Default State
-const fretboards1: StringSwitchType[] = [
+const fretboards1: FretboardType[] = [
     buildFretboardByChordName(9, "min__7"),
     buildFretboardByChordName(2, "min__7"),
     buildFretboardByChordName(7, "__7"),

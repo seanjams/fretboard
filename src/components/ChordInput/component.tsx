@@ -17,11 +17,10 @@ import {
     FLAT_NAMES,
     SHARP_NAMES,
     CHORD_NAMES,
-    getFretboardName,
     majorChord,
     SP,
     getFretboardDimensions,
-    defaultFretboardName,
+    DEFAULT_FRETBOARD_NAME,
 } from "../../utils";
 import { ChordInputContainer, OverflowContainerDiv, Tag, Label } from "./style";
 
@@ -46,8 +45,8 @@ export const ChordInput: React.FC<ChordInputProps> = ({
     const [getState, setState] = useStateRef<ChordInputState>(() => ({
         label: progression.label,
         name: fretboard
-            ? getFretboardName(fretboard, progression.label)[0]
-            : defaultFretboardName,
+            ? fretboard.names.filter((name) => name.isSelected)[0]
+            : DEFAULT_FRETBOARD_NAME(),
     }));
     const { label, name } = getState();
     const { rootIdx, chordName } = name;
@@ -63,8 +62,8 @@ export const ChordInput: React.FC<ChordInputProps> = ({
             const fretboard = visibleFretboards[currentVisibleFretboardIndex];
             const { label } = progression;
             const name = fretboard
-                ? getFretboardName(fretboard, label)[0]
-                : defaultFretboardName;
+                ? fretboard.names.filter((name) => name.isSelected)[0]
+                : DEFAULT_FRETBOARD_NAME();
 
             if (getState().label !== label || getState().name !== name) {
                 setState({
