@@ -80,8 +80,7 @@ export const BottomDrawerAnimationWrapper = styled.div.attrs(
         opacity: 1;
         max-height: ${(props) => props.maxInputHeight}px;
         margin-top: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
-        transition: all 150ms ease-in-out;
-        transition-delay: 150ms;
+        transition: opacity 300ms ease-out;
     }
     .bottom-drawer-grow-enter-done {
         opacity: 1;
@@ -97,7 +96,7 @@ export const BottomDrawerAnimationWrapper = styled.div.attrs(
         opacity: 0;
         max-height: ${(props) => props.minInputHeight}px;
         margin-top: 0;
-        transition: all 150ms ease-in-out;
+        transition: opacity 150ms ease-in;
     }
     .bottom-drawer-grow-exit-done {
         opacity: 0;

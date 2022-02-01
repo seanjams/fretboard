@@ -21,6 +21,7 @@ import {
     SP,
     getFretboardDimensions,
     DEFAULT_FRETBOARD_NAME,
+    FRETBOARD_MARGIN,
 } from "../../utils";
 import { ChordInputContainer, OverflowContainerDiv, Tag, Label } from "./style";
 
@@ -130,7 +131,10 @@ export const ChordInput: React.FC<ChordInputProps> = ({
     const { maxInputHeight } = getFretboardDimensions();
 
     return (
-        <ChordInputContainer height={`${maxInputHeight}px`}>
+        <ChordInputContainer
+            height={`${maxInputHeight - FRETBOARD_MARGIN}px`}
+            marginBottom={`${FRETBOARD_MARGIN}px`}
+        >
             <FlexRow width="100%" height="100%">
                 <Label
                     marginLeft={`${SP[2]}px`}
@@ -146,18 +150,22 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                     height="100%"
                 >
                     {noteNames.map((name, j) => (
-                        <Tag
-                            key={`${name}-key-${j}`}
+                        <FlexRow
+                            height="100%"
                             onClick={onRootChange(j)}
                             onTouchStart={onRootChange(j)}
-                            highlighted={rootIdx === j}
                         >
-                            <ChordSymbol
-                                rootName={name}
-                                chordName=""
-                                fontSize={12}
-                            />
-                        </Tag>
+                            <Tag
+                                key={`${name}-key-${j}`}
+                                highlighted={rootIdx === j}
+                            >
+                                <ChordSymbol
+                                    rootName={name}
+                                    chordName=""
+                                    fontSize={12}
+                                />
+                            </Tag>
+                        </FlexRow>
                     ))}
                 </FlexRow>
             </FlexRow>
@@ -177,8 +185,8 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                 >
                     <Div>
                         <FlexRow
-                            paddingLeft={`calc(14% + ${6 * SP[7]}px)`}
-                            paddingRight={`calc(14% + ${6 * SP[7]}px)`}
+                            paddingLeft="66%"
+                            paddingRight="66%"
                             width="100%"
                             height="100%"
                         >
@@ -188,6 +196,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                                     onClick={onChordChange(name)}
                                     onTouchStart={onChordChange(name)}
                                     highlighted={chordName === name}
+                                    wide={true}
                                 >
                                     <ChordSymbol
                                         rootName=""

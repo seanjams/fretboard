@@ -11,9 +11,7 @@ export interface CSSProps extends CSS.Properties {
 export const Circle = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        boxShadow: props.active
-            ? `inset 0px 0px 4px 0px #aaa`
-            : `0px 0px 4px 0px #aaa`,
+        boxShadow: props.active ? `inset 0 0 4px 0 #aaa` : `0 0 4px 0 #aaa`,
     },
 }))<CSSProps>`
     width: ${(props) => props.diameter || 0}px;
@@ -24,5 +22,5 @@ export const Circle = styled.div.attrs((props: CSSProps) => ({
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    margin: 0 ${SP[1]}px;
+    // margin: 0 ${SP[1]}px;
 `;

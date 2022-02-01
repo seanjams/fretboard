@@ -4,6 +4,7 @@ import { CIRCLE_SIZE, SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
+    wide?: boolean;
 }
 
 export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
@@ -30,8 +31,10 @@ export const Tag = styled.div.attrs((props: CSSProps) => ({
         ...props,
         // border: props.highlighted ? "2px solid #000" : "2px solid transparent",
         boxShadow: props.highlighted
-            ? "0px 0px 4px 0px #aaa"
+            ? "0 0 4px 0 #aaa"
             : "0px 0px 0px 0px transparent",
+        paddingLeft: `${props.wide ? (CIRCLE_SIZE - 4) / 2 : 2}px`,
+        paddingRight: `${props.wide ? (CIRCLE_SIZE - 4) / 2 : 2}px`,
     },
 }))<CSSProps>`
     margin: 2px 8px;
@@ -42,7 +45,8 @@ export const Tag = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: ${2}px;
+    padding-top: 2px;
+    padding-bottom: 2px;
     flex-shrink: 0;
     transition: border 150ms ease-in-out;
 `;

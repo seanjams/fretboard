@@ -1,16 +1,20 @@
 import React, { useEffect } from "react";
+import { CSSTransition } from "react-transition-group";
 import { useStateRef, AppStore, AudioStore } from "../../store";
 import { ArrowTypes, DisplayTypes } from "../../types";
 import {
     HIGHLIGHTED,
     SELECTED,
-    BRUSH_MODES,
     STRUM_LOW_TO_HIGH,
     ARPEGGIATE_LOW_TO_HIGH,
 } from "../../utils";
-import { CircleControlsContainer, Label } from "./style";
-import { CircleIconButton, HighlightButton } from "../Button";
-import { Div } from "../Common";
+import {
+    CircleControlsContainer,
+    Label,
+    HighlightCheckboxAnimationWrapper,
+} from "./style";
+import { CircleIconButton } from "../Button";
+import { Div, FlexRow } from "../Common";
 import PlusIcon from "../../assets/icons/plus.png";
 import MinusIcon from "../../assets/icons/minus.png";
 import LeftIcon from "../../assets/icons/left-arrow.png";
@@ -88,7 +92,11 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
         });
     }, []);
 
-    const onStatusChange = (event: MouseEvent | TouchEvent) => {
+    const onStatusChange = (
+        event:
+            | React.MouseEvent<HTMLDivElement, MouseEvent>
+            | React.TouchEvent<HTMLDivElement>
+    ) => {
         event.preventDefault();
         const { status } = appStore.state;
         appStore.dispatch.setStatus(
@@ -96,34 +104,45 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
         );
     };
 
-    const onClearNotes = () => {
-        appStore.dispatch.clear();
-    };
-
-    const onClearHighlight = () => {
-        appStore.dispatch.clearHighlight();
+    const onClear = () => {
+        const { status } = appStore.state;
+        if (status === HIGHLIGHTED) {
+            appStore.dispatch.clearHighlight();
+        } else {
+            appStore.dispatch.clear();
+        }
     };
 
     return (
-        <CircleControlsContainer>
-            <Div className="circle-button-container">
-                <CircleIconButton onClick={onClearNotes} imageSrc={ClearIcon} />
-                <Label>{""}</Label>
-            </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton
-                    onClick={onClearHighlight}
-                    imageSrc={ClearIcon}
-                />
-                <Label>{"clear highlight"}</Label>
-            </Div>
-            <Div className="circle-button-container">
-                <HighlightButton onClick={onStatusChange} />
-                <Label>
-                    {status === HIGHLIGHTED && BRUSH_MODES[HIGHLIGHTED]}
-                </Label>
-            </Div>
-        </CircleControlsContainer>
+        <FlexRow>
+            <HighlightCheckboxAnimationWrapper>
+                <CSSTransition
+                    in={status === HIGHLIGHTED}
+                    timeout={{ enter: 150, exit: 150 }}
+                    classNames="highlight-slide"
+                >
+                    <FlexRow className="highlight-form">
+                        <Div>
+                            <Div
+                                className="highlight-checkbox"
+                                onTouchStart={onStatusChange}
+                            >
+                                <Div />
+                            </Div>
+                            <Label>{""}</Label>
+                        </Div>
+
+                        <Div className="circle-button-container clear-button">
+                            <CircleIconButton
+                                onClick={onClear}
+                                imageSrc={ClearIcon}
+                            />
+                            <Label>clear</Label>
+                        </Div>
+                    </FlexRow>
+                </CSSTransition>
+            </HighlightCheckboxAnimationWrapper>
+        </FlexRow>
     );
 };
 

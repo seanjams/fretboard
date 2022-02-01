@@ -57,7 +57,7 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     background-color: transparent;
     z-index: 9999;
     touch-action: none;
-    box-shadow: 0px 0px 4px 0px #aaa;
+    box-shadow: 0 0 4px 0 #aaa;
 
     // &:hover {
     //     background: linear-gradient(#e9e9e9, #f9f9f9);
