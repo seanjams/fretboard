@@ -1,24 +1,32 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { CIRCLE_SIZE, SP, darkGrey, lightGrey } from "../../utils";
+import { CIRCLE_SIZE, SP, lightGrey, FRETBOARD_MARGIN } from "../../utils";
 
 // CSS
 interface CSSProps extends CSS.Properties {
     legendTop?: boolean;
-    fretBorder?: string;
     animationBackground?: string;
+    isOpenString?: boolean;
+    isTop?: boolean;
+    isBottom?: boolean;
 }
 
 export const FretDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
+        borderLeft: props.isOpenString ? "none" : `1px solid ${lightGrey}`,
+        borderRight: props.isOpenString ? "none" : `1px solid ${lightGrey}`,
+        marginTop: `${props.isTop ? FRETBOARD_MARGIN : 0}px`,
+        marginBottom: `${props.isBottom ? FRETBOARD_MARGIN : 0}px`,
+        height: `calc(100% - ${
+            props.isTop || props.isBottom ? FRETBOARD_MARGIN : 0
+        }px)`,
     },
 }))<CSSProps>`
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
-    height: 100%;
     user-select: none; /* standard syntax */
     -webkit-user-select: none; /* webkit (safari, chrome) browsers */
     -moz-user-select: none; /* mozilla browsers */
@@ -49,7 +57,6 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     background-color: transparent;
     z-index: 9999;
     touch-action: none;
-
     box-shadow: 0px 0px 4px 0px #aaa;
 
     // &:hover {
@@ -83,6 +90,7 @@ export const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     width: calc(50% - ${CIRCLE_SIZE / 2}px);
     margin: auto 0;
+    // box-shadow: 0px 2px 8px 0px #aaa;
 `;
 
 export const LegendDot = styled.div.attrs((props: CSSProps) => ({

@@ -24,13 +24,9 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
         ...props,
     },
 }))<CSSProps>`
-    // overflow: auto;
-
     .overflow-container {
         height: ${(props) => props.maxFretboardHeight}px;
         max-height: ${(props) => props.maxFretboardHeight}px;
-        margin-top: ${FRETBOARD_MARGIN}px;
-        margin-bottom: ${FRETBOARD_MARGIN}px;
     }
 
     .fretboard-container {
@@ -118,7 +114,6 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
     },
 }))<CSSProps>`
     width: 100%;
-    margin: ${FRETBOARD_MARGIN}px 0;
     overflow-x: auto;
 `;
 

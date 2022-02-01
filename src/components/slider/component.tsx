@@ -43,7 +43,7 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
 
     useEffect(() => {
         const destroyAppStoreListener = appStore.addListener((newState) => {
-            const { visibleFretboards, isAnimating, display } =
+            const { visibleFretboards, isAnimating } =
                 getComputedAppState(newState);
             const visibleFretboardsChanged = !isEqual(
                 getState().visibleFretboards,

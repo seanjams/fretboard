@@ -87,7 +87,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             >
                 <Slider appStore={appStore} audioStore={audioStore} />
             </Div>
-            <Div height={`${height}px`} width={`${width}px`}>
+            <Div>
                 <TopDrawer appStore={appStore}>
                     {display === "change-name" ? (
                         <ChordNameSelector

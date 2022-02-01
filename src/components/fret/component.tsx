@@ -63,31 +63,31 @@ const getBackgroundColor = (
         : "transparent";
 };
 
-interface LegendProps {
-    stringIndex: number;
-    fretIndex: number;
-}
+const getIsSelected = (
+    fretboard: FretboardType,
+    stringIndex: number,
+    fretIndex: number
+) => {
+    return [SELECTED, HIGHLIGHTED].includes(
+        fretboard.strings[stringIndex][fretIndex]
+    );
+};
 
-const Legend: React.FC<LegendProps> = ({ stringIndex, fretIndex }) => (
-    <>
-        {" "}
-        {fretIndex !== 0 &&
-            (stringIndex === 0 || stringIndex === 5) &&
-            [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
-                <LegendDot legendTop={stringIndex !== 0} />
-            )}
-        {fretIndex !== 0 &&
-            (stringIndex === 0 || stringIndex === 5) &&
-            mod(fretIndex, 12) === 0 && (
-                <OctaveDot legendTop={stringIndex !== 0} />
-            )}
-    </>
-);
+const getIsHighlighted = (
+    fretboard: FretboardType,
+    stringIndex: number,
+    fretIndex: number
+) => {
+    return fretboard.strings[stringIndex][fretIndex] === HIGHLIGHTED;
+};
+
+const getFretName = (fretValue: number, label: LabelTypes) => {
+    return label === "sharp" ? SHARP_NAMES[fretValue] : FLAT_NAMES[fretValue];
+};
 
 interface FretProps {
     fretIndex: number;
     stringIndex: number;
-    openString?: boolean;
     appStore: AppStore;
     audioStore: AudioStore;
     touchStore: TouchStore;
@@ -95,55 +95,38 @@ interface FretProps {
 
 export const Fret: React.FC<FretProps> = ({
     fretIndex,
-    openString,
     stringIndex,
     appStore,
     audioStore,
     touchStore,
 }) => {
     const fretValue = getFretValue(stringIndex, fretIndex);
-    const fretName = `${stringIndex}_${fretIndex}`;
-
-    // makes frets progressively smaller
-    const fretWidth = getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, fretIndex);
+    const fretAudioKey = `${stringIndex}_${fretIndex}`;
+    const isOpenString = fretIndex === 0;
 
     const { display, fretboard, progression, progress, status } =
         appStore.getComputedState();
+    const { label } = progression;
 
     const [getState, setState] = useStateRef(() => ({
-        label: progression.label,
+        fretName: getFretName(fretValue, label),
     }));
-    const { label } = getState();
-
-    const thickness = (6 - stringIndex + 1) / 2;
-    const fretBorder = openString ? "none" : `1px solid ${lightGrey}`;
+    const { fretName } = getState();
 
     // init refs
     const progressRef = useRef(progress);
     const circleRef = useRef<HTMLDivElement>(null);
     const shadowRef = useRef<HTMLDivElement>(null);
 
-    const getIsSelected = (fretboard: FretboardType) => {
-        return [SELECTED, HIGHLIGHTED].includes(
-            fretboard.strings[stringIndex][fretIndex]
-        );
-    };
-
-    const getIsHighlighted = (fretboard: FretboardType) => {
-        return fretboard.strings[stringIndex][fretIndex] === HIGHLIGHTED;
-    };
-
-    const getNoteName = (label: LabelTypes) => {
-        return label === "sharp"
-            ? SHARP_NAMES[fretValue]
-            : FLAT_NAMES[fretValue];
-    };
-
     // refs
     const statusRef = useRef(status);
-    const isHighlightedRef = useRef(getIsHighlighted(fretboard));
-    const isSelectedRef = useRef(getIsSelected(fretboard));
-    const isPlayingRef = useRef(audioStore.state.isPlaying.has(fretName));
+    const isHighlightedRef = useRef(
+        getIsHighlighted(fretboard, stringIndex, fretIndex)
+    );
+    const isSelectedRef = useRef(
+        getIsSelected(fretboard, stringIndex, fretIndex)
+    );
+    const isPlayingRef = useRef(audioStore.state.isPlaying.has(fretAudioKey));
     // for isMouseOver drag logic
     const isMouseOverRef = useRef(false);
     const isMouseOverTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -158,6 +141,7 @@ export const Fret: React.FC<FretProps> = ({
     // for disabling note selection when fretboard is small
     const isDisabledRef = useRef(display !== "normal");
 
+    // state CSS props for first render
     const backgroundColor = getBackgroundColor(
         isSelectedRef.current,
         isHighlightedRef.current,
@@ -166,6 +150,10 @@ export const Fret: React.FC<FretProps> = ({
     const textColor =
         status === HIGHLIGHTED && !isSelectedRef.current ? lightGrey : darkGrey;
     const top = getTopMargin(CIRCLE_SIZE);
+    // makes frets progressively smaller
+    const fretWidth = getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, fretIndex);
+    // makes strings progressively thinner
+    const thickness = (6 - stringIndex + 1) / 2;
 
     useEffect(() => {
         const destroyAppStoreListener = appStore.addListener((newState) => {
@@ -173,9 +161,14 @@ export const Fret: React.FC<FretProps> = ({
                 getComputedAppState(newState);
             const { label } = progression;
 
-            const isHighlighted = getIsHighlighted(fretboard);
-            const isSelected = getIsSelected(fretboard);
+            const isHighlighted = getIsHighlighted(
+                fretboard,
+                stringIndex,
+                fretIndex
+            );
+            const isSelected = getIsSelected(fretboard, stringIndex, fretIndex);
             const isDisabled = display !== "normal";
+            const fretName = getFretName(fretValue, label);
 
             // set refs based on changes
             if (
@@ -194,12 +187,12 @@ export const Fret: React.FC<FretProps> = ({
             }
 
             // set state based on changes
-            if (label !== getState().label) setState({ label });
+            if (fretName !== getState().fretName) setState({ fretName });
         });
         const destroyAudioStoreListener = audioStore.addListener(
             ({ isPlaying }) => {
-                const fretIsPlaying = isPlaying.has(fretName);
-                if (isPlaying.has(fretName) !== isPlayingRef.current) {
+                const fretIsPlaying = isPlaying.has(fretAudioKey);
+                if (isPlaying.has(fretAudioKey) !== isPlayingRef.current) {
                     isPlayingRef.current = fretIsPlaying;
 
                     if (fretIsPlaying && shadowRef.current) {
@@ -226,28 +219,6 @@ export const Fret: React.FC<FretProps> = ({
         };
     }, []);
 
-    function fretIsPlayingAnimation(callback: () => void) {
-        const animationDuration = 1.2;
-        const totalFrames = Math.ceil(animationDuration * 60);
-        let frameCount = 0;
-
-        const performAnimation = () => {
-            fretIsPlayingAnimationRef.current =
-                requestAnimationFrame(performAnimation);
-
-            fretIsPlayingProgressRef.current += 1 / totalFrames;
-            frameCount++;
-
-            if (frameCount === totalFrames) {
-                cancelAnimationFrame(fretIsPlayingAnimationRef.current);
-                fretIsPlayingProgressRef.current = 1;
-            }
-
-            callback();
-        };
-        requestAnimationFrame(performAnimation);
-    }
-
     function setFretStyles() {
         if (!shadowRef.current || !circleRef.current) return;
 
@@ -258,6 +229,7 @@ export const Fret: React.FC<FretProps> = ({
         const leftDiff = leftDiffs[currentFretboardIndex];
         const rightDiff = rightDiffs[currentFretboardIndex];
         const isSelected = isSelectedRef.current;
+        const isHighlighted = isHighlightedRef.current;
         const leftIsSelected = fretboards[currentFretboardIndex - 1]
             ? !!fretboards[currentFretboardIndex - 1].strings[stringIndex][
                   fretIndex
@@ -297,65 +269,78 @@ export const Fret: React.FC<FretProps> = ({
             currentFretboardIndex + 1
         );
 
-        let x: number; // percentage of journey between slider windows
+        let x: number; // percentage of journey between slider windows, 0-1
+        let xPercent: number; // percentage of journey between slider windows, 0-100
         let diffSteps: number; // how many frets to move
         let newLeft; // new left position for sliding shadowDiv
         let fillPercentage = 100; // new diameter for growing/shrinking shadowDiv
         let fillOpacityPercentage = 100; // new opacity for growing/shrinking shadowDiv
         let backgroundColor = getBackgroundColor(
             isSelected,
-            isHighlightedRef.current,
+            isHighlighted,
             fretIsPlayingProgressRef.current
         ); // background color for shadow div
         let textColor = !isSelected ? lightGrey : darkGrey; // text color for circle div
+
         if (insideLeft) {
+            // The progress is between the left border and leftWindow
+
             // all altered notes should be x% to the left
-            x = ((leftWindow - progress) * 100) / SLIDER_WINDOW_LENGTH;
+            x = (leftWindow - progress) / SLIDER_WINDOW_LENGTH;
+            xPercent = x * 100;
+
             if (leftEmpty) {
-                fillPercentage = 100 - (x / 100) * 50;
-                fillOpacityPercentage = 100 - x;
-                textColor = fade(darkGrey, lightGrey, x / 100) || textColor;
+                fillPercentage = 100 - x * 50;
+                fillOpacityPercentage = 100 - xPercent;
+                textColor = fade(darkGrey, lightGrey, x) || textColor;
             } else if (leftFill) {
-                fillPercentage = 50 + (x / 100) * 50;
-                fillOpacityPercentage = x;
+                fillPercentage = 50 + x * 50;
+                fillOpacityPercentage = xPercent;
                 backgroundColor = secondaryColor;
-                textColor = fade(lightGrey, darkGrey, x / 100) || textColor;
+                textColor = fade(lightGrey, darkGrey, x) || textColor;
             } else if (leftDiff) {
                 let fromColor = isSelected ? darkGrey : lightGrey;
                 let toColor = leftIsSelected ? darkGrey : lightGrey;
-                textColor = fade(fromColor, toColor, x / 100) || textColor;
+                textColor = fade(fromColor, toColor, x) || textColor;
                 diffSteps = leftDiff[fretValue];
                 if (diffSteps !== undefined)
-                    newLeft = direction * diffSteps * x + 50;
+                    newLeft = direction * diffSteps * xPercent + 50;
             }
         } else if (middle) {
+            // The progress is in the middle of the window
+
             // all altered notes should be in the middle
             if (leftEmpty || rightEmpty) {
                 fillPercentage = 100;
+                fillOpacityPercentage = 100;
             } else if (leftFill || rightFill) {
                 fillPercentage = 0;
                 fillOpacityPercentage = 0;
             }
             newLeft = 50;
         } else if (insideRight) {
+            // The progress is between the rightWindow and right border
+
             // all altered notes should be x% to the left
-            x = ((progress - rightWindow) * 100) / SLIDER_WINDOW_LENGTH;
+            x = (progress - rightWindow) / SLIDER_WINDOW_LENGTH;
+            xPercent = x * 100;
+
             if (rightEmpty) {
-                fillPercentage = 100 - (x / 100) * 50;
-                fillOpacityPercentage = 100 - x;
-                textColor = fade(darkGrey, lightGrey, x / 100) || textColor;
+                fillPercentage = 100 - x * 50;
+                fillOpacityPercentage = 100 - xPercent;
+                textColor = fade(darkGrey, lightGrey, x) || textColor;
             } else if (rightFill) {
-                fillPercentage = 50 + (x / 100) * 50;
-                fillOpacityPercentage = x;
+                fillPercentage = 50 + x * 50;
+                fillOpacityPercentage = xPercent;
                 backgroundColor = secondaryColor;
-                textColor = fade(lightGrey, darkGrey, x / 100) || textColor;
+                textColor = fade(lightGrey, darkGrey, x) || textColor;
             } else if (rightDiff) {
                 let fromColor = isSelected ? darkGrey : lightGrey;
                 let toColor = rightIsSelected ? darkGrey : lightGrey;
-                textColor = fade(fromColor, toColor, x / 100) || textColor;
+                textColor = fade(fromColor, toColor, x) || textColor;
                 diffSteps = rightDiff[fretValue];
                 if (diffSteps !== undefined)
-                    newLeft = direction * diffSteps * x + 50;
+                    newLeft = direction * diffSteps * xPercent + 50;
             }
         }
 
@@ -365,21 +350,76 @@ export const Fret: React.FC<FretProps> = ({
         }
 
         // set background color
-        shadowRef.current.style.backgroundColor = backgroundColor;
+        if (shadowRef.current.style.backgroundColor !== backgroundColor)
+            shadowRef.current.style.backgroundColor = backgroundColor;
 
-        // set shadow diameter
-        const diameter = (CIRCLE_SIZE * fillPercentage) / 100;
-        const radius = diameter / 2;
-        shadowRef.current.style.opacity = `${fillOpacityPercentage / 100}`;
-        shadowRef.current.style.width = `${diameter}px`;
-        shadowRef.current.style.height = `${diameter}px`;
-        shadowRef.current.style.marginLeft = `-${radius}px`;
-        shadowRef.current.style.marginRight = `-${radius}px`;
-        shadowRef.current.style.top = getTopMargin(diameter);
+        // set shadow diameter/radius consts
+        const d = (CIRCLE_SIZE * fillPercentage) / 100;
+        const r = d / 2;
 
-        // set circle colors
-        circleRef.current.style.color =
-            status === HIGHLIGHTED ? textColor : darkGrey;
+        // set shadow opacity
+        const opacity = `${fillOpacityPercentage / 100}`;
+        if (shadowRef.current.style.opacity !== opacity)
+            shadowRef.current.style.opacity = opacity;
+
+        // set shadow width/height
+        const diameter = `${d}px`;
+        if (shadowRef.current.style.width !== diameter)
+            shadowRef.current.style.width = diameter;
+        if (shadowRef.current.style.height !== diameter)
+            shadowRef.current.style.height = diameter;
+
+        // set shadow margin
+        const margin = `-${r}px`;
+        if (shadowRef.current.style.marginLeft !== margin)
+            shadowRef.current.style.marginLeft = margin;
+        if (shadowRef.current.style.marginRight !== margin)
+            shadowRef.current.style.marginRight = margin;
+
+        // set shadow top
+        const top = getTopMargin(d);
+        if (shadowRef.current.style.top !== top)
+            shadowRef.current.style.top = top;
+
+        // set shadow box-shadow
+        const boxShadow =
+            status === HIGHLIGHTED && isHighlighted
+                ? `0 0 20px 1px ${playingColor}`
+                : "none";
+        if (shadowRef.current.style.boxShadow !== boxShadow)
+            shadowRef.current.style.boxShadow = boxShadow;
+
+        // set shadow z-index
+        const zIndex = status === HIGHLIGHTED && isHighlighted ? "1" : "0";
+        if (shadowRef.current.style.zIndex !== zIndex)
+            shadowRef.current.style.zIndex = zIndex;
+
+        // set circle color
+        const color = status === HIGHLIGHTED ? textColor : darkGrey;
+        if (circleRef.current.style.color !== color)
+            circleRef.current.style.color = color;
+    }
+
+    function fretIsPlayingAnimation(callback: () => void) {
+        const animationDuration = 1.2;
+        const totalFrames = Math.ceil(animationDuration * 60);
+        let frameCount = 0;
+
+        const performAnimation = () => {
+            fretIsPlayingAnimationRef.current =
+                requestAnimationFrame(performAnimation);
+
+            fretIsPlayingProgressRef.current += 1 / totalFrames;
+            frameCount++;
+
+            if (frameCount === totalFrames) {
+                cancelAnimationFrame(fretIsPlayingAnimationRef.current);
+                fretIsPlayingProgressRef.current = 1;
+            }
+
+            callback();
+        };
+        requestAnimationFrame(performAnimation);
     }
 
     function playNoteAudio() {
@@ -584,10 +624,11 @@ export const Fret: React.FC<FretProps> = ({
 
     return (
         <FretDiv
-            borderLeft={fretBorder}
-            borderRight={fretBorder}
             width={`${fretWidth}px`}
             onContextMenu={onContextMenu}
+            isOpenString={isOpenString}
+            isTop={stringIndex === 5}
+            isBottom={stringIndex === 0}
             // animationBackground={playingColor}
         >
             <StringSegmentDiv
@@ -600,15 +641,7 @@ export const Fret: React.FC<FretProps> = ({
                 ref={circleRef}
                 color={textColor}
             >
-                {label === "value" ? (
-                    fretValue
-                ) : (
-                    <ChordSymbol
-                        rootName={getNoteName(label)}
-                        chordName=""
-                        fontSize={16}
-                    />
-                )}
+                <ChordSymbol rootName={fretName} chordName="" fontSize={16} />
             </CircleDiv>
             <ShadowDiv
                 ref={shadowRef}
@@ -623,3 +656,25 @@ export const Fret: React.FC<FretProps> = ({
         </FretDiv>
     );
 };
+
+// the Dots that appear on the fretboard
+interface LegendProps {
+    stringIndex: number;
+    fretIndex: number;
+}
+
+const Legend: React.FC<LegendProps> = ({ stringIndex, fretIndex }) => (
+    <>
+        {" "}
+        {fretIndex !== 0 &&
+            (stringIndex === 0 || stringIndex === 5) &&
+            [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
+                <LegendDot legendTop={stringIndex !== 0} />
+            )}
+        {fretIndex !== 0 &&
+            (stringIndex === 0 || stringIndex === 5) &&
+            mod(fretIndex, 12) === 0 && (
+                <OctaveDot legendTop={stringIndex !== 0} />
+            )}
+    </>
+);

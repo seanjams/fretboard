@@ -361,7 +361,7 @@ export function list(fretboard: FretboardType): number[] {
         .sort((a, b) => a - b);
 }
 
-export function getFretboardName(
+export function getFretboardNames(
     fretboard: FretboardType,
     label: LabelTypes = "flat"
 ): FretboardNameType[] {
@@ -409,7 +409,9 @@ export function getFretboardName(
             );
     }
 
-    return [DEFAULT_FRETBOARD_NAME()];
+    const notFoundName = DEFAULT_FRETBOARD_NAME();
+    notFoundName.chordName = noteNames.join(", ");
+    return [notFoundName];
 }
 
 export function getScrollToFret(fretboard: FretboardType) {
@@ -587,9 +589,8 @@ export const getFretboardDimensions = () => {
 
     const maxInputHeight = height * INPUT_PERCENTAGE;
     const minInputHeight = height * 0;
-    const minFretboardHeight =
-        height * FRETBOARD_PERCENTAGE - 2 * FRETBOARD_MARGIN;
-    const maxFretboardHeight = height * MAIN_PERCENTAGE - 2 * FRETBOARD_MARGIN;
+    const minFretboardHeight = height * FRETBOARD_PERCENTAGE;
+    const maxFretboardHeight = height * MAIN_PERCENTAGE;
 
     return {
         gutterHeight,
@@ -621,7 +622,7 @@ export function updateIfChanged(
 export function buildFretboardByChordName(
     rootIdx: number,
     chordName: ChordTypes,
-    label: LabelTypes = "flat"
+    label: LabelTypes
 ) {
     // create new fretboard from notes, set all on E string arbitrarily
     const notes = getNotesByChordName(rootIdx, chordName);
@@ -633,6 +634,6 @@ export function buildFretboardByChordName(
         setFret(newFretboard, 0, fretIndex, SELECTED);
     }
     newFretboard.currentRootIndex = rootIdx;
-    newFretboard.names = getFretboardName(newFretboard, label);
+    newFretboard.names = getFretboardNames(newFretboard, label);
     return newFretboard;
 }

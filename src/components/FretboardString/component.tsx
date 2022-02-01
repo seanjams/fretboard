@@ -33,7 +33,6 @@ export const FretboardString: React.FC<FretboardStringProps> = ({
                     touchStore={touchStore}
                     fretIndex={i}
                     stringIndex={stringIndex}
-                    openString={i === 0}
                 />
             );
         });

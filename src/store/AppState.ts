@@ -23,7 +23,7 @@ import {
     SLIDER_WINDOW_LENGTH,
     buildFretboardByChordName,
     DEFAULT_FRETBOARD,
-    getFretboardName,
+    getFretboardNames,
 } from "../utils";
 import { Store } from "./store";
 
@@ -199,23 +199,31 @@ export const appReducers = {
         status: StatusTypes
     ) {
         let { progression, currentFretboardIndex } = getComputedAppState(state);
-        let { fretboards } = progression;
+        let { fretboards, label } = progression;
 
         for (let i = 0; i < fretboards.length; i++) {
             if (i === currentFretboardIndex) {
+                const oldStatus = fretboards[i].strings[stringIndex][fretIndex];
                 setFret(fretboards[i], stringIndex, fretIndex, status);
+                // if fret turned on/off, change the name of the fretboard
+                if ((!oldStatus && status) || (oldStatus && !status)) {
+                    fretboards[i].names = getFretboardNames(
+                        fretboards[i],
+                        label
+                    );
+                }
             } else {
                 clearHighlight(fretboards[i]);
             }
         }
 
         const notes = getFretboardNotes(fretboards[currentFretboardIndex]);
-        let empty = !notes.some((note) => note === SELECTED);
+        let isEmpty = !notes.some((note) => note === SELECTED);
 
         return this.setCurrentProgression(
             {
                 ...state,
-                status: empty ? SELECTED : state.status,
+                status: isEmpty ? SELECTED : state.status, // Don't allow highlight mode when fretboard is empty
             },
             {
                 ...progression,
@@ -299,7 +307,7 @@ export const appReducers = {
         const { progression } = getComputedAppState(state);
         const newFretboards = [...progression.fretboards];
         newFretboards.forEach((fretboard) => {
-            fretboard.names = getFretboardName(fretboard, label);
+            fretboard.names = getFretboardNames(fretboard, label);
         });
 
         return this.setCurrentProgression(state, {
@@ -365,12 +373,13 @@ export const appReducers = {
         startIndex: number
     ): AppStateType {
         // dangerous method, does not return new state object on purpose, use with caution
-        const { progression } = getComputedAppState(state);
+        const { progression, display } = getComputedAppState(state);
         return this.setCurrentProgression(
             {
                 ...state,
                 progress: startIndex + SLIDER_RIGHT_WINDOW,
                 hiddenFretboardIndex: startIndex,
+                display: display === "change-name" ? "normal" : display,
             },
             {
                 ...progression,
@@ -523,12 +532,14 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
     }
 }
 
+const label = "flat";
+
 // Default State
 const fretboards1: FretboardType[] = [
-    buildFretboardByChordName(9, "min__7"),
-    buildFretboardByChordName(2, "min__7"),
-    buildFretboardByChordName(7, "__7"),
-    buildFretboardByChordName(0, "maj__7"),
+    buildFretboardByChordName(9, "min__7", label),
+    buildFretboardByChordName(2, "min__7", label),
+    buildFretboardByChordName(7, "__7", label),
+    buildFretboardByChordName(0, "maj__7", label),
 ];
 
 setFret(fretboards1[0], 1, 7, HIGHLIGHTED);
@@ -539,17 +550,17 @@ setFret(fretboards1[0], 4, 8, HIGHLIGHTED);
 const progression1: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
     scrollToFret: 0,
-    label: "flat",
+    label,
 };
 const progression2: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
     scrollToFret: 0,
-    label: "flat",
+    label,
 };
 const progression3: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
     scrollToFret: 0,
-    label: "flat",
+    label,
 };
 
 export function DEFAULT_MAIN_STATE(): AppStateType {
