@@ -3,10 +3,7 @@ import { CSSTransition } from "react-transition-group";
 import { useStateRef, AppStore } from "../../store";
 import { getFretboardDimensions, SAFETY_AREA_MARGIN } from "../../utils";
 import { FlexRow } from "../Common";
-import {
-    BottomDrawerAnimationWrapper,
-    TopDrawerAnimationWrapper,
-} from "./style";
+import { BottomDrawerAnimation, TopDrawerAnimation } from "./style";
 
 interface DrawerProps {
     appStore: AppStore;
@@ -29,13 +26,13 @@ export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     const { maxInputHeight, minInputHeight } = getFretboardDimensions();
 
     return (
-        <TopDrawerAnimationWrapper
+        <TopDrawerAnimation.wrapper
             minInputHeight={minInputHeight}
             maxInputHeight={maxInputHeight}
         >
             <CSSTransition
                 in={showTopDrawer}
-                timeout={{ enter: 300, exit: 150 }}
+                timeout={TopDrawerAnimation.timeout}
                 classNames="top-drawer-grow"
                 // onEnter={() => setShowButton(false)}
                 // onExited={() => setShowButton(true)}
@@ -49,7 +46,7 @@ export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
                     {showTopDrawer ? children : null}
                 </FlexRow>
             </CSSTransition>
-        </TopDrawerAnimationWrapper>
+        </TopDrawerAnimation.wrapper>
     );
 };
 
@@ -70,13 +67,13 @@ export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     const { minInputHeight, maxInputHeight } = getFretboardDimensions();
 
     return (
-        <BottomDrawerAnimationWrapper
+        <BottomDrawerAnimation.wrapper
             minInputHeight={minInputHeight}
             maxInputHeight={maxInputHeight}
         >
             <CSSTransition
                 in={showBottomDrawer}
-                timeout={{ enter: 300, exit: 150 }}
+                timeout={BottomDrawerAnimation.timeout}
                 classNames="bottom-drawer-grow"
                 // onEnter={() => setShowButton(false)}
                 // onExited={() => setShowButton(true)}
@@ -90,6 +87,6 @@ export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
                     {showBottomDrawer ? children : null}
                 </FlexRow>
             </CSSTransition>
-        </BottomDrawerAnimationWrapper>
+        </BottomDrawerAnimation.wrapper>
     );
 };

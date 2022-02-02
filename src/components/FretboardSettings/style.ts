@@ -10,7 +10,11 @@ export const getOverflowMargin = (height: number | undefined) => {
     return -(height || 0);
 };
 
-export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
+const ENTER = 150;
+const DELAY = 150;
+const EXIT = 150;
+
+const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     .settings-form {
@@ -27,8 +31,8 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
         opacity: 1;
         max-height: ${(props) => props.maxInputHeight}px;
         margin-top: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
-        transition: all 150ms ease-in-out;
-        transition-delay: 150ms;
+        transition: all ${ENTER}ms ease-in-out;
+        transition-delay: ${DELAY}ms;
     }
     .settings-grow-enter-done {
         opacity: 1;
@@ -44,7 +48,7 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
         opacity: 0;
         max-height: ${(props) => props.minInputHeight}px;
         margin-top: 0;
-        transition: all 150ms ease-in-out;
+        transition: all ${EXIT}ms ease-in-out;
     }
     .settings-grow-exit-done {
         opacity: 0;
@@ -52,3 +56,8 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
         margin-top: 0;
     }
 `;
+
+export const SettingsAnimationWrapper = {
+    timeout: { enter: ENTER + DELAY, exit: EXIT },
+    wrapper: AnimationWrapper,
+};

@@ -31,12 +31,10 @@ export const CircleButton: React.FC<ButtonProps> = ({
 
     const touchHandlers = useTouchHandlers(
         (event: ReactMouseEvent) => {
-            if (selected === undefined && !getState().active)
-                setState({ active: true });
+            if (!getState().active) setState({ active: true });
         },
         (event: WindowMouseEvent) => {
-            if (selected === undefined && getState().active)
-                setState({ active: false });
+            if (getState().active) setState({ active: false });
 
             if (onClick) onClick(event);
         }
@@ -46,7 +44,8 @@ export const CircleButton: React.FC<ButtonProps> = ({
         <Circle
             {...touchHandlers}
             backgroundColor={backgroundColor}
-            active={selected !== undefined ? selected : active}
+            active={active}
+            pressed={selected}
             activeColor={activeColor}
             diameter={diameter}
             className="circle-button"

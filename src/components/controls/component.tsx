@@ -21,7 +21,7 @@ import {
 import {
     CircleControlsContainer,
     Label,
-    HighlightCheckboxAnimationWrapper,
+    HighlightCheckboxAnimation,
 } from "./style";
 import { CircleIconButton } from "../Button";
 import { Div, FlexRow } from "../Common";
@@ -124,10 +124,10 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
 
     return (
         <FlexRow>
-            <HighlightCheckboxAnimationWrapper>
+            <HighlightCheckboxAnimation.wrapper>
                 <CSSTransition
                     in={status === HIGHLIGHTED}
-                    timeout={{ enter: 150, exit: 150 }}
+                    timeout={HighlightCheckboxAnimation.timeout}
                     classNames="highlight-slide"
                 >
                     <FlexRow className="highlight-form">
@@ -150,7 +150,7 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
                         </Div>
                     </FlexRow>
                 </CSSTransition>
-            </HighlightCheckboxAnimationWrapper>
+            </HighlightCheckboxAnimation.wrapper>
         </FlexRow>
     );
 };

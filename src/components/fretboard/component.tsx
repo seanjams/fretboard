@@ -18,7 +18,7 @@ import {
     STRUM_LOW_TO_HIGH,
 } from "../../utils";
 import {
-    AnimationWrapper,
+    FretboardAnimation,
     FretboardContainer,
     FretboardDiv,
     OverflowContainerDiv,
@@ -161,7 +161,7 @@ export const Fretboard: React.FC<FretboardProps> = ({
         getFretboardDimensions();
 
     return (
-        <AnimationWrapper
+        <FretboardAnimation.wrapper
             maxFretboardHeight={maxFretboardHeight}
             minFretboardHeight={minFretboardHeight}
             maxInputHeight={maxInputHeight}
@@ -169,7 +169,7 @@ export const Fretboard: React.FC<FretboardProps> = ({
         >
             <CSSTransition
                 in={showTopDrawer || showBottomDrawer}
-                timeout={{ enter: 150, exit: 300 }}
+                timeout={FretboardAnimation.timeout}
                 classNames="fretboard-shrink"
                 // onEnter={() => console.log("ENTER")}
                 // onEntered={() => console.log("ENTERED")}
@@ -190,6 +190,6 @@ export const Fretboard: React.FC<FretboardProps> = ({
                     </FretboardContainer>
                 </OverflowContainerDiv>
             </CSSTransition>
-        </AnimationWrapper>
+        </FretboardAnimation.wrapper>
     );
 };

@@ -19,7 +19,11 @@ const getOverFlowScale = (
     return [width, scale];
 };
 
-export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
+const ENTER = 150;
+const DELAY = 150;
+const EXIT = 150;
+
+const FretboardAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
     },
@@ -30,9 +34,10 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
 
     .fretboard-container {
-        // max-height: ${(props) => props.maxFretboardHeight}px;
-        // height: 100%;
-        // width: 100%;
+        height: ${(props) =>
+            (props.maxFretboardHeight || 0) - 2 * FRETBOARD_MARGIN}px;
+        padding-top: ${FRETBOARD_MARGIN}px;
+        padding-bottom: ${FRETBOARD_MARGIN}px;
     }
 
     .fretboard-shrink-enter {
@@ -54,7 +59,7 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
                 )[1]}
         );
         transform-origin: ${(props) => props.transformOrigin} left;
-        transition: all 150ms;
+        transition: all ${ENTER}ms;
     }
     .fretboard-shrink-enter-done {
         width: ${(props) =>
@@ -90,8 +95,8 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
         width: 100%;
         transform: scale(1);
         transform-origin: ${(props) => props.transformOrigin} left;
-        transition: all 150ms;
-        transition-delay: 150ms;
+        transition: all ${EXIT}ms;
+        transition-delay: ${DELAY}ms;
     }
     .fretboard-shrink-exit-done {
         width: 100%;
@@ -99,6 +104,11 @@ export const AnimationWrapper = styled.div.attrs((props: CSSProps) => ({
         transform-origin: ${(props) => props.transformOrigin} left;
     }
 `;
+
+export const FretboardAnimation = {
+    timeout: { enter: ENTER, exit: EXIT + DELAY },
+    wrapper: FretboardAnimationWrapper,
+};
 
 export const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },

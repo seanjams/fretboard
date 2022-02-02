@@ -126,14 +126,22 @@ export const Fret: React.FC<FretProps> = ({
     const fretAudioKey = `${stringIndex}_${fretIndex}`;
     const isOpenString = fretIndex === 0;
 
-    const { display, fretboard, progression, progress, status } =
-        appStore.getComputedState();
+    const {
+        display,
+        fretboard,
+        progression,
+        progress,
+        status,
+        invert,
+        leftHand,
+    } = appStore.getComputedState();
     const { label } = progression;
 
     const [getState, setState] = useStateRef(() => ({
         fretName: getFretName(fretValue, label),
+        highEBottom: invert !== leftHand,
     }));
-    const { fretName } = getState();
+    const { fretName, highEBottom } = getState();
 
     // init refs
     const progressRef = useRef(progress);
@@ -177,8 +185,15 @@ export const Fret: React.FC<FretProps> = ({
     useEffect(
         () =>
             appStore.addListener((newState) => {
-                const { display, fretboard, progress, progression, status } =
-                    getComputedAppState(newState);
+                const {
+                    display,
+                    fretboard,
+                    progress,
+                    progression,
+                    status,
+                    invert,
+                    leftHand,
+                } = getComputedAppState(newState);
                 const { label } = progression;
 
                 const isHighlighted = getIsHighlighted(
@@ -193,6 +208,7 @@ export const Fret: React.FC<FretProps> = ({
                 );
                 const isDisabled = display !== "normal";
                 const fretName = getFretName(fretValue, label);
+                const highEBottom = invert !== leftHand;
 
                 // set refs based on changes
                 if (
@@ -211,7 +227,11 @@ export const Fret: React.FC<FretProps> = ({
                 }
 
                 // set state based on changes
-                if (fretName !== getState().fretName) setState({ fretName });
+                if (
+                    getState().fretName !== fretName ||
+                    getState().highEBottom !== highEBottom
+                )
+                    setState({ fretName, highEBottom });
             }),
         []
     );
@@ -626,9 +646,8 @@ export const Fret: React.FC<FretProps> = ({
             width={`${fretWidth}px`}
             onContextMenu={onContextMenu}
             isOpenString={isOpenString}
-            isTop={stringIndex === 5}
-            isBottom={stringIndex === 0}
-            // animationBackground={playingColor}
+            isTop={highEBottom ? stringIndex === 0 : stringIndex === 5}
+            isBottom={highEBottom ? stringIndex === 5 : stringIndex === 0}
         >
             <StringSegmentDiv
                 height={`${thickness}px`}

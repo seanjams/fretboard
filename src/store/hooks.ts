@@ -88,6 +88,9 @@ export const useTouchHandlers = (
 
     const clear = useCallback(
         (event: WindowMouseEvent, shouldTriggerClick = true) => {
+            event.preventDefault();
+            event.stopPropagation();
+
             if (!isPressedRef.current) return;
             // set isPressed
             isPressedRef.current = false;
@@ -103,8 +106,9 @@ export const useTouchHandlers = (
             }
 
             // call handler
-            if (shouldTriggerClick && !isLongPressedRef.current && onEnd)
+            if (shouldTriggerClick && !isLongPressedRef.current && onEnd) {
                 onEnd(event);
+            }
         },
         [onEnd]
     );

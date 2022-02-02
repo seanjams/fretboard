@@ -45,7 +45,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     //     ? windowWidth
     //     : windowHeight;
     const [width, height] = dimensions;
-    const { gutterHeight } = getFretboardDimensions();
+    const { gutterHeight, maxFretboardHeight } = getFretboardDimensions();
 
     useEffect(() => {
         // const destroyAppStateListener = appStore.addListener(({ display }) => {
@@ -85,7 +85,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             >
                 <Slider appStore={appStore} audioStore={audioStore} />
             </Div>
-            <Div>
+            <Div height={`${maxFretboardHeight}px`}>
                 <TopDrawer appStore={appStore}>
                     {display === "change-name" ? (
                         <ChordNameSelector

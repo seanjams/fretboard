@@ -16,17 +16,13 @@ export const FretDiv = styled.div.attrs((props: CSSProps) => ({
         ...props,
         borderLeft: props.isOpenString ? "none" : `1px solid ${lightGrey}`,
         borderRight: props.isOpenString ? "none" : `1px solid ${lightGrey}`,
-        marginTop: `${props.isTop ? FRETBOARD_MARGIN : 0}px`,
-        marginBottom: `${props.isBottom ? FRETBOARD_MARGIN : 0}px`,
-        height: `calc(100% - ${
-            props.isTop || props.isBottom ? FRETBOARD_MARGIN : 0
-        }px)`,
     },
 }))<CSSProps>`
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
+
     user-select: none; /* standard syntax */
     -webkit-user-select: none; /* webkit (safari, chrome) browsers */
     -moz-user-select: none; /* mozilla browsers */

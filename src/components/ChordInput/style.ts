@@ -14,7 +14,8 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     flex-direction: column;
     align-items: start;
     width: 100%;
-    height: 100%;
+    height: calc(100% - ${SP[1]}px);
+    padding-bottom: ${SP[1]}px;
 `;
 
 export const Label = styled.div.attrs((props: CSSProps) => ({

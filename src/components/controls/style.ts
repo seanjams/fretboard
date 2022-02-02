@@ -46,7 +46,10 @@ export const Label = styled.div.attrs((props: CSSProps) => ({
     white-space: nowrap;
 `;
 
-export const HighlightCheckboxAnimationWrapper = styled.div.attrs(
+const ENTER = 250;
+const EXIT = 250;
+
+const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     (props: CSSProps) => ({
         style: { ...props },
     })
@@ -93,17 +96,17 @@ export const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     .highlight-slide-enter-active {
         .highlight-checkbox {
             background-color: ${primaryColor};
-            transition: background-color 150ms ease-in-out;
+            transition: background-color ${ENTER}ms ease-in-out;
 
             div {
                 left: 48px;
-                transition: left 150ms ease-in-out;
+                transition: left ${ENTER}ms ease-in-out;
             }
         }
 
         .clear-button .circle-button {
             background-color: ${primaryColor} !important;
-            transition: background-color 150ms ease-in-out;
+            transition: background-color ${ENTER}ms ease-in-out;
         }
     }
     .highlight-slide-enter-done {
@@ -133,17 +136,17 @@ export const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     .highlight-slide-exit-active {
         .highlight-checkbox {
             background-color: ${lightGrey};
-            transition: background-color 150ms ease-in-out;
+            transition: background-color ${EXIT}ms ease-in-out;
 
             div {
                 left: 0px;
-                transition: left 150ms ease-in-out;
+                transition: left ${EXIT}ms ease-in-out;
             }
         }
 
         .clear-button .circle-button {
             background-color: transparent !important;
-            transition: background-color 150ms ease-in-out;
+            transition: background-color ${EXIT}ms ease-in-out;
         }
     }
     .highlight-slide-exit-done {
@@ -159,3 +162,8 @@ export const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         }
     }
 `;
+
+export const HighlightCheckboxAnimation = {
+    timeout: { enter: ENTER, exit: EXIT },
+    wrapper: HighlightCheckboxAnimationWrapper,
+};

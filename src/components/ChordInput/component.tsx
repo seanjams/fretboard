@@ -119,10 +119,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
     const { maxInputHeight } = getFretboardDimensions();
 
     return (
-        <ChordInputContainer
-            height={`${maxInputHeight - FRETBOARD_MARGIN}px`}
-            marginBottom={`${FRETBOARD_MARGIN}px`}
-        >
+        <ChordInputContainer height="100%">
             <FlexRow width="100%" height="100%">
                 <Label
                     marginLeft={`${SP[2]}px`}
