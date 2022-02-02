@@ -3,15 +3,20 @@ import {
     AppStore,
     getComputedAppState,
     AudioStore,
-    TouchStore,
     useStateRef,
+    useTouchHandlers,
 } from "../../store";
-import { LabelTypes, FretboardType } from "../../types";
+import {
+    LabelTypes,
+    FretboardType,
+    StatusTypes,
+    ReactMouseEvent,
+    WindowMouseEvent,
+} from "../../types";
 import {
     getFretWidth,
     mod,
     COLORS,
-    STANDARD_TUNING,
     CIRCLE_SIZE,
     SLIDER_LEFT_WINDOW,
     SLIDER_RIGHT_WINDOW,
@@ -50,14 +55,33 @@ const inRange = (value: number, leftBound: number, rightBound: number) => {
     return value >= leftBound && value <= rightBound;
 };
 
+const isWithinBoundary = (
+    boundary: DOMRect,
+    clientX: number,
+    clientY: number,
+    threshold: number = 0
+) => {
+    const { top, left, bottom, right } = boundary;
+    return (
+        clientX <= right + threshold &&
+        clientX >= left - threshold &&
+        clientY <= bottom + threshold &&
+        clientY >= top - threshold
+    );
+};
+
 const getBackgroundColor = (
     isSelected: boolean,
     isHighlighted: boolean,
-    playProgress: number
+    playProgress: number,
+    status: StatusTypes
 ) => {
     const progress = Math.min(Math.max(0, playProgress), 1);
+    // const primary = status === HIGHLIGHTED ? primaryColor : "#FABF26";
+
     return isHighlighted
-        ? fade(playingColor, primaryColor, progress) || primaryColor
+        ? // ? fade(playingColor, primary, progress) || primary
+          fade(playingColor, primaryColor, progress) || primaryColor
         : isSelected
         ? secondaryColor
         : "transparent";
@@ -90,7 +114,6 @@ interface FretProps {
     stringIndex: number;
     appStore: AppStore;
     audioStore: AudioStore;
-    touchStore: TouchStore;
 }
 
 export const Fret: React.FC<FretProps> = ({
@@ -98,7 +121,6 @@ export const Fret: React.FC<FretProps> = ({
     stringIndex,
     appStore,
     audioStore,
-    touchStore,
 }) => {
     const fretValue = getFretValue(stringIndex, fretIndex);
     const fretAudioKey = `${stringIndex}_${fretIndex}`;
@@ -131,13 +153,9 @@ export const Fret: React.FC<FretProps> = ({
     const isMouseOverRef = useRef(false);
     const isMouseOverTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
     // for fretIsPlaying color fade animation
+    const fretIsPlayingProgressRef = useRef(1);
     const fretIsPlayingAnimationRef =
         useRef<ReturnType<typeof requestAnimationFrame>>();
-    const fretIsPlayingProgressRef = useRef(1);
-    // for long touch timeout
-    const isPressedRef = useRef(false);
-    const isLongPressedRef = useRef(false);
-    const isLongPressedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
     // for disabling note selection when fretboard is small
     const isDisabledRef = useRef(display !== "normal");
 
@@ -145,7 +163,8 @@ export const Fret: React.FC<FretProps> = ({
     const backgroundColor = getBackgroundColor(
         isSelectedRef.current,
         isHighlightedRef.current,
-        fretIsPlayingProgressRef.current
+        fretIsPlayingProgressRef.current,
+        status
     );
     const textColor =
         status === HIGHLIGHTED && !isSelectedRef.current ? lightGrey : darkGrey;
@@ -155,71 +174,87 @@ export const Fret: React.FC<FretProps> = ({
     // makes strings progressively thinner
     const thickness = (6 - stringIndex + 1) / 2;
 
-    useEffect(() => {
-        const destroyAppStoreListener = appStore.addListener((newState) => {
-            const { display, fretboard, progress, progression, status } =
-                getComputedAppState(newState);
-            const { label } = progression;
+    useEffect(
+        () =>
+            appStore.addListener((newState) => {
+                const { display, fretboard, progress, progression, status } =
+                    getComputedAppState(newState);
+                const { label } = progression;
 
-            const isHighlighted = getIsHighlighted(
-                fretboard,
-                stringIndex,
-                fretIndex
-            );
-            const isSelected = getIsSelected(fretboard, stringIndex, fretIndex);
-            const isDisabled = display !== "normal";
-            const fretName = getFretName(fretValue, label);
+                const isHighlighted = getIsHighlighted(
+                    fretboard,
+                    stringIndex,
+                    fretIndex
+                );
+                const isSelected = getIsSelected(
+                    fretboard,
+                    stringIndex,
+                    fretIndex
+                );
+                const isDisabled = display !== "normal";
+                const fretName = getFretName(fretValue, label);
 
-            // set refs based on changes
-            if (
-                progressRef.current !== progress ||
-                isHighlightedRef.current !== isHighlighted ||
-                isSelectedRef.current !== isSelected ||
-                statusRef.current !== status ||
-                isDisabledRef.current !== isDisabled
-            ) {
-                isHighlightedRef.current = isHighlighted;
-                isSelectedRef.current = isSelected;
-                statusRef.current = status;
-                progressRef.current = progress;
-                isDisabledRef.current = isDisabled;
-                setFretStyles();
-            }
+                // set refs based on changes
+                if (
+                    progressRef.current !== progress ||
+                    isHighlightedRef.current !== isHighlighted ||
+                    isSelectedRef.current !== isSelected ||
+                    statusRef.current !== status ||
+                    isDisabledRef.current !== isDisabled
+                ) {
+                    isHighlightedRef.current = isHighlighted;
+                    isSelectedRef.current = isSelected;
+                    statusRef.current = status;
+                    progressRef.current = progress;
+                    isDisabledRef.current = isDisabled;
+                    moveFret();
+                }
 
-            // set state based on changes
-            if (fretName !== getState().fretName) setState({ fretName });
-        });
-        const destroyAudioStoreListener = audioStore.addListener(
-            ({ isPlaying }) => {
+                // set state based on changes
+                if (fretName !== getState().fretName) setState({ fretName });
+            }),
+        []
+    );
+
+    useEffect(
+        () =>
+            audioStore.addListener(({ isPlaying }) => {
                 const fretIsPlaying = isPlaying.has(fretAudioKey);
                 if (isPlaying.has(fretAudioKey) !== isPlayingRef.current) {
                     isPlayingRef.current = fretIsPlaying;
 
                     if (fretIsPlaying && shadowRef.current) {
                         fretIsPlayingProgressRef.current = 0;
-                        fretIsPlayingAnimation(setFretStyles);
+                        fretIsPlayingAnimation(moveFret);
                     } else {
-                        setFretStyles();
+                        moveFret();
                     }
                 }
-            }
-        );
+            }),
+        []
+    );
 
-        window.addEventListener("mousemove", onTouchMove);
-        window.addEventListener("touchmove", onTouchMove);
-        window.addEventListener("mouseup", onTouchEnd);
-        window.addEventListener("touchend", onTouchEnd);
-        return () => {
-            destroyAppStoreListener();
-            destroyAudioStoreListener();
-            window.removeEventListener("mousemove", onTouchMove);
-            window.removeEventListener("touchmove", onTouchMove);
-            window.removeEventListener("mouseup", onTouchEnd);
-            window.removeEventListener("touchend", onTouchEnd);
-        };
-    }, []);
+    function moveFret() {
+        const styles = calculateFretStyles();
+        if (styles) {
+            const {
+                left,
+                fillPercentage,
+                fillOpacityPercentage,
+                backgroundColor,
+                textColor,
+            } = styles;
+            setFretStyles(
+                left,
+                fillPercentage,
+                fillOpacityPercentage,
+                backgroundColor,
+                textColor
+            );
+        }
+    }
 
-    function setFretStyles() {
+    function calculateFretStyles() {
         if (!shadowRef.current || !circleRef.current) return;
 
         const progress = progressRef.current;
@@ -269,18 +304,22 @@ export const Fret: React.FC<FretProps> = ({
             currentFretboardIndex + 1
         );
 
+        // background color for shadow div
+        let backgroundColor = getBackgroundColor(
+            isSelected,
+            isHighlighted,
+            fretIsPlayingProgressRef.current,
+            status
+        );
+        // text color for circle div
+        let textColor = !isSelected ? lightGrey : darkGrey;
+
         let x: number; // percentage of journey between slider windows, 0-1
         let xPercent: number; // percentage of journey between slider windows, 0-100
         let diffSteps: number; // how many frets to move
         let newLeft; // new left position for sliding shadowDiv
         let fillPercentage = 100; // new diameter for growing/shrinking shadowDiv
         let fillOpacityPercentage = 100; // new opacity for growing/shrinking shadowDiv
-        let backgroundColor = getBackgroundColor(
-            isSelected,
-            isHighlighted,
-            fretIsPlayingProgressRef.current
-        ); // background color for shadow div
-        let textColor = !isSelected ? lightGrey : darkGrey; // text color for circle div
 
         if (insideLeft) {
             // The progress is between the left border and leftWindow
@@ -344,10 +383,27 @@ export const Fret: React.FC<FretProps> = ({
             }
         }
 
+        return {
+            left: newLeft,
+            fillPercentage,
+            fillOpacityPercentage,
+            backgroundColor,
+            textColor,
+        };
+    }
+
+    function setFretStyles(
+        left: number | undefined,
+        fillPercentage: number,
+        fillOpacityPercentage: number,
+        backgroundColor: string,
+        textColor: string
+    ) {
+        if (!shadowRef.current || !circleRef.current) return;
+        const isHighlighted = isHighlightedRef.current;
+
         // set position
-        if (newLeft !== undefined) {
-            shadowRef.current.style.left = `${newLeft}%`;
-        }
+        if (left !== undefined) shadowRef.current.style.left = `${left}%`;
 
         // set background color
         if (shadowRef.current.style.backgroundColor !== backgroundColor)
@@ -427,38 +483,9 @@ export const Fret: React.FC<FretProps> = ({
         audioStore.playNote(stringIndex, fretIndex);
     }
 
-    function onContextMenu(
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) {
+    function onContextMenu(event: ReactMouseEvent) {
         event.preventDefault();
         event.stopPropagation();
-    }
-
-    function startPress(longPressCB: () => void = () => {}) {
-        // regular press
-        isPressedRef.current = true;
-
-        // long press
-        if (isLongPressedTimeoutRef.current)
-            clearTimeout(isLongPressedTimeoutRef.current);
-        isLongPressedTimeoutRef.current = setTimeout(() => {
-            isLongPressedRef.current = true;
-            longPressCB();
-        }, 1000);
-    }
-
-    function clearPress() {
-        // regular press
-        isPressedRef.current = false;
-
-        // long press
-        isLongPressedRef.current = false;
-        if (isLongPressedTimeoutRef.current) {
-            clearTimeout(isLongPressedTimeoutRef.current);
-            isLongPressedTimeoutRef.current = undefined;
-        }
     }
 
     function startMouseOver() {
@@ -483,144 +510,116 @@ export const Fret: React.FC<FretProps> = ({
         }
     }
 
-    const onTouchEnd = useCallback((event: MouseEvent | TouchEvent) => {
-        // dont select/deselect notes when disabled
-        // if (isDisabledRef.current) return;
-        clearPress();
-        clearMouseOver();
-    }, []);
+    const touchHandlers = useTouchHandlers(
+        (event: ReactMouseEvent) => {
+            // dont select/deselect notes when disabled
+            if (isDisabledRef.current) return;
 
-    function onTouchStart(
-        event:
-            | React.TouchEvent<HTMLDivElement>
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) {
-        // dont select/deselect notes when disabled
-        if (isDisabledRef.current) return;
+            // highlight note if brush mode is highlight
+            const { status, fretboard, fretDragStatus } =
+                appStore.getComputedState();
 
-        // highlight note if brush mode is highlight
-        const { status, fretboard } = appStore.getComputedState();
-        const { fretDragStatus } = touchStore.state;
-
-        // toggle selection of note
-        const fromStatus = fretboard.strings[stringIndex][fretIndex];
-        let toStatus = fromStatus;
-        let toDragStatus = fretDragStatus;
-        if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
-            // only handle events on selected notes, the rest are disabled
-            toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
-            toDragStatus = fromStatus === HIGHLIGHTED ? "off" : "on";
-        } else if (status === SELECTED) {
-            // Demote the selection status, or select if not selected already
-            toStatus =
-                fromStatus === HIGHLIGHTED
-                    ? SELECTED
-                    : fromStatus === SELECTED
-                    ? NOT_SELECTED
-                    : fromStatus === NOT_SELECTED
-                    ? SELECTED
-                    : NOT_SELECTED;
-            toDragStatus = fromStatus === NOT_SELECTED ? "on" : "off";
-        }
-
-        startPress(() => {
-            appStore.dispatch.setStatus(HIGHLIGHTED);
-            appStore.dispatch.setHighlightedNote(
-                stringIndex,
-                fretIndex,
-                HIGHLIGHTED
-            );
-            touchStore.dispatch.setFretDragStatus("on");
-        });
-
-        if (toStatus !== fromStatus) {
-            appStore.dispatch.setHighlightedNote(
-                stringIndex,
-                fretIndex,
-                toStatus
-            );
-            playNoteAudio();
-        }
-        if (toDragStatus !== fretDragStatus)
-            touchStore.dispatch.setFretDragStatus(toDragStatus);
-
-        startMouseOver(); // I think this is needed
-    }
-
-    const onTouchMove = useCallback((event: MouseEvent | TouchEvent) => {
-        // dont select/deselect notes when disabled
-        if (isDisabledRef.current) return;
-
-        const { fretboard, status } = appStore.getComputedState();
-        const { fretDragStatus } = touchStore.state;
-
-        if (!fretDragStatus || !circleRef.current) return;
-
-        let clientX: number;
-        let clientY: number;
-        if (event instanceof MouseEvent) {
-            clientX = event.clientX;
-            clientY = event.clientY;
-        } else if (event instanceof TouchEvent) {
-            clientX = event.touches[0].clientX;
-            clientY = event.touches[0].clientY;
-        } else {
-            return;
-        }
-
-        // could speed up by cacheing this
-        const { top, left, bottom, right } =
-            circleRef.current.getBoundingClientRect();
-
-        const isWithinBoundary = (theshold: number = 0) => {
-            return (
-                clientX <= right + theshold &&
-                clientX >= left - theshold &&
-                clientY <= bottom + theshold &&
-                clientY >= top - theshold
-            );
-        };
-
-        if (isWithinBoundary()) {
-            if (!isMouseOverRef.current) {
-                const fromStatus = fretboard.strings[stringIndex][fretIndex];
-                let toStatus = fromStatus;
-                let toDragStatus = fretDragStatus;
-
-                if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
-                    // case when dragging over a selected/highlighted note in highlight mode
-                    toStatus =
-                        fretDragStatus === "off" ? SELECTED : HIGHLIGHTED;
-                } else if (status === SELECTED) {
-                    // case when dragging over any note in standard mode
-                    toStatus =
-                        fretDragStatus === "on" ? SELECTED : NOT_SELECTED;
-                }
-
-                if (toStatus !== fromStatus) {
-                    appStore.dispatch.setHighlightedNote(
-                        stringIndex,
-                        fretIndex,
-                        toStatus
-                    );
-                    playNoteAudio();
-                }
-                if (toDragStatus !== fretDragStatus) {
-                    touchStore.dispatch.setFretDragStatus(fretDragStatus);
-                    playNoteAudio();
-                }
-
-                startMouseOver();
+            // toggle selection of note
+            const fromStatus = fretboard.strings[stringIndex][fretIndex];
+            let toStatus = fromStatus;
+            let toDragStatus = fretDragStatus;
+            if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
+                // only handle events on selected notes, the rest are disabled
+                toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
+                toDragStatus = fromStatus === HIGHLIGHTED ? "off" : "on";
+            } else if (status === SELECTED) {
+                // Demote the selection status, or select if not selected already
+                toStatus =
+                    fromStatus === HIGHLIGHTED
+                        ? SELECTED
+                        : fromStatus === SELECTED
+                        ? NOT_SELECTED
+                        : fromStatus === NOT_SELECTED
+                        ? SELECTED
+                        : NOT_SELECTED;
+                toDragStatus = fromStatus === NOT_SELECTED ? "on" : "off";
             }
-        } else {
-            // remove isMouseOver when leaving the circle boundaries,
-            // with small delay to prevent flickering
-            clearMouseOver(50);
 
-            // remove isLongPressedTimeout when leaving the circle boundaries + a threshold
-            if (!isWithinBoundary(10)) clearPress();
+            if (toStatus !== fromStatus) {
+                appStore.dispatch.setHighlightedNote(
+                    stringIndex,
+                    fretIndex,
+                    toStatus
+                );
+                playNoteAudio();
+            }
+            if (toDragStatus !== fretDragStatus)
+                appStore.dispatch.setFretDragStatus(toDragStatus);
+
+            // this is needed to let onTouchMove know that this element started
+            // the drag sequence, and therefore doesn't need to be processed
+            startMouseOver();
+        },
+
+        () => clearMouseOver(),
+
+        (event: WindowMouseEvent) => {
+            // dont select/deselect notes when disabled
+            if (isDisabledRef.current) return;
+
+            const { fretboard, status, fretDragStatus } =
+                appStore.getComputedState();
+
+            if (!fretDragStatus || !circleRef.current) return;
+
+            let clientX: number;
+            let clientY: number;
+            if (event instanceof MouseEvent) {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            } else if (event instanceof TouchEvent) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                return;
+            }
+
+            // could speed up by cacheing this
+            const circleBoundary = circleRef.current.getBoundingClientRect();
+            if (isWithinBoundary(circleBoundary, clientX, clientY)) {
+                if (!isMouseOverRef.current) {
+                    const fromStatus =
+                        fretboard.strings[stringIndex][fretIndex];
+                    let toStatus = fromStatus;
+                    let toDragStatus = fretDragStatus;
+
+                    if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
+                        // case when dragging over a selected/highlighted note in highlight mode
+                        toStatus =
+                            fretDragStatus === "off" ? SELECTED : HIGHLIGHTED;
+                    } else if (status === SELECTED) {
+                        // case when dragging over any note in standard mode
+                        toStatus =
+                            fretDragStatus === "on" ? SELECTED : NOT_SELECTED;
+                    }
+
+                    if (toStatus !== fromStatus) {
+                        appStore.dispatch.setHighlightedNote(
+                            stringIndex,
+                            fretIndex,
+                            toStatus
+                        );
+                        playNoteAudio();
+                    }
+                    if (toDragStatus !== fretDragStatus) {
+                        appStore.dispatch.setFretDragStatus(fretDragStatus);
+                        playNoteAudio();
+                    }
+
+                    startMouseOver();
+                }
+            } else {
+                // remove isMouseOver when leaving the circle boundaries,
+                // with small delay to prevent flickering
+                clearMouseOver(50);
+            }
         }
-    }, []);
+    );
 
     return (
         <FretDiv
@@ -635,12 +634,7 @@ export const Fret: React.FC<FretProps> = ({
                 height={`${thickness}px`}
                 backgroundColor={!!fretIndex ? lightGrey : "transparent"}
             />
-            <CircleDiv
-                // onMouseDown={onMouseDown}
-                onTouchStart={onTouchStart}
-                ref={circleRef}
-                color={textColor}
-            >
+            <CircleDiv {...touchHandlers} ref={circleRef} color={textColor}>
                 <ChordSymbol rootName={fretName} chordName="" fontSize={16} />
             </CircleDiv>
             <ShadowDiv

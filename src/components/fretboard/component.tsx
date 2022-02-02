@@ -4,7 +4,6 @@ import {
     useStateRef,
     AppStore,
     AudioStore,
-    TouchStore,
     getComputedAppState,
 } from "../../store";
 import { FretboardString } from "../FretboardString";
@@ -30,13 +29,11 @@ import { ArrowTypes } from "../../types";
 interface FretboardProps {
     appStore: AppStore;
     audioStore: AudioStore;
-    touchStore: TouchStore;
 }
 
 export const Fretboard: React.FC<FretboardProps> = ({
     appStore,
     audioStore,
-    touchStore,
 }) => {
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
@@ -157,7 +154,6 @@ export const Fretboard: React.FC<FretboardProps> = ({
             key={`string-${i}`}
             appStore={appStore}
             audioStore={audioStore}
-            touchStore={touchStore}
         />
     ));
 

@@ -57,13 +57,14 @@ export const ChordNameSelector: React.FC<ChordNameSelectorProps> = ({
 
     function onSelectName(name: FretboardNameType) {
         appStore.dispatch.setFretboardName(name.rootIdx);
+        appStore.dispatch.setDisplay("normal");
     }
 
     return (
         <FlexRow justifyContent="space-evenly" width="100%">
             {names.map((name, i) => (
                 <Div
-                    onClick={() => onSelectName(name)}
+                    onMouseDown={() => onSelectName(name)}
                     onTouchStart={() => onSelectName(name)}
                     key={`change-name-selector-${i}`}
                 >

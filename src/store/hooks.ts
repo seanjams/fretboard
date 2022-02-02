@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
-import { stopClick } from "../utils";
-import { Store } from "./store";
-import { TouchStore } from "./TouchState";
+import { ReactMouseEvent, WindowMouseEvent } from "../types";
 
 // export function useStore<T>(store: Store<T>, listener?: (state: T) => void) {
 //     const [state, setState] = useState<T>(store.state);
@@ -46,85 +44,94 @@ export function useWindowListener<K extends keyof WindowEventMap>(
     }, []);
 }
 
-export function useTouchStore(): TouchStore {
-    const store = useMemo(() => new TouchStore(), []);
+export const useTouchHandlers = (
+    onStart?: (event: ReactMouseEvent) => void,
+    onEnd?: (event: WindowMouseEvent) => void,
+    onMove?: (event: WindowMouseEvent) => void,
+    onLongPress?: (event: ReactMouseEvent) => void,
+    { delay = 300, threshold = 50 } = {}
+) => {
+    const isDraggingRef = useRef(false);
+    const isPressedRef = useRef(false);
+    const isLongPressedRef = useRef(false);
+    const isLongPressedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-    // Up Events
-    const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
-        store.dispatch.clearState();
-        // stopClick();
-    }, []);
+    const start = useCallback(
+        (event: ReactMouseEvent) => {
+            // set isPressed
+            isPressedRef.current = true;
 
-    const onTouchEnd = useCallback((event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
-        store.dispatch.clearState();
-        // stopClick();
-    }, []);
+            // set isLongPressed
+            if (isLongPressedTimeoutRef.current)
+                clearTimeout(isLongPressedTimeoutRef.current);
+            isLongPressedTimeoutRef.current = setTimeout(() => {
+                if (onLongPress) onLongPress(event);
+                isLongPressedRef.current = true;
+            }, delay);
 
-    // Move Events
-    const onMouseMove = useCallback((event: MouseEvent | TouchEvent) => {
-        const { isPressed, isDragging } = store.state;
-        if (isPressed && !isDragging) store.dispatch.setIsDragging(true);
-    }, []);
+            // call handler
+            if (onStart) onStart(event);
+        },
+        [onLongPress, onStart, delay]
+    );
 
-    const onTouchMove = useCallback((event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
-        const { isPressed, isDragging } = store.state;
-        if (isPressed && !isDragging) store.dispatch.setIsDragging(true);
-    }, []);
+    const move = useCallback(
+        (event: WindowMouseEvent) => {
+            // set isDragging
+            if (!isDraggingRef.current) isDraggingRef.current = true;
 
-    // Down Events
-    const onMouseDown = useCallback((event: MouseEvent | TouchEvent) => {
-        store.dispatch.clearState();
-        const { isPressed } = store.state;
-        if (!isPressed) store.dispatch.setIsPressed(true);
+            // call handler
+            if (onMove) onMove(event);
+        },
+        [onMove]
+    );
 
-        // if (event instanceof TouchEvent) {
-        // highlight note if using touch device and press with two fingers
-        // twoFingerTouchRef.current = event.touches.length > 1;
-        // }
-    }, []);
+    const clear = useCallback(
+        (event: WindowMouseEvent, shouldTriggerClick = true) => {
+            if (!isPressedRef.current) return;
+            // set isPressed
+            isPressedRef.current = false;
 
-    const onTouchStart = useCallback((event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
-        store.dispatch.clearState();
-        const { isPressed } = store.state;
-        if (!isPressed) store.dispatch.setIsPressed(true);
+            // set isDragging
+            isDraggingRef.current = false;
 
-        // if (event instanceof TouchEvent) {
-        // highlight note if using touch device and press with two fingers
-        // twoFingerTouchRef.current = event.touches.length > 1;
-        // }
-    }, []);
+            // set isLongPressed
+            isLongPressedRef.current = false;
+            if (isLongPressedTimeoutRef.current) {
+                clearTimeout(isLongPressedTimeoutRef.current);
+                isLongPressedTimeoutRef.current = undefined;
+            }
 
-    // Context Menu
-    const onContextMenu = (event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
-    };
+            // call handler
+            if (shouldTriggerClick && !isLongPressedRef.current && onEnd)
+                onEnd(event);
+        },
+        [onEnd]
+    );
 
-    // Click
-    // const onClick = () => console.log("CLICK");
+    // handlers
+    const onMouseDown = (event: ReactMouseEvent) => start(event);
+    const onTouchStart = (event: ReactMouseEvent) => start(event);
+    const onMouseMove = (event: WindowMouseEvent) => move(event);
+    const onTouchMove = (event: WindowMouseEvent) => move(event);
+    const onMouseUp = (event: WindowMouseEvent) => clear(event);
+    const onTouchEnd = (event: WindowMouseEvent) => clear(event);
 
     useEffect(() => {
-        window.addEventListener("mousedown", onMouseDown);
         window.addEventListener("mousemove", onMouseMove);
-        window.addEventListener("mouseup", onMouseUp);
-        window.addEventListener("touchstart", onTouchStart);
         window.addEventListener("touchmove", onTouchMove);
+        window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("touchend", onTouchEnd);
-        window.addEventListener("contextmenu", onContextMenu);
-        // window.addEventListener("click", onClick);
         return () => {
-            window.removeEventListener("mousedown", onMouseDown);
             window.removeEventListener("mousemove", onMouseMove);
-            window.removeEventListener("mouseup", onMouseUp);
-            window.removeEventListener("touchstart", onTouchStart);
             window.removeEventListener("touchmove", onTouchMove);
+            window.removeEventListener("mouseup", onMouseUp);
             window.removeEventListener("touchend", onTouchEnd);
-            window.removeEventListener("contextmenu", onContextMenu);
-            // window.removeEventListener("click", onClick);
         };
     }, []);
 
-    return store;
-}
+    return {
+        onMouseDown,
+        onTouchStart,
+    };
+};

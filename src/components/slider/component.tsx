@@ -4,6 +4,7 @@ import {
     AppStore,
     getComputedAppState,
     AudioStore,
+    useTouchHandlers,
 } from "../../store";
 import {
     stopClick,
@@ -14,6 +15,7 @@ import { FlexRow } from "../Common";
 import { Title } from "../Title";
 import { ProgressBar, SliderBar } from "./style";
 import { isEqual } from "lodash";
+import { ReactMouseEvent, WindowMouseEvent } from "../../types";
 
 interface SliderProps {
     appStore: AppStore;
@@ -42,7 +44,10 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     const isLongPressedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
     useEffect(() => {
-        const destroyAppStoreListener = appStore.addListener((newState) => {
+        // set initial slider position
+        setLeftFromProgress();
+
+        return appStore.addListener((newState) => {
             const { visibleFretboards, isAnimating } =
                 getComputedAppState(newState);
             const visibleFretboardsChanged = !isEqual(
@@ -63,22 +68,6 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                 if (isAnimating) setLeftFromProgress();
             }
         });
-
-        window.addEventListener("mousemove", onMouseMove);
-        window.addEventListener("mouseup", onMouseUp);
-        window.addEventListener("touchmove", onMouseMove);
-        window.addEventListener("touchend", onMouseUp);
-
-        // set initial slider position
-        setLeftFromProgress();
-
-        return () => {
-            destroyAppStoreListener();
-            window.removeEventListener("mousemove", onMouseMove);
-            window.removeEventListener("mouseup", onMouseUp);
-            window.removeEventListener("touchmove", onMouseMove);
-            window.removeEventListener("touchend", onMouseUp);
-        };
     }, []);
 
     const setLeftFromProgress = () => {
@@ -203,70 +192,6 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
         requestAnimationFrame(performAnimation);
     };
 
-    const startPress = (longPressCB: () => void = () => {}) => {
-        if (isLongPressedTimeoutRef.current)
-            clearTimeout(isLongPressedTimeoutRef.current);
-        isPressedRef.current = true;
-        isLongPressedTimeoutRef.current = setTimeout(() => {
-            isLongPressedRef.current = true;
-            longPressCB();
-        }, 700);
-    };
-
-    const clearPress = () => {
-        if (isLongPressedTimeoutRef.current)
-            clearTimeout(isLongPressedTimeoutRef.current);
-        isPressedRef.current = false;
-        isLongPressedRef.current = false;
-    };
-
-    // slider drag release (set ratio for resize experiment)
-    const onMouseUp = (event: MouseEvent | TouchEvent) => {
-        event.stopPropagation();
-        clearPress();
-
-        if (getState().dragging) {
-            setState({ dragging: false });
-            stopClick();
-            // snap to grid if click or drag release
-            snapToGridAnimation();
-        }
-    };
-
-    // slider grab
-    const onMouseDown = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        let clientX: number;
-        let clientY: number;
-        if (event.nativeEvent instanceof MouseEvent) {
-            clientX = event.nativeEvent.clientX;
-            clientY = event.nativeEvent.clientY;
-        } else if (event.nativeEvent instanceof TouchEvent) {
-            clientX = event.nativeEvent.touches[0].clientX;
-            clientY = event.nativeEvent.touches[0].clientY;
-        } else {
-            return;
-        }
-        isPressedCoordinatesRef.current = [clientX, clientY];
-
-        // grab slider
-        if (progressBarRef.current && sliderBarRef.current)
-            deltaRef.current = clientX - sliderBarRef.current.offsetLeft;
-
-        const display = appStore.state.display;
-        if (display === "change-name") appStore.dispatch.setDisplay("normal");
-        startPress(() => {
-            if (display !== "change-name")
-                appStore.dispatch.setDisplay("change-name");
-        });
-    };
-
     const hasMovedPastThreshold = (
         clientX: number,
         clientY: number,
@@ -282,77 +207,138 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
         );
     };
 
-    // slider drag
-    const onMouseMove = (event: MouseEvent | TouchEvent) => {
-        event.preventDefault();
-        if (!sliderBarRef.current) return;
-
-        let clientX: number;
-        let clientY: number;
-        if (event instanceof MouseEvent) {
-            clientX = event.clientX;
-            clientY = event.clientY;
-        } else if (event instanceof TouchEvent) {
-            clientX = event.touches[0].clientX;
-            clientY = event.touches[0].clientY;
-        } else {
-            return;
-        }
-
-        // if slider has moved far enough, we dont want to call longPress
-        if (
-            hasMovedPastThreshold(clientX, clientY, 50) &&
-            isLongPressedTimeoutRef.current
-        )
+    const startLongPress = (
+        longPressCB: () => void = () => {},
+        delay = 700
+    ) => {
+        if (isLongPressedTimeoutRef.current)
             clearTimeout(isLongPressedTimeoutRef.current);
+        isLongPressedTimeoutRef.current = setTimeout(() => {
+            isLongPressedRef.current = true;
+            longPressCB();
+        }, delay);
+        isPressedRef.current = true;
+    };
 
-        // drag slider
-        if (isPressedRef.current && !getState().dragging) {
-            setState({ dragging: true });
-        } else if (
-            isPressedRef.current &&
-            progressBarRef.current &&
-            getState().dragging
-        ) {
-            repositionSlider(clientX);
-        }
+    const clearLongPress = () => {
+        if (isLongPressedTimeoutRef.current)
+            clearTimeout(isLongPressedTimeoutRef.current);
+        isLongPressedRef.current = false;
+        isPressedRef.current = false;
     };
 
     // progress bar click
-    const onSliderClick = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        event.preventDefault();
+    const conatinerTouchHandlers = useTouchHandlers(
+        (event: ReactMouseEvent) => {
+            let clientX;
+            if (event.nativeEvent instanceof MouseEvent) {
+                clientX = event.nativeEvent.clientX;
+            } else if (event.nativeEvent instanceof TouchEvent) {
+                clientX = event.nativeEvent.touches[0].clientX;
+            } else {
+                return;
+            }
+            if (progressBarRef.current && sliderBarRef.current) {
+                const { currentFretboardIndex, progression } =
+                    appStore.getComputedState();
+                const origin = progressBarRef.current.offsetLeft;
+                const progressBarWidth = progressBarRef.current.offsetWidth;
+                const toIndex = Math.floor(
+                    ((clientX - origin) * progression.fretboards.length) /
+                        progressBarWidth
+                );
+                appStore.switchFretboardAnimation(
+                    currentFretboardIndex,
+                    toIndex,
+                    () => {
+                        const { fretboard } = appStore.getComputedState();
+                        audioStore.strumChord(fretboard);
+                    }
+                );
+            }
+        }
+    );
 
-        let clientX;
-        if (event.nativeEvent instanceof MouseEvent) {
-            clientX = event.nativeEvent.clientX;
-        } else if (event.nativeEvent instanceof TouchEvent) {
-            clientX = event.nativeEvent.touches[0].clientX;
-        } else {
-            return;
-        }
-        if (progressBarRef.current && sliderBarRef.current) {
-            const { currentFretboardIndex, progression } =
-                appStore.getComputedState();
-            const origin = progressBarRef.current.offsetLeft;
-            const progressBarWidth = progressBarRef.current.offsetWidth;
-            const toIndex = Math.floor(
-                ((clientX - origin) * progression.fretboards.length) /
-                    progressBarWidth
-            );
-            appStore.switchFretboardAnimation(
-                currentFretboardIndex,
-                toIndex,
-                () => {
-                    const { fretboard } = appStore.getComputedState();
-                    audioStore.strumChord(fretboard);
-                }
-            );
-        }
-    };
+    // slider down/up/move
+    const sliderTouchHandlers = useTouchHandlers(
+        (event: ReactMouseEvent) => {
+            // slider grab
+            // clicking on the slider is different than clicking somewhere on the line,
+            // so stopPropagation here
+            event.stopPropagation();
+
+            let clientX: number;
+            let clientY: number;
+            if (event.nativeEvent instanceof MouseEvent) {
+                clientX = event.nativeEvent.clientX;
+                clientY = event.nativeEvent.clientY;
+            } else if (event.nativeEvent instanceof TouchEvent) {
+                clientX = event.nativeEvent.touches[0].clientX;
+                clientY = event.nativeEvent.touches[0].clientY;
+            } else {
+                return;
+            }
+            isPressedCoordinatesRef.current = [clientX, clientY];
+
+            // grab slider
+            if (progressBarRef.current && sliderBarRef.current)
+                deltaRef.current = clientX - sliderBarRef.current.offsetLeft;
+
+            const display = appStore.state.display;
+            if (display === "change-name")
+                appStore.dispatch.setDisplay("normal");
+            startLongPress(() => {
+                if (display !== "change-name")
+                    appStore.dispatch.setDisplay("change-name");
+            }, 700);
+        },
+        (event: WindowMouseEvent) => {
+            // slider drag release
+            clearLongPress();
+            if (getState().dragging) {
+                setState({ dragging: false });
+                // stopClick();
+                // snap to grid if click or drag release
+                snapToGridAnimation();
+            }
+        },
+        (event: WindowMouseEvent) => {
+            // slider drag
+            if (!sliderBarRef.current) return;
+
+            let clientX: number;
+            let clientY: number;
+            if (event instanceof MouseEvent) {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            } else if (event instanceof TouchEvent) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                return;
+            }
+
+            // if slider has moved far enough, we dont want to call longPress
+            if (
+                hasMovedPastThreshold(clientX, clientY, 50) &&
+                isLongPressedTimeoutRef.current
+            )
+                clearTimeout(isLongPressedTimeoutRef.current);
+
+            // drag slider
+            if (isPressedRef.current && !getState().dragging) {
+                setState({ dragging: true });
+            } else if (
+                isPressedRef.current &&
+                progressBarRef.current &&
+                getState().dragging
+            ) {
+                repositionSlider(clientX);
+            }
+        },
+        undefined,
+        { delay: 1000, threshold: 100 }
+    );
 
     return (
         <FlexRow width="100%">
@@ -360,17 +346,15 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                 id="progress-bar"
                 ref={progressBarRef}
                 width="100%"
-                onClick={onSliderClick}
-                onTouchStart={onSliderClick}
+                {...conatinerTouchHandlers}
             >
                 <SliderBar
                     className="slider-bar"
                     ref={sliderBarRef}
                     left={`${left}px`}
-                    onMouseDown={onMouseDown}
-                    onTouchStart={onMouseDown}
                     height="44px"
                     width="44px"
+                    {...sliderTouchHandlers}
                 />
                 {visibleFretboards.map((_, i) => {
                     return (

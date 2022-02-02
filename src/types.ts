@@ -86,3 +86,9 @@ export type DisplayTypes =
     | "chord-input"
     | "settings"
     | "change-name";
+
+export type ReactMouseEvent =
+    | React.MouseEvent<HTMLDivElement, MouseEvent>
+    | React.TouchEvent<HTMLDivElement>;
+
+export type WindowMouseEvent = MouseEvent | TouchEvent;

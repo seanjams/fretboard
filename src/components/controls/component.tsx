@@ -1,7 +1,17 @@
 import React, { useEffect } from "react";
 import { CSSTransition } from "react-transition-group";
-import { useStateRef, AppStore, AudioStore } from "../../store";
-import { ArrowTypes, DisplayTypes } from "../../types";
+import {
+    useStateRef,
+    AppStore,
+    AudioStore,
+    useTouchHandlers,
+} from "../../store";
+import {
+    ArrowTypes,
+    DisplayTypes,
+    ReactMouseEvent,
+    WindowMouseEvent,
+} from "../../types";
 import {
     HIGHLIGHTED,
     SELECTED,
@@ -92,18 +102,6 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
         });
     }, []);
 
-    const onStatusChange = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        event.preventDefault();
-        const { status } = appStore.state;
-        appStore.dispatch.setStatus(
-            status === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
-        );
-    };
-
     const onClear = () => {
         const { status } = appStore.state;
         if (status === HIGHLIGHTED) {
@@ -112,6 +110,17 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
             appStore.dispatch.clear();
         }
     };
+
+    const touchHandlers = useTouchHandlers(
+        // change status
+        (event: ReactMouseEvent) => {
+            event.preventDefault();
+            const { status } = appStore.state;
+            appStore.dispatch.setStatus(
+                status === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
+            );
+        }
+    );
 
     return (
         <FlexRow>
@@ -125,7 +134,7 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
                         <Div>
                             <Div
                                 className="highlight-checkbox"
-                                onTouchStart={onStatusChange}
+                                {...touchHandlers}
                             >
                                 <Div />
                             </Div>
@@ -195,7 +204,7 @@ export const FretboardSettingsControls: React.FC<FretboardSettingsControlsProps>
             };
         }, []);
 
-        const onStrumModeChange = (event: MouseEvent | TouchEvent) => {
+        const onStrumModeChange = (event: WindowMouseEvent) => {
             event.preventDefault();
             const { strumMode } = appStore.state;
             appStore.dispatch.setStrumMode(
@@ -205,7 +214,7 @@ export const FretboardSettingsControls: React.FC<FretboardSettingsControlsProps>
             );
         };
 
-        const onLabelChange = (event: MouseEvent | TouchEvent) => {
+        const onLabelChange = (event: WindowMouseEvent) => {
             event.preventDefault();
             const { label } = appStore.getComputedState().progression;
             appStore.dispatch.setLabel(label === "sharp" ? "flat" : "sharp");

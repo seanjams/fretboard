@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from "react";
-import { useStateRef, AppStore, AudioStore, TouchStore } from "../../store";
+import { useStateRef, AppStore, AudioStore } from "../../store";
 import {
     SAFETY_AREA_MARGIN,
     getScreenDimensions,
@@ -25,13 +25,11 @@ import { BottomDrawer, TopDrawer } from "../Drawer";
 interface DashboardProps {
     appStore: AppStore;
     audioStore: AudioStore;
-    touchStore: TouchStore;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
     appStore,
     audioStore,
-    touchStore,
 }) => {
     const [getState, setState] = useStateRef(() => ({
         orientation: "portrait-primary",
@@ -96,11 +94,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         />
                     ) : null}
                 </TopDrawer>
-                <Fretboard
-                    appStore={appStore}
-                    audioStore={audioStore}
-                    touchStore={touchStore}
-                />
+                <Fretboard appStore={appStore} audioStore={audioStore} />
                 <BottomDrawer appStore={appStore}>
                     {display === "chord-input" ? (
                         <ChordInput

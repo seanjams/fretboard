@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { useStateRef } from "../../store";
+import { useStateRef, useTouchHandlers } from "../../store";
+import { ReactMouseEvent, WindowMouseEvent } from "../../types";
 import { COLORS, darkGrey } from "../../utils";
 import { Circle } from "./style";
 
@@ -11,7 +12,7 @@ interface ButtonProps {
     backgroundColor?: string;
     border?: string;
     diameter?: number;
-    onClick?: (event: MouseEvent | TouchEvent) => void;
+    onClick?: (event: WindowMouseEvent) => void;
     selected?: boolean;
 }
 
@@ -27,43 +28,23 @@ export const CircleButton: React.FC<ButtonProps> = ({
         active: selected || false,
     }));
     const { active } = getState();
-    const isPressedRef = useRef(false);
 
-    useEffect(() => {
-        window.addEventListener("mouseup", onMouseUp);
-        window.addEventListener("touchend", onMouseUp);
-        return () => {
-            window.removeEventListener("mouseup", onMouseUp);
-            window.removeEventListener("touchend", onMouseUp);
-        };
-    }, []);
+    const touchHandlers = useTouchHandlers(
+        (event: ReactMouseEvent) => {
+            if (selected === undefined && !getState().active)
+                setState({ active: true });
+        },
+        (event: WindowMouseEvent) => {
+            if (selected === undefined && getState().active)
+                setState({ active: false });
 
-    const onMouseDown = (
-        event:
-            | React.MouseEvent<HTMLDivElement, MouseEvent>
-            | React.TouchEvent<HTMLDivElement>
-    ) => {
-        // event.preventDefault();
-        isPressedRef.current = true;
-        if (selected === undefined && !getState().active)
-            setState({ active: true });
-    };
-
-    const onMouseUp = useCallback((event: MouseEvent | TouchEvent) => {
-        // event.stopPropagation();
-        if (!isPressedRef.current) return;
-        isPressedRef.current = false;
-
-        if (selected === undefined && getState().active)
-            setState({ active: false });
-
-        if (onClick) onClick(event);
-    }, []);
+            if (onClick) onClick(event);
+        }
+    );
 
     return (
         <Circle
-            onTouchStart={onMouseDown}
-            onMouseDown={onMouseDown}
+            {...touchHandlers}
             backgroundColor={backgroundColor}
             active={selected !== undefined ? selected : active}
             activeColor={activeColor}
@@ -76,7 +57,7 @@ export const CircleButton: React.FC<ButtonProps> = ({
 };
 
 export interface HighlightButtonProps {
-    onClick?: (event: MouseEvent | TouchEvent) => void;
+    onClick?: (event: WindowMouseEvent) => void;
 }
 
 export const HighlightButton: React.FC<HighlightButtonProps> = ({
@@ -97,7 +78,7 @@ export const HighlightButton: React.FC<HighlightButtonProps> = ({
 
 export interface CircleButtonProps {
     imageSrc?: string;
-    onClick?: (event: MouseEvent | TouchEvent) => void;
+    onClick?: (event: WindowMouseEvent) => void;
     selected?: boolean;
 }
 

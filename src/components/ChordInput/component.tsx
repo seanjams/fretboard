@@ -12,6 +12,7 @@ import {
     FretboardNameType,
     LabelTypes,
     NoteTypes,
+    ReactMouseEvent,
 } from "../../types";
 import {
     FLAT_NAMES,
@@ -76,43 +77,30 @@ export const ChordInput: React.FC<ChordInputProps> = ({
     }, []);
 
     // const preventDefault = (
-    //     event:
-    //         | React.MouseEvent<HTMLDivElement, MouseEvent>
-    //         | React.TouchEvent<HTMLDivElement>
+    // event: ReactMouseEvent
     // ) => {
     //     event.preventDefault();
     //     event.stopPropagation();
     // };
 
-    const onRootChange =
-        (newRootIdx: number) =>
-        (
-            event:
-                | React.MouseEvent<HTMLDivElement, MouseEvent>
-                | React.TouchEvent<HTMLDivElement>
-        ) => {
-            const { name } = getState();
-            const { rootIdx, foundChordName } = name;
-            if (newRootIdx === rootIdx) return;
-            // default chordName to "maj" if not set
-            appStore.chordInputAnimation(
-                newRootIdx,
-                foundChordName || majorChord,
-                () => {
-                    // strum fretboard
-                    const { fretboard } = appStore.getComputedState();
-                    audioStore.strumChord(fretboard);
-                }
-            );
-        };
+    const onRootChange = (newRootIdx: number) => (event: ReactMouseEvent) => {
+        const { name } = getState();
+        const { rootIdx, foundChordName } = name;
+        if (newRootIdx === rootIdx) return;
+        // default chordName to "maj" if not set
+        appStore.chordInputAnimation(
+            newRootIdx,
+            foundChordName || majorChord,
+            () => {
+                // strum fretboard
+                const { fretboard } = appStore.getComputedState();
+                audioStore.strumChord(fretboard);
+            }
+        );
+    };
 
     const onChordChange =
-        (newChordName: ChordTypes) =>
-        (
-            event:
-                | React.MouseEvent<HTMLDivElement, MouseEvent>
-                | React.TouchEvent<HTMLDivElement>
-        ) => {
+        (newChordName: ChordTypes) => (event: ReactMouseEvent) => {
             const { name } = getState();
             const { rootIdx, foundChordName } = name;
             if (newChordName === foundChordName) return;
@@ -151,14 +139,12 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                 >
                     {noteNames.map((name, j) => (
                         <FlexRow
+                            key={`${name}-key-${j}`}
                             height="100%"
-                            onClick={onRootChange(j)}
+                            onMouseDown={onRootChange(j)}
                             onTouchStart={onRootChange(j)}
                         >
-                            <Tag
-                                key={`${name}-key-${j}`}
-                                highlighted={rootIdx === j}
-                            >
+                            <Tag highlighted={rootIdx === j}>
                                 <ChordSymbol
                                     rootName={name}
                                     chordName=""
@@ -193,7 +179,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                             {CHORD_NAMES.map((name, j) => (
                                 <Tag
                                     key={`${name}-key-${j}`}
-                                    onClick={onChordChange(name)}
+                                    onMouseDown={onChordChange(name)}
                                     onTouchStart={onChordChange(name)}
                                     highlighted={chordName === name}
                                     wide={true}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AppStore, AudioStore, TouchStore } from "../../store";
+import { AppStore, AudioStore } from "../../store";
 import { STRING_SIZE } from "../../utils";
 import { Fret } from "../Fret";
 import { StringDiv } from "./style";
@@ -10,7 +10,6 @@ interface FretboardStringProps {
     stringIndex: number;
     appStore: AppStore;
     audioStore: AudioStore;
-    touchStore: TouchStore;
 }
 
 export const FretboardString: React.FC<FretboardStringProps> = ({
@@ -18,7 +17,6 @@ export const FretboardString: React.FC<FretboardStringProps> = ({
     stringIndex,
     appStore,
     audioStore,
-    touchStore,
 }) => {
     const { invert } = appStore.state;
 
@@ -30,7 +28,6 @@ export const FretboardString: React.FC<FretboardStringProps> = ({
                     key={`string-${stringIndex}-fret-${i}`}
                     appStore={appStore}
                     audioStore={audioStore}
-                    touchStore={touchStore}
                     fretIndex={i}
                     stringIndex={stringIndex}
                 />

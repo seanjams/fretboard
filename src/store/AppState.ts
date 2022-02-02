@@ -7,6 +7,7 @@ import {
     DisplayTypes,
     ChordTypes,
     FretboardType,
+    DragStatusTypes,
 } from "../types";
 import {
     rebuildDiffs,
@@ -50,6 +51,8 @@ export interface AppStateType {
     rehydrateSuccess: boolean;
     // for fretboard animations
     hiddenFretboardIndex: number;
+    // whether the current drag should be turning notes on or off
+    fretDragStatus: DragStatusTypes;
 }
 
 // Helper functions
@@ -327,6 +330,10 @@ export const appReducers = {
         return { ...state, invert };
     },
 
+    setFretDragStatus(state: AppStateType, fretDragStatus: DragStatusTypes) {
+        return { ...state, fretDragStatus };
+    },
+
     setFretboardName(state: AppStateType, rootIdx: number): AppStateType {
         let { fretboard, progression, currentFretboardIndex } =
             getComputedAppState(state);
@@ -577,5 +584,6 @@ export function DEFAULT_MAIN_STATE(): AppStateType {
         progress: 0.5,
         rehydrateSuccess: false,
         hiddenFretboardIndex: -1,
+        fretDragStatus: null,
     };
 }

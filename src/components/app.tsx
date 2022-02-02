@@ -5,8 +5,6 @@ import {
     AppStateType,
     AppStore,
     AudioStore,
-    useTouchStore,
-    getComputedAppState,
 } from "../store";
 import { Dashboard } from "./Dashboard";
 // import { Menu } from "./menu";
@@ -18,7 +16,6 @@ interface AppProps {
 export const App: React.FC<AppProps> = ({ oldState }) => {
     const appStore = useMemo(() => new AppStore(), []);
     const audioStore = useMemo(() => new AudioStore(), []);
-    const touchStore = useTouchStore();
 
     const w = window as any;
     w.reset = () => {
@@ -64,11 +61,5 @@ export const App: React.FC<AppProps> = ({ oldState }) => {
         appStore.setState(newState);
     };
 
-    return (
-        <Dashboard
-            appStore={appStore}
-            audioStore={audioStore}
-            touchStore={touchStore}
-        />
-    );
+    return <Dashboard appStore={appStore} audioStore={audioStore} />;
 };

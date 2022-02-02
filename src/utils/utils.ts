@@ -7,6 +7,7 @@ import {
     NoteTypes,
     StatusTypes,
     FretboardType,
+    WindowMouseEvent,
 } from "../types";
 import { kCombinations } from "./combinations";
 import { isMobile } from "react-device-detect";
@@ -31,7 +32,7 @@ export function stopClick() {
     // can be placed within a mouseup event to prevent
     // the subsequent click event
     window.addEventListener("click", captureClick, true);
-    function captureClick(event: MouseEvent | TouchEvent) {
+    function captureClick(event: WindowMouseEvent) {
         event.stopPropagation();
         window.removeEventListener("click", captureClick, true);
     }
