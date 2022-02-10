@@ -35,9 +35,6 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
     const isAnimatingRef = useRef(computedState.isAnimating);
     const isPressedRef = useRef(false);
-    const isPressedCoordinatesRef = useRef([0, 0]);
-    const isLongPressedRef = useRef(false);
-    const isLongPressedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
     useEffect(() => {
         // set initial slider position
@@ -188,39 +185,6 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
         requestAnimationFrame(performAnimation);
     };
 
-    const hasMovedPastThreshold = (
-        clientX: number,
-        clientY: number,
-        threshold: number = 0
-    ) => {
-        const [startingPosX, startingPosY] = isPressedCoordinatesRef.current;
-        const [endingPosX, endingPosY] = [clientX, clientY];
-        return (
-            isPressedRef.current &&
-            (endingPosX - startingPosX) ** 2 +
-                (endingPosY - startingPosY) ** 2 >
-                threshold ** 2
-        );
-    };
-
-    const startLongPress = (
-        longPressCB: () => void = () => {},
-        delay = 700
-    ) => {
-        if (isLongPressedTimeoutRef.current)
-            clearTimeout(isLongPressedTimeoutRef.current);
-        isLongPressedTimeoutRef.current = setTimeout(() => {
-            isLongPressedRef.current = true;
-            longPressCB();
-        }, delay);
-    };
-
-    const clearLongPress = () => {
-        if (isLongPressedTimeoutRef.current)
-            clearTimeout(isLongPressedTimeoutRef.current);
-        isLongPressedRef.current = false;
-    };
-
     // progress bar click
     const conatinerTouchHandlers = useTouchHandlers(
         (event: ReactMouseEvent) => {
@@ -232,8 +196,9 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             } else {
                 return;
             }
+
             if (progressBarRef.current && sliderBarRef.current) {
-                const { currentFretboardIndex, progression } =
+                const { currentFretboardIndex, progression, showTopDrawer } =
                     appStore.getComputedState();
                 const origin = progressBarRef.current.offsetLeft;
                 const progressBarWidth = progressBarRef.current.offsetWidth;
@@ -241,16 +206,25 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                     ((clientX - origin) * progression.fretboards.length) /
                         progressBarWidth
                 );
-                appStore.switchFretboardAnimation(
-                    currentFretboardIndex,
-                    toIndex,
-                    () => {
-                        const { fretboard } = appStore.getComputedState();
-                        audioStore.strumChord(fretboard);
-                        if (!list(fretboard).length)
-                            appStore.dispatch.setDisplay("chord-input");
-                    }
-                );
+
+                let delay = 0;
+                if (currentFretboardIndex !== toIndex && showTopDrawer) {
+                    appStore.dispatch.setDisplay("normal");
+                    delay = 400;
+                }
+
+                setTimeout(() => {
+                    appStore.switchFretboardAnimation(
+                        currentFretboardIndex,
+                        toIndex,
+                        () => {
+                            const { fretboard } = appStore.getComputedState();
+                            audioStore.strumChord(fretboard);
+                            if (!list(fretboard).length)
+                                appStore.dispatch.setDisplay("chord-input");
+                        }
+                    );
+                }, delay);
             }
         }
     );
@@ -265,17 +239,13 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             isPressedRef.current = true;
 
             let clientX: number;
-            let clientY: number;
             if (event.nativeEvent instanceof MouseEvent) {
                 clientX = event.nativeEvent.clientX;
-                clientY = event.nativeEvent.clientY;
             } else if (event.nativeEvent instanceof TouchEvent) {
                 clientX = event.nativeEvent.touches[0].clientX;
-                clientY = event.nativeEvent.touches[0].clientY;
             } else {
                 return;
             }
-            isPressedCoordinatesRef.current = [clientX, clientY];
 
             // grab slider
             if (progressBarRef.current && sliderBarRef.current)
@@ -283,17 +253,12 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
 
             const display = appStore.state.display;
             if (display !== "normal") appStore.dispatch.setDisplay("normal");
-            startLongPress(() => {
-                if (display !== "change-name")
-                    appStore.dispatch.setDisplay("change-name");
-            }, 700);
         },
         (event: WindowMouseEvent) => {
             // slider drag release
             if (!isPressedRef.current) return;
             isPressedRef.current = false;
 
-            clearLongPress();
             if (getState().dragging) {
                 setState({ dragging: false });
                 // stopClick();
@@ -306,23 +271,13 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             if (!sliderBarRef.current) return;
 
             let clientX: number;
-            let clientY: number;
             if (event instanceof MouseEvent) {
                 clientX = event.clientX;
-                clientY = event.clientY;
             } else if (event instanceof TouchEvent) {
                 clientX = event.touches[0].clientX;
-                clientY = event.touches[0].clientY;
             } else {
                 return;
             }
-
-            // if slider has moved far enough, we dont want to call longPress
-            if (
-                hasMovedPastThreshold(clientX, clientY, 50) &&
-                isLongPressedTimeoutRef.current
-            )
-                clearTimeout(isLongPressedTimeoutRef.current);
 
             // drag slider
             if (isPressedRef.current && !getState().dragging) {
@@ -335,8 +290,11 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                 repositionSlider(clientX);
             }
         },
-        undefined,
-        { delay: 1000, threshold: 100 }
+        () => {
+            const display = appStore.state.display;
+            if (display !== "change-name")
+                appStore.dispatch.setDisplay("change-name");
+        }
     );
 
     return (

@@ -16,12 +16,14 @@ export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     }));
     const { showTopDrawer } = getState();
 
-    useEffect(() => {
-        return appStore.addListener(({ showTopDrawer }) => {
-            if (getState().showTopDrawer !== showTopDrawer)
-                setState({ showTopDrawer });
-        });
-    }, []);
+    useEffect(
+        () =>
+            appStore.addListener(({ showTopDrawer }) => {
+                if (getState().showTopDrawer !== showTopDrawer)
+                    setState({ showTopDrawer });
+            }),
+        []
+    );
 
     const { maxInputHeight, minInputHeight } = getFretboardDimensions();
 
@@ -57,12 +59,14 @@ export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     }));
     const { showBottomDrawer } = getState();
 
-    useEffect(() => {
-        return appStore.addListener(({ showBottomDrawer }) => {
-            if (getState().showBottomDrawer !== showBottomDrawer)
-                setState({ showBottomDrawer });
-        });
-    }, []);
+    useEffect(
+        () =>
+            appStore.addListener(({ showBottomDrawer }) => {
+                if (getState().showBottomDrawer !== showBottomDrawer)
+                    setState({ showBottomDrawer });
+            }),
+        []
+    );
 
     const { minInputHeight, maxInputHeight } = getFretboardDimensions();
 

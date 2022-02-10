@@ -388,14 +388,12 @@ export const appReducers = {
         fretboards: FretboardType[],
         startIndex: number
     ): AppStateType {
-        // dangerous method, does not return new state object on purpose, use with caution
-        const { progression, display } = getComputedAppState(state);
+        const { progression } = getComputedAppState(state);
         return this.setCurrentProgression(
             {
                 ...state,
                 progress: startIndex + SLIDER_RIGHT_WINDOW,
                 hiddenFretboardIndex: startIndex,
-                display: display === "change-name" ? "normal" : display,
             },
             {
                 ...progression,
@@ -409,7 +407,6 @@ export const appReducers = {
         // fretboards: StringSwitchType[],
         // startIndex: number
     ): AppStateType {
-        // dangerous method, does not return new state object on purpose, use with caution
         const { progression, hiddenFretboardIndex } =
             getComputedAppState(state);
         let { fretboards } = progression;

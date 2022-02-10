@@ -1,5 +1,10 @@
 import React, { useEffect, useCallback } from "react";
-import { useStateRef, AppStore, AudioStore } from "../../store";
+import {
+    useStateRef,
+    AppStore,
+    AudioStore,
+    useOrientationChange,
+} from "../../store";
 import {
     SAFETY_AREA_MARGIN,
     getScreenDimensions,
@@ -33,47 +38,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
     const [getState, setState] = useStateRef(() => ({
         orientation: "portrait-primary",
-        dimensions: getScreenDimensions(),
+        // dimensions: getScreenDimensions(),
         display: appStore.state.display,
     }));
 
-    const { orientation, dimensions, display } = getState();
-    // const width = orientation.startsWith("portrait")
-    //     ? windowHeight
-    //     : windowWidth;
-    // const height = orientation.startsWith("portrait")
-    //     ? windowWidth
-    //     : windowHeight;
-    const [width, height] = dimensions;
+    const { display } = getState();
     const { gutterHeight, maxFretboardHeight } = getFretboardDimensions();
 
-    useEffect(() => {
-        // const destroyAppStateListener = appStore.addListener(({ display }) => {
-        //     if (getState().display !== display) setState({ display });
-        // });
+    useEffect(
+        () =>
+            appStore.addListener(({ display }) => {
+                if (getState().display !== display) setState({ display });
+            }),
 
-        const destroyAppStateListener = appStore.addListener((newState) => {
-            updateIfChanged(getState(), newState, ["display"], () =>
-                setState({ display: newState.display })
-            );
-        });
+        []
+    );
 
-        window.addEventListener("orientationchange", onOrientationChange);
-        return () => {
-            destroyAppStateListener();
-            window.removeEventListener(
-                "orientationchange",
-                onOrientationChange
-            );
-        };
-    }, []);
-
-    const onOrientationChange = useCallback(() => {
-        setState({
-            orientation: screen.orientation.type,
-            dimensions: getScreenDimensions(),
-        });
-    }, []);
+    // useOrientationChange(() => {
+    //     setState({
+    //         dimensions: getScreenDimensions(),
+    //     });
+    // });
 
     return (
         <ContainerDiv>

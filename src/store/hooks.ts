@@ -96,37 +96,41 @@ export const useTouchHandlers = (
     onStart?: (event: ReactMouseEvent) => void,
     onEnd?: (event: WindowMouseEvent) => void,
     onMove?: (event: WindowMouseEvent) => void,
-    onLongPress?: (event: ReactMouseEvent) => void,
-    { delay = 300, threshold = 50 } = {}
+    onDoubleClick?: (event: ReactMouseEvent) => void,
+    { delay = 600, threshold = 50 } = {}
 ) => {
     const isDraggingRef = useRef(false);
     const isPressedRef = useRef(false);
-    const isLongPressedRef = useRef(false);
-    const isLongPressedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+    const isPendingDoubleClickRef = useRef(false);
 
     const start = useCallback(
         (event: ReactMouseEvent) => {
             // set isPressed
             isPressedRef.current = true;
 
-            // set isLongPressed
-            if (isLongPressedTimeoutRef.current)
-                clearTimeout(isLongPressedTimeoutRef.current);
-            isLongPressedTimeoutRef.current = setTimeout(() => {
-                if (onLongPress) onLongPress(event);
-                isLongPressedRef.current = true;
-            }, delay);
+            if (isPendingDoubleClickRef.current) {
+                // call double click handler
+                isPendingDoubleClickRef.current = false;
+                if (onDoubleClick) onDoubleClick(event);
+            } else {
+                // set timeout for double click
+                isPendingDoubleClickRef.current = true;
+                setTimeout(() => {
+                    isPendingDoubleClickRef.current = false;
+                }, delay);
 
-            // call handler
-            if (onStart) onStart(event);
+                // call single click handler
+                if (onStart) onStart(event);
+            }
         },
-        [onLongPress, onStart, delay]
+        [onDoubleClick, onStart, delay]
     );
 
     const move = useCallback(
         (event: WindowMouseEvent) => {
             // set isDragging
-            if (!isDraggingRef.current) isDraggingRef.current = true;
+            if (isPressedRef.current && !isDraggingRef.current)
+                isDraggingRef.current = true;
 
             // call handler
             if (onMove) onMove(event);
@@ -146,15 +150,12 @@ export const useTouchHandlers = (
             // set isDragging
             isDraggingRef.current = false;
 
-            // set isLongPressed
-            isLongPressedRef.current = false;
-            if (isLongPressedTimeoutRef.current) {
-                clearTimeout(isLongPressedTimeoutRef.current);
-                isLongPressedTimeoutRef.current = undefined;
-            }
-
             // call handler
-            if (shouldTriggerClick && !isLongPressedRef.current && onEnd) {
+            if (
+                shouldTriggerClick &&
+                isPendingDoubleClickRef.current &&
+                onEnd
+            ) {
                 onEnd(event);
             }
         },
@@ -186,4 +187,29 @@ export const useTouchHandlers = (
         onMouseDown,
         onTouchStart,
     };
+};
+
+export const useOrientationChange = (onChange?: (event: Event) => void) => {
+    const orientationRef = useRef(screen.orientation.type);
+
+    // handlers
+    const onOrientationChange = useCallback(
+        (event: Event) => {
+            orientationRef.current = screen.orientation.type;
+            if (onChange) onChange(event);
+        },
+        [onChange]
+    );
+
+    useEffect(() => {
+        window.addEventListener("orientationchange", onOrientationChange);
+        return () => {
+            window.removeEventListener(
+                "orientationchange",
+                onOrientationChange
+            );
+        };
+    }, []);
+
+    return () => orientationRef.current;
 };
