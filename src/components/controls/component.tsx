@@ -13,6 +13,7 @@ import {
     SELECTED,
     STRUM_LOW_TO_HIGH,
     ARPEGGIATE_LOW_TO_HIGH,
+    SAFETY_AREA_MARGIN,
 } from "../../utils";
 import {
     CircleControlsContainer,
@@ -291,7 +292,11 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
     };
 
     return (
-        <FlexRow width="100%" justifyContent="space-between">
+        <FlexRow
+            width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
+            padding={`0 ${2 * SAFETY_AREA_MARGIN}px`}
+            justifyContent="space-between"
+        >
             <Checkbox
                 checked={label === "sharp"}
                 leftLabel="Flat"

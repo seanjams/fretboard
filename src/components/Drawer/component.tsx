@@ -42,8 +42,7 @@ export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
                 <FlexRow
                     className="top-drawer-form"
                     height={`${maxInputHeight}px`}
-                    width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
-                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
+                    width="100%"
                 >
                     {showTopDrawer ? children : null}
                 </FlexRow>
@@ -85,8 +84,7 @@ export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
                 <FlexRow
                     className="bottom-drawer-form"
                     height={`${maxInputHeight}px`}
-                    width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
-                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
+                    width="100%"
                 >
                     {showBottomDrawer ? children : null}
                 </FlexRow>

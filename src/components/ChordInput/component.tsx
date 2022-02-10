@@ -55,6 +55,17 @@ export const ChordInput: React.FC<ChordInputProps> = ({
     const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
 
     useEffect(() => {
+        // if (getState().name.foundChordName) {
+        //     const chordTag = document.getElementById(
+        //         `chordName-${getState().name.foundChordName}`
+        //     );
+        //     if (chordTag)
+        //         chordTag.scrollIntoView({
+        //             inline: "center",
+        //             behavior: "smooth",
+        //         });
+        // }
+
         return appStore.addListener((newState) => {
             const {
                 progression,
@@ -75,13 +86,6 @@ export const ChordInput: React.FC<ChordInputProps> = ({
             }
         });
     }, []);
-
-    // const preventDefault = (
-    // event: ReactMouseEvent
-    // ) => {
-    //     event.preventDefault();
-    //     event.stopPropagation();
-    // };
 
     const onRootChange = (newRootIdx: number) => (event: ReactMouseEvent) => {
         const { name } = getState();
@@ -114,13 +118,18 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                     audioStore.strumChord(fretboard);
                 }
             );
+            // scroll the current element into view
+            // event.currentTarget.scrollIntoView({
+            //     inline: "center",
+            //     behavior: "smooth",
+            // });
         };
 
     const { maxInputHeight } = getFretboardDimensions();
 
     return (
-        <ChordInputContainer height="100%">
-            <FlexRow width="100%" height="100%">
+        <ChordInputContainer>
+            <FlexRow width="100%" height="100%" alignItems="start">
                 <Label
                     marginLeft={`${SP[2]}px`}
                     width={`calc(15% - ${SP[2]}px)`}
@@ -152,7 +161,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                     ))}
                 </FlexRow>
             </FlexRow>
-            <FlexRow width="100%" height="100%">
+            <FlexRow width="100%" height="100%" alignItems="start">
                 <Label
                     marginLeft={`${SP[2]}px`}
                     width={`calc(15% - ${SP[2]}px)`}
@@ -180,6 +189,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                                     onTouchStart={onChordChange(name)}
                                     highlighted={chordName === name}
                                     wide={true}
+                                    id={`chordName-${name}`}
                                 >
                                     <ChordSymbol
                                         rootName=""

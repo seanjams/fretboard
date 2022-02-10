@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { CIRCLE_SIZE, SP } from "../../utils";
+import { CIRCLE_SIZE, SAFETY_AREA_MARGIN, SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
@@ -13,8 +13,10 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     flex-direction: column;
     align-items: start;
-    width: 100%;
+    width: calc(100% - ${2 * SAFETY_AREA_MARGIN}px);
     height: calc(100% - ${SP[1]}px);
+    padding-left: ${SAFETY_AREA_MARGIN}px;
+    padding-right: ${SAFETY_AREA_MARGIN}px;
     padding-bottom: ${SP[1]}px;
 `;
 
@@ -22,9 +24,9 @@ export const Label = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     font-size: 14px;
-    margin: auto 0;
     text-align: right;
     font-weight: bold;
+    line-height: ${CIRCLE_SIZE}px;
 `;
 
 export const Tag = styled.div.attrs((props: CSSProps) => ({
@@ -64,7 +66,7 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
         top: 0;
         left: 0;
         bottom: 0;
-        width: ${3 * SP[7]}px;
+        width: ${3 * SP[4]}px;
         background-image: linear-gradient(
             to left,
             rgba(255, 255, 255, 0),
@@ -79,7 +81,7 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
         bottom: 0;
         top: 0;
         right: 0;
-        width: ${3 * SP[7]}px;
+        width: ${3 * SP[4]}px;
         background-image: linear-gradient(
             to right,
             rgba(255, 255, 255, 0),
