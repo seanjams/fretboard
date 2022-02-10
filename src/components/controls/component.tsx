@@ -103,16 +103,16 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
         }
     };
 
-    const touchHandlers = useTouchHandlers(
+    const touchHandlers = useTouchHandlers({
         // change status
-        (event: ReactMouseEvent) => {
+        onStart: (event: ReactMouseEvent) => {
             event.preventDefault();
             const { status } = appStore.state;
             appStore.dispatch.setStatus(
                 status === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
             );
-        }
-    );
+        },
+    });
 
     return (
         <FlexRow>

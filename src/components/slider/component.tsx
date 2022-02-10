@@ -186,8 +186,8 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     };
 
     // progress bar click
-    const conatinerTouchHandlers = useTouchHandlers(
-        (event: ReactMouseEvent) => {
+    const conatinerTouchHandlers = useTouchHandlers({
+        onStart: (event: ReactMouseEvent) => {
             let clientX;
             if (event.nativeEvent instanceof MouseEvent) {
                 clientX = event.nativeEvent.clientX;
@@ -226,12 +226,12 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                     );
                 }, delay);
             }
-        }
-    );
+        },
+    });
 
     // slider down/up/move
-    const sliderTouchHandlers = useTouchHandlers(
-        (event: ReactMouseEvent) => {
+    const sliderTouchHandlers = useTouchHandlers({
+        onStart: (event: ReactMouseEvent) => {
             // slider grab
             // clicking on the slider is different than clicking somewhere on the line,
             // so stopPropagation here
@@ -254,7 +254,7 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             const display = appStore.state.display;
             if (display !== "normal") appStore.dispatch.setDisplay("normal");
         },
-        (event: WindowMouseEvent) => {
+        onEnd: (event: WindowMouseEvent) => {
             // slider drag release
             if (!isPressedRef.current) return;
             isPressedRef.current = false;
@@ -266,7 +266,7 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                 snapToGridAnimation();
             }
         },
-        (event: WindowMouseEvent) => {
+        onMove: (event: WindowMouseEvent) => {
             // slider drag
             if (!sliderBarRef.current) return;
 
@@ -290,12 +290,12 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                 repositionSlider(clientX);
             }
         },
-        () => {
+        onDoubleClick: () => {
             const display = appStore.state.display;
             if (display !== "change-name")
                 appStore.dispatch.setDisplay("change-name");
-        }
-    );
+        },
+    });
 
     return (
         <FlexRow width="100%">

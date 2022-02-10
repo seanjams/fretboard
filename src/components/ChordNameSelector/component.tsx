@@ -27,7 +27,7 @@ export const ChordNameOption: React.FC<ChordNameOptionProps> = ({
         return label === "sharp" ? SHARP_NAMES[rootIdx] : FLAT_NAMES[rootIdx];
     }
 
-    const touchHandlers = useTouchHandlers(onClick);
+    const touchHandlers = useTouchHandlers({ onStart: onClick });
 
     return (
         <Div {...touchHandlers}>

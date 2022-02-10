@@ -22,7 +22,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 
     useEffect(() => setIsChecked(checked), [checked]);
 
-    const touchHandlers = useTouchHandlers(onClick);
+    const touchHandlers = useTouchHandlers({ onStart: onClick });
 
     return (
         <FlexRow>

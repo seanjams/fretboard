@@ -29,16 +29,16 @@ export const CircleButton: React.FC<ButtonProps> = ({
     }));
     const { active } = getState();
 
-    const touchHandlers = useTouchHandlers(
-        (event: ReactMouseEvent) => {
+    const touchHandlers = useTouchHandlers({
+        onStart: (event: ReactMouseEvent) => {
             if (!getState().active) setState({ active: true });
         },
-        (event: WindowMouseEvent) => {
+        onEnd: (event: WindowMouseEvent) => {
             if (getState().active) setState({ active: false });
 
             if (onClick) onClick(event);
-        }
-    );
+        },
+    });
 
     return (
         <Circle

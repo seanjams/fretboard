@@ -93,15 +93,18 @@ export const useKeyPressHandlers = (
 };
 
 export const useTouchHandlers = (
-    onStart?: (event: ReactMouseEvent) => void,
-    onEnd?: (event: WindowMouseEvent) => void,
-    onMove?: (event: WindowMouseEvent) => void,
-    onDoubleClick?: (event: ReactMouseEvent) => void,
-    { delay = 600, threshold = 50 } = {}
+    handlers: {
+        onStart?: (event: ReactMouseEvent) => void;
+        onEnd?: (event: WindowMouseEvent) => void;
+        onMove?: (event: WindowMouseEvent) => void;
+        onDoubleClick?: (event: ReactMouseEvent) => void;
+    },
+    { delay = 600 } = {}
 ) => {
     const isDraggingRef = useRef(false);
     const isPressedRef = useRef(false);
     const isPendingDoubleClickRef = useRef(false);
+    const { onStart, onEnd, onMove, onDoubleClick } = handlers;
 
     const start = useCallback(
         (event: ReactMouseEvent) => {

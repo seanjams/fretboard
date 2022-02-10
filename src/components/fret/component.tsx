@@ -531,8 +531,8 @@ export const Fret: React.FC<FretProps> = ({
         }
     }
 
-    const touchHandlers = useTouchHandlers(
-        (event: ReactMouseEvent) => {
+    const touchHandlers = useTouchHandlers({
+        onStart: (event: ReactMouseEvent) => {
             // dont select/deselect notes when disabled
             if (isDisabledRef.current) return;
 
@@ -576,10 +576,8 @@ export const Fret: React.FC<FretProps> = ({
             // the drag sequence, and therefore doesn't need to be processed
             startMouseOver();
         },
-
-        () => clearMouseOver(),
-
-        (event: WindowMouseEvent) => {
+        onEnd: () => clearMouseOver(),
+        onMove: (event: WindowMouseEvent) => {
             // dont select/deselect notes when disabled
             if (isDisabledRef.current) return;
 
@@ -639,8 +637,8 @@ export const Fret: React.FC<FretProps> = ({
                 // with small delay to prevent flickering
                 clearMouseOver(50);
             }
-        }
-    );
+        },
+    });
 
     return (
         <FretDiv
