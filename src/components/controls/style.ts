@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { COLORS, lightGrey, mediumGrey, SP } from "../../utils";
+import { COLORS, lightGrey, SP } from "../../utils";
 
 // should extend from some CSSProp default object so you dont have to add these manually
 interface CSSProps extends CSS.Properties {}
@@ -48,6 +48,8 @@ export const Label = styled.div.attrs((props: CSSProps) => ({
 
 const ENTER = 250;
 const EXIT = 250;
+const highlightCheckboxHeight = 32;
+const highlightCheckboxWidth = 80;
 
 const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     (props: CSSProps) => ({
@@ -56,9 +58,9 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
 )<CSSProps>`
     .highlight-form {
         .highlight-checkbox {
-            width: 80px;
-            height: 32px;
-            border-radius: 32px;
+            width: ${highlightCheckboxWidth}px;
+            height: ${highlightCheckboxHeight}px;
+            border-radius: ${highlightCheckboxHeight}px;
             padding: 6px;
             background-color: ${lightGrey};
             box-shadow: inset 0 0 4px 0 #777;
@@ -67,9 +69,9 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             div {
                 position: relative;
                 left: 0;
-                height: 32px;
-                width: 32px;
-                border-radius: 32px;
+                height: ${highlightCheckboxHeight}px;
+                width: ${highlightCheckboxHeight}px;
+                border-radius: ${highlightCheckboxHeight}px;
                 background-color: white;
                 box-shadow: 0 0 4px 0 #777;
             }
@@ -99,7 +101,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             transition: background-color ${ENTER}ms ease-in-out;
 
             div {
-                left: 48px;
+                left: ${highlightCheckboxWidth - highlightCheckboxHeight}px;
                 transition: left ${ENTER}ms ease-in-out;
             }
         }
@@ -113,7 +115,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .highlight-checkbox {
             background-color: ${primaryColor};
             div {
-                left: 48px;
+                left: ${highlightCheckboxWidth - highlightCheckboxHeight}px;
             }
         }
 
@@ -125,7 +127,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .highlight-checkbox {
             background-color: ${primaryColor};
             div {
-                left: 48px;
+                left: ${highlightCheckboxWidth - highlightCheckboxHeight}px;
             }
         }
 

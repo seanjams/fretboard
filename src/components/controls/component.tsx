@@ -1,17 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { CSSTransition } from "react-transition-group";
 import {
     useStateRef,
     AppStore,
     AudioStore,
     useTouchHandlers,
+    getComputedAppState,
 } from "../../store";
-import {
-    ArrowTypes,
-    DisplayTypes,
-    ReactMouseEvent,
-    WindowMouseEvent,
-} from "../../types";
+import { ArrowTypes, DisplayTypes, ReactMouseEvent } from "../../types";
 import {
     HIGHLIGHTED,
     SELECTED,
@@ -20,10 +16,11 @@ import {
 } from "../../utils";
 import {
     CircleControlsContainer,
-    Label,
     HighlightCheckboxAnimation,
+    Label,
 } from "./style";
 import { CircleIconButton } from "../Button";
+import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
 import PlusIcon from "../../assets/icons/plus.png";
 import MinusIcon from "../../assets/icons/minus.png";
@@ -37,21 +34,16 @@ interface ControlsProps {
     appStore: AppStore;
 }
 
-interface PositionControlsProps extends ControlsProps {
+interface AudioControlsProps extends ControlsProps {
     audioStore: AudioStore;
 }
 
-export const PositionControls: React.FC<PositionControlsProps> = ({
+export const PositionControls: React.FC<AudioControlsProps> = ({
     appStore,
     audioStore,
 }) => {
     const onArrowPress = (dir: ArrowTypes) => () => {
         appStore.dispatch.setHighlightedPosition(dir);
-        const { fretboard, strumMode } = appStore.getComputedState();
-        // add small delay to chordSound for scrolling to complete, less jarring
-        strumMode === STRUM_LOW_TO_HIGH
-            ? setTimeout(() => audioStore.strumChord(fretboard), 150)
-            : setTimeout(() => audioStore.arpeggiateChord(fretboard), 150);
     };
 
     return (
@@ -174,103 +166,8 @@ export const SliderControls: React.FC<ControlsProps> = ({ appStore }) => {
     );
 };
 
-interface FretboardSettingsControlsProps extends ControlsProps {
-    audioStore: AudioStore;
-}
-
-export const FretboardSettingsControls: React.FC<FretboardSettingsControlsProps> =
-    ({ appStore, audioStore }) => {
-        const [getState, setState] = useStateRef(() => ({
-            strumMode: appStore.state.strumMode,
-            isMuted: audioStore.state.isMuted,
-        }));
-        const { strumMode, isMuted } = getState();
-
-        useEffect(() => {
-            const destroyAppStateListener = appStore.addListener(
-                ({ strumMode }) => {
-                    if (getState().strumMode !== strumMode)
-                        setState({ strumMode });
-                }
-            );
-            const destroyAudioStateListener = audioStore.addListener(
-                ({ isMuted }) => {
-                    if (getState().isMuted !== isMuted) setState({ isMuted });
-                }
-            );
-            return () => {
-                destroyAppStateListener();
-                destroyAudioStateListener();
-            };
-        }, []);
-
-        const onStrumModeChange = (event: WindowMouseEvent) => {
-            event.preventDefault();
-            const { strumMode } = appStore.state;
-            appStore.dispatch.setStrumMode(
-                strumMode === STRUM_LOW_TO_HIGH
-                    ? ARPEGGIATE_LOW_TO_HIGH
-                    : STRUM_LOW_TO_HIGH
-            );
-        };
-
-        const onLabelChange = (event: WindowMouseEvent) => {
-            event.preventDefault();
-            const { label } = appStore.getComputedState().progression;
-            appStore.dispatch.setLabel(label === "sharp" ? "flat" : "sharp");
-        };
-
-        return (
-            <CircleControlsContainer>
-                <Div className="circle-button-container">
-                    <CircleIconButton
-                        onClick={onLabelChange}
-                        imageSrc={ClearIcon}
-                    />
-                    <Label>Label</Label>
-                </Div>
-                <Div className="circle-button-container">
-                    <CircleIconButton
-                        onClick={appStore.dispatch.toggleLeftHand}
-                        imageSrc={ClearIcon}
-                    />
-                    <Label>Left Hand</Label>
-                </Div>
-                <Div className="circle-button-container">
-                    <CircleIconButton
-                        onClick={appStore.dispatch.toggleInvert}
-                        imageSrc={ClearIcon}
-                    />
-                    <Label>Invert</Label>
-                </Div>
-                <Div className="circle-button-container">
-                    <CircleIconButton
-                        onClick={onStrumModeChange}
-                        imageSrc={ClearIcon}
-                    />
-                    <Label>
-                        {strumMode === STRUM_LOW_TO_HIGH
-                            ? "strum"
-                            : "arpeggiate"}
-                    </Label>
-                </Div>
-                <Div className="circle-button-container">
-                    <CircleIconButton
-                        onClick={audioStore.dispatch.toggleMute}
-                        imageSrc={ClearIcon}
-                    />
-                    <Label>{isMuted ? "mute" : "unmute"}</Label>
-                </Div>
-            </CircleControlsContainer>
-        );
-    };
-
-interface SettingsButtonStateType {
-    display: DisplayTypes;
-}
-
-export const SettingsButton: React.FC<ControlsProps> = ({ appStore }) => {
-    const [getState, setState] = useStateRef<SettingsButtonStateType>(() => ({
+export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
+    const [getState, setState] = useStateRef(() => ({
         display: appStore.state.display,
     }));
     const { display } = getState();
@@ -315,11 +212,7 @@ export const SettingsButton: React.FC<ControlsProps> = ({ appStore }) => {
     );
 };
 
-interface PlayButtonProps extends ControlsProps {
-    audioStore: AudioStore;
-}
-
-export const PlayButton: React.FC<PlayButtonProps> = ({
+export const AudioControls: React.FC<AudioControlsProps> = ({
     appStore,
     audioStore,
 }) => {
@@ -339,5 +232,96 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
                 <Label>Play</Label>
             </Div>
         </CircleControlsContainer>
+    );
+};
+
+export const SettingsControls: React.FC<AudioControlsProps> = ({
+    appStore,
+    audioStore,
+}) => {
+    const { progression } = appStore.getComputedState();
+    const [getState, setState] = useStateRef(() => ({
+        strumMode: appStore.state.strumMode,
+        isMuted: audioStore.state.isMuted,
+        label: progression.label,
+        leftHand: appStore.state.leftHand,
+        invert: appStore.state.invert,
+    }));
+    const { strumMode, isMuted, label, leftHand, invert } = getState();
+
+    useEffect(
+        () =>
+            appStore.addListener((newState) => {
+                const { progression, strumMode, leftHand, invert } =
+                    getComputedAppState(newState);
+                const { label } = progression;
+                if (
+                    getState().strumMode !== strumMode ||
+                    getState().label !== label ||
+                    getState().leftHand !== leftHand ||
+                    getState().invert !== invert
+                )
+                    setState({ strumMode, label, leftHand, invert });
+            }),
+        []
+    );
+
+    useEffect(
+        () =>
+            audioStore.addListener(({ isMuted }) => {
+                if (getState().isMuted !== isMuted) setState({ isMuted });
+            }),
+        []
+    );
+
+    const onStrumModeChange = (event: ReactMouseEvent) => {
+        event.preventDefault();
+        const { strumMode } = appStore.state;
+        appStore.dispatch.setStrumMode(
+            strumMode === STRUM_LOW_TO_HIGH
+                ? ARPEGGIATE_LOW_TO_HIGH
+                : STRUM_LOW_TO_HIGH
+        );
+    };
+
+    const onLabelChange = (event: ReactMouseEvent) => {
+        event.preventDefault();
+        const { label } = appStore.getComputedState().progression;
+        appStore.dispatch.setLabel(label === "sharp" ? "flat" : "sharp");
+    };
+
+    return (
+        <FlexRow width="100%" justifyContent="space-between">
+            <Checkbox
+                checked={label === "sharp"}
+                leftLabel="Flat"
+                rightLabel="Sharp"
+                onClick={onLabelChange}
+            />
+            <Checkbox
+                checked={!!leftHand}
+                leftLabel="Right Hand"
+                rightLabel="Left Hand"
+                onClick={appStore.dispatch.toggleLeftHand}
+            />
+            <Checkbox
+                checked={!!invert}
+                leftLabel="Not"
+                rightLabel="Invert"
+                onClick={appStore.dispatch.toggleInvert}
+            />
+            <Checkbox
+                checked={strumMode !== STRUM_LOW_TO_HIGH}
+                leftLabel="Strum"
+                rightLabel="Arpeggiate"
+                onClick={onStrumModeChange}
+            />
+            <Checkbox
+                checked={isMuted}
+                leftLabel="Unmute"
+                rightLabel="Mute"
+                onClick={audioStore.dispatch.toggleMute}
+            />
+        </FlexRow>
     );
 };

@@ -15,6 +15,12 @@ export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
     align-items: center;
     justify-content: center;
     touch-action: none;
+
+    user-select: none; /* standard syntax */
+    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
 `;
 
 export const SliderBar = styled.div.attrs((props: CSSProps) => ({
@@ -32,4 +38,10 @@ export const SliderBar = styled.div.attrs((props: CSSProps) => ({
     touch-action: none;
     border-radius: 100000000000000px;
     background-color: transparent;
+
+    user-select: none; /* standard syntax */
+    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
 `;

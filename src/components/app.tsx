@@ -1,10 +1,11 @@
 import React, { useMemo, useEffect } from "react";
 import "reset-css";
 import {
-    DEFAULT_MAIN_STATE,
     AppStateType,
     AppStore,
     AudioStore,
+    DEFAULT_AUDIO_STATE,
+    DEFAULT_MAIN_STATE,
 } from "../store";
 import { Dashboard } from "./Dashboard";
 // import { Menu } from "./menu";
@@ -21,6 +22,7 @@ export const App: React.FC<AppProps> = ({ oldState }) => {
     w.reset = () => {
         localStorage.clear();
         appStore.setState(DEFAULT_MAIN_STATE());
+        audioStore.setState(DEFAULT_AUDIO_STATE());
     };
 
     useEffect(() => {

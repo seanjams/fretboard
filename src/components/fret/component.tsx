@@ -31,8 +31,8 @@ import {
     darkGrey,
     lightGrey,
     getFretValue,
+    colorFade,
 } from "../../utils";
-import { fade } from "../../utils/colorFade";
 import { ChordSymbol } from "../ChordSymbol";
 import {
     CircleDiv,
@@ -80,8 +80,8 @@ const getBackgroundColor = (
     // const primary = status === HIGHLIGHTED ? primaryColor : "#FABF26";
 
     return isHighlighted
-        ? // ? fade(playingColor, primary, progress) || primary
-          fade(playingColor, primaryColor, progress) || primaryColor
+        ? // ? colorFade(playingColor, primary, progress) || primary
+          colorFade(playingColor, primaryColor, progress) || primaryColor
         : isSelected
         ? secondaryColor
         : "transparent";
@@ -351,16 +351,16 @@ export const Fret: React.FC<FretProps> = ({
             if (leftEmpty) {
                 fillPercentage = 100 - x * 50;
                 fillOpacityPercentage = 100 - xPercent;
-                textColor = fade(darkGrey, lightGrey, x) || textColor;
+                textColor = colorFade(darkGrey, lightGrey, x) || textColor;
             } else if (leftFill) {
                 fillPercentage = 50 + x * 50;
                 fillOpacityPercentage = xPercent;
                 backgroundColor = secondaryColor;
-                textColor = fade(lightGrey, darkGrey, x) || textColor;
+                textColor = colorFade(lightGrey, darkGrey, x) || textColor;
             } else if (leftDiff) {
                 let fromColor = isSelected ? darkGrey : lightGrey;
                 let toColor = leftIsSelected ? darkGrey : lightGrey;
-                textColor = fade(fromColor, toColor, x) || textColor;
+                textColor = colorFade(fromColor, toColor, x) || textColor;
                 diffSteps = leftDiff[fretValue];
                 if (diffSteps !== undefined)
                     newLeft = direction * diffSteps * xPercent + 50;
@@ -387,16 +387,16 @@ export const Fret: React.FC<FretProps> = ({
             if (rightEmpty) {
                 fillPercentage = 100 - x * 50;
                 fillOpacityPercentage = 100 - xPercent;
-                textColor = fade(darkGrey, lightGrey, x) || textColor;
+                textColor = colorFade(darkGrey, lightGrey, x) || textColor;
             } else if (rightFill) {
                 fillPercentage = 50 + x * 50;
                 fillOpacityPercentage = xPercent;
                 backgroundColor = secondaryColor;
-                textColor = fade(lightGrey, darkGrey, x) || textColor;
+                textColor = colorFade(lightGrey, darkGrey, x) || textColor;
             } else if (rightDiff) {
                 let fromColor = isSelected ? darkGrey : lightGrey;
                 let toColor = rightIsSelected ? darkGrey : lightGrey;
-                textColor = fade(fromColor, toColor, x) || textColor;
+                textColor = colorFade(fromColor, toColor, x) || textColor;
                 diffSteps = rightDiff[fretValue];
                 if (diffSteps !== undefined)
                     newLeft = direction * diffSteps * xPercent + 50;
@@ -420,6 +420,7 @@ export const Fret: React.FC<FretProps> = ({
         textColor: string
     ) {
         if (!shadowRef.current || !circleRef.current) return;
+        const status = statusRef.current;
         const isHighlighted = isHighlightedRef.current;
 
         // set position
@@ -477,7 +478,7 @@ export const Fret: React.FC<FretProps> = ({
     }
 
     function fretIsPlayingAnimation(callback: () => void) {
-        const animationDuration = 1.2;
+        const animationDuration = 1.2; // average length of sprite
         const totalFrames = Math.ceil(animationDuration * 60);
         let frameCount = 0;
 

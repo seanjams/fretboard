@@ -1,5 +1,4 @@
 import { Howl, Howler } from "howler";
-// import * as Tone from "tone";
 import { FretboardType } from "../types";
 import { STANDARD_TUNING, mod, FLAT_NAMES, HIGHLIGHTED } from "../utils";
 import { Store } from "./store";
@@ -31,7 +30,6 @@ const VOLUME = 0.1;
 
 // Types
 export interface AudioStateType {
-    // stringSounds: Tone.Player[];
     stringSounds: Howl[];
     isLoaded: boolean;
     isPlaying: Set<any>;
@@ -75,6 +73,7 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
     }
 
     timerWorker: Worker = WebWorker(timerWorkerCode);
+    animationRef: ReturnType<typeof requestAnimationFrame>;
 
     playNote(stringIndex: number, fretIndex: number) {
         // play sound for note at stringIndex, fretIndex
@@ -85,38 +84,6 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
             "b"
         )}`;
         const stringSound = this.state.stringSounds[stringIndex];
-        // if (stringSound) {
-        // // stringSound.pause();
-        // const fretName = `${stringIndex}_${fretIndex}`;
-        // this.dispatch.clearIsPlaying();
-        // this.dispatch.setIsPlaying(fretName, true);
-        // const soundId = stringSound.play(fretKey);
-        // stringSound.on(
-        //     "end",
-        //     (e) => {
-        //         this.dispatch.setIsPlaying(fretName, false);
-        //     },
-        //     soundId
-        // );
-        // const stringJson = [
-        //     String_0_E,
-        //     String_1_A,
-        //     String_2_D,
-        //     String_3_G,
-        //     String_4_B,
-        //     String_5_E,
-        // ];
-
-        // const spriteLocation = stringJson[stringIndex].sprite[fretKey];
-        // const spriteStart = stringJson[stringIndex].sprite[fretKey][0];
-        // const spriteLength = stringJson[stringIndex].sprite[fretKey][1];
-        // console.log(stringSound, spriteLocation, spriteStart, spriteLength);
-        // stringSound.stop();
-        // stringSound.seek(spriteStart);
-        // stringSound.start(0, 0, spriteLength);
-        // stringSound.stop(spriteLength);
-        // }
-
         if (stringSound) {
             // stringSound.pause();
             const fretName = `${stringIndex}_${fretIndex}`;
@@ -134,48 +101,31 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
     }
 
     playNotes(sounds: [number, number][], interval: number) {
-        // start a worker to play each note at [stringIndex, fretIndex]
+        // start an animation to play each note at [stringIndex, fretIndex]
         // in "sounds", every "interval" milliseconds
+        if (this.animationRef) cancelAnimationFrame(this.animationRef);
         this.state.stringSounds.forEach((sound) => sound.stop());
         this.dispatch.clearIsPlaying();
-        this.timerWorker.postMessage("stop");
 
         if (sounds.length) {
-            // what to do when we get ticks
-            this.timerWorker.onmessage = (e) => {
-                if (e.data == "tick") {
-                    // console.log("tick!");
-                    const [stringIndex, fretIndex] = sounds[0];
-                    this.playNote(stringIndex, fretIndex);
-                    sounds.splice(0, 1);
-                    if (!sounds.length) this.timerWorker.postMessage("stop");
-                } else console.log("message: " + e.data);
+            let notesPlayed = 0;
+            let nextNoteTime = Howler.ctx.currentTime;
+
+            const performAnimation = () => {
+                this.animationRef = requestAnimationFrame(performAnimation);
+                if (Howler.ctx.currentTime > nextNoteTime) {
+                    const sound = sounds[notesPlayed];
+                    if (sound) {
+                        this.playNote(sound[0], sound[1]);
+                        nextNoteTime += interval / 1000;
+                        notesPlayed++;
+                    } else {
+                        cancelAnimationFrame(this.animationRef);
+                    }
+                }
             };
 
-            // set the speed and start the ticks
-            this.timerWorker.postMessage({ interval });
-            this.timerWorker.postMessage("start");
-
-            // Tone.Transport.cancel(0);
-            // if (Tone.context.state !== "running") Tone.context.resume();
-
-            // const pattern = new Tone.Loop((time) => {
-            //     if (sounds.length) {
-            //         console.log("INHERE", sounds);
-
-            //         this.playNote(...sounds[0]);
-            //         sounds.splice(0, 1);
-            //     } else {
-            //         for (let stringSound of this.state.stringSounds) {
-            //             stringSound.stop(2000);
-            //         }
-            //     }
-            // });
-
-            // // pattern.loop = 0;
-            // pattern.iterations = sounds.length;
-            // pattern.start();
-            // Tone.Transport.start();
+            requestAnimationFrame(performAnimation);
         }
     }
 
@@ -278,32 +228,7 @@ export function DEFAULT_AUDIO_STATE(): AudioStateType {
         });
     }
 
-    // function createTone(name: keyof typeof stringJson): Tone.Player {
-    //     const sprite = stringJson[name].sprite as {
-    //         [name: string]: [number, number];
-    //     };
-    //     const urls = soundUrls[name];
-
-    //     console.log(urls);
-
-    //     const tone = new Tone.Player({
-    //         url: urls[1],
-    //     }).toDestination();
-
-    //     tone.volume.value = 0.1;
-
-    //     return tone;
-    // }
-
     return {
-        // stringSounds: [
-        //     createTone("String_0_E"),
-        //     createTone("String_1_A"),
-        //     createTone("String_2_D"),
-        //     createTone("String_3_G"),
-        //     createTone("String_4_B"),
-        //     createTone("String_5_E"),
-        // ],
         stringSounds: [
             createHowl("String_0_E"),
             createHowl("String_1_A"),

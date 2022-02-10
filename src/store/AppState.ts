@@ -33,7 +33,6 @@ export interface ProgressionStateType {
     fretboards: FretboardType[];
     leftDiffs: DiffType[];
     rightDiffs: DiffType[];
-    scrollToFret: number;
     label: LabelTypes;
 }
 
@@ -53,6 +52,9 @@ export interface AppStateType {
     hiddenFretboardIndex: number;
     // whether the current drag should be turning notes on or off
     fretDragStatus: DragStatusTypes;
+    // where the fretboard should scroll to on load/change
+    scrollToFret: number;
+    scrollToFretUpdated: boolean;
 }
 
 // Helper functions
@@ -139,8 +141,9 @@ export const appReducers = {
     },
 
     incrementPosition(state: AppStateType, inc: number, vertical: boolean) {
-        let { progression, currentFretboardIndex } = getComputedAppState(state);
-        let { scrollToFret, fretboards } = progression;
+        let { progression, currentFretboardIndex, scrollToFret } =
+            getComputedAppState(state);
+        let { fretboards } = progression;
 
         for (let i = 0; i < fretboards.length; i++) {
             if (i === currentFretboardIndex) {
@@ -151,11 +154,17 @@ export const appReducers = {
             }
         }
 
-        return this.setCurrentProgression(state, {
-            ...progression,
-            ...cascadeDiffs(fretboards, currentFretboardIndex),
-            scrollToFret,
-        });
+        return this.setCurrentProgression(
+            {
+                ...state,
+                scrollToFret,
+                scrollToFretUpdated: true,
+            },
+            {
+                ...progression,
+                ...cascadeDiffs(fretboards, currentFretboardIndex),
+            }
+        );
     },
 
     incrementPositionX(state: AppStateType) {
@@ -556,17 +565,14 @@ setFret(fretboards1[0], 4, 8, HIGHLIGHTED);
 
 const progression1: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
-    scrollToFret: 0,
     label,
 };
 const progression2: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
-    scrollToFret: 0,
     label,
 };
 const progression3: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
-    scrollToFret: 0,
     label,
 };
 
@@ -585,5 +591,7 @@ export function DEFAULT_MAIN_STATE(): AppStateType {
         rehydrateSuccess: false,
         hiddenFretboardIndex: -1,
         fretDragStatus: null,
+        scrollToFret: 0,
+        scrollToFretUpdated: false,
     };
 }

@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { FRETBOARD_MARGIN } from "../../utils";
+import { FRETBOARD_MARGIN, FRETBOARD_WIDTH } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     maxFretboardHeight?: number;
@@ -19,6 +19,37 @@ const getOverFlowScale = (
     return [width, scale];
 };
 
+export const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    display: flex;
+    align-items: stretch;
+    height: ${(props) =>
+        (props.maxFretboardHeight || 0) - 2 * FRETBOARD_MARGIN}px;
+    width: ${FRETBOARD_WIDTH}px;
+    padding-top: ${FRETBOARD_MARGIN}px;
+    padding-bottom: ${FRETBOARD_MARGIN}px;
+`;
+
+export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        ...props,
+    },
+}))<CSSProps>`
+    width: 100%;
+    overflow-x: auto;
+    height: ${(props) => props.maxFretboardHeight}px;
+    max-height: ${(props) => props.maxFretboardHeight}px;
+`;
+
+export const FretboardDiv = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+`;
+
 const ENTER = 150;
 const DELAY = 150;
 const EXIT = 150;
@@ -28,18 +59,6 @@ const FretboardAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
         ...props,
     },
 }))<CSSProps>`
-    .overflow-container {
-        height: ${(props) => props.maxFretboardHeight}px;
-        max-height: ${(props) => props.maxFretboardHeight}px;
-    }
-
-    .fretboard-container {
-        height: ${(props) =>
-            (props.maxFretboardHeight || 0) - 2 * FRETBOARD_MARGIN}px;
-        padding-top: ${FRETBOARD_MARGIN}px;
-        padding-bottom: ${FRETBOARD_MARGIN}px;
-    }
-
     .fretboard-shrink-enter {
         width: 100%;
         transform: scale(1);
@@ -109,28 +128,3 @@ export const FretboardAnimation = {
     timeout: { enter: ENTER, exit: EXIT + DELAY },
     wrapper: FretboardAnimationWrapper,
 };
-
-export const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    display: flex;
-    align-items: stretch;
-    height: 100%;
-`;
-
-export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-    },
-}))<CSSProps>`
-    width: 100%;
-    overflow-x: auto;
-`;
-
-export const FretboardDiv = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-`;

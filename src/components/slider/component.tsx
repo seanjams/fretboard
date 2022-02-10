@@ -6,11 +6,7 @@ import {
     AudioStore,
     useTouchHandlers,
 } from "../../store";
-import {
-    stopClick,
-    SLIDER_RIGHT_WINDOW,
-    SLIDER_LEFT_WINDOW,
-} from "../../utils";
+import { SLIDER_RIGHT_WINDOW, SLIDER_LEFT_WINDOW, list } from "../../utils";
 import { FlexRow } from "../Common";
 import { Title } from "../Title";
 import { ProgressBar, SliderBar } from "./style";
@@ -217,14 +213,12 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             isLongPressedRef.current = true;
             longPressCB();
         }, delay);
-        isPressedRef.current = true;
     };
 
     const clearLongPress = () => {
         if (isLongPressedTimeoutRef.current)
             clearTimeout(isLongPressedTimeoutRef.current);
         isLongPressedRef.current = false;
-        isPressedRef.current = false;
     };
 
     // progress bar click
@@ -253,6 +247,8 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                     () => {
                         const { fretboard } = appStore.getComputedState();
                         audioStore.strumChord(fretboard);
+                        if (!list(fretboard).length)
+                            appStore.dispatch.setDisplay("chord-input");
                     }
                 );
             }
@@ -266,6 +262,7 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             // clicking on the slider is different than clicking somewhere on the line,
             // so stopPropagation here
             event.stopPropagation();
+            isPressedRef.current = true;
 
             let clientX: number;
             let clientY: number;
@@ -285,8 +282,7 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                 deltaRef.current = clientX - sliderBarRef.current.offsetLeft;
 
             const display = appStore.state.display;
-            if (display === "change-name")
-                appStore.dispatch.setDisplay("normal");
+            if (display !== "normal") appStore.dispatch.setDisplay("normal");
             startLongPress(() => {
                 if (display !== "change-name")
                     appStore.dispatch.setDisplay("change-name");
@@ -294,6 +290,9 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
         },
         (event: WindowMouseEvent) => {
             // slider drag release
+            if (!isPressedRef.current) return;
+            isPressedRef.current = false;
+
             clearLongPress();
             if (getState().dragging) {
                 setState({ dragging: false });

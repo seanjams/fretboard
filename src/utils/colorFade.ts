@@ -13,7 +13,11 @@ function lerp(a: number, b: number, u: number) {
     return (1 - u) * a + u * b;
 }
 
-export function fade(startHex: string, endHex: string, percentage: number) {
+export function colorFade(
+    startHex: string,
+    endHex: string,
+    percentage: number
+) {
     const start = hexToRgb(startHex);
     const end = hexToRgb(endHex);
     if (!start || !end) return null;
@@ -21,7 +25,7 @@ export function fade(startHex: string, endHex: string, percentage: number) {
     const r = Math.floor(lerp(start.r, end.r, percentage));
     const g = Math.floor(lerp(start.g, end.g, percentage));
     const b = Math.floor(lerp(start.b, end.b, percentage));
-    return "rgb(" + r + "," + g + "," + b + ")";
+    return `rgb(${r},${g},${b})`;
 }
 
 // test:

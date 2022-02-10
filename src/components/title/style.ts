@@ -1,10 +1,12 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { lightGrey } from "../../utils";
+import { lighterGrey, SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     markerColor?: string;
 }
+
+export const titleFontSize = 24;
 
 export const TitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
@@ -15,16 +17,23 @@ export const TitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     justify-content: center;
     align-items: center;
     width: 100%;
+    height: 100%;
 `;
 
 export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    border: 4px dashed ${lightGrey};
+    border: 4px dashed ${lighterGrey};
     border-radius: 10px;
-    width: 44px;
-    height: calc(100% - 12px);
+    box-sizing: border-box;
+    width: 80px;
+    height: 100%;
     margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: ${lighterGrey};
+    font-size: ${titleFontSize - 10}px;
 `;
 
 export const CurrentFretboardMarker = styled.div.attrs((props: CSSProps) => ({
@@ -35,6 +44,6 @@ export const CurrentFretboardMarker = styled.div.attrs((props: CSSProps) => ({
     width: 12px;
     height: 12px;
     position: relative;
-    top: -12px;
+    top: -${SP[3]}px;
     transition: background-color 150ms ease-in-out;
 `;

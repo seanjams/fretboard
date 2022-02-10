@@ -10,14 +10,14 @@ import {
 import { Fretboard } from "../Fretboard";
 import { Div } from "../Common";
 import {
-    PositionControls,
+    AudioControls,
+    DrawerControls,
     HighlightControls,
-    PlayButton,
-    SettingsButton,
+    PositionControls,
+    SettingsControls,
 } from "../Controls";
 import { ChordInput } from "../ChordInput";
 import { ChordNameSelector } from "../ChordNameSelector";
-import { FretboardSettings } from "../FretboardSettings";
 import { Slider } from "../Slider";
 import { ContainerDiv } from "./style";
 import { BottomDrawer, TopDrawer } from "../Drawer";
@@ -81,6 +81,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 height={`${gutterHeight}px`}
                 marginTop={`${SAFETY_AREA_MARGIN}px`}
                 marginBottom={0}
+                paddingLeft={`${SP[7]}px`}
+                paddingRight={`${SP[7]}px`}
                 verticalAlign="top"
             >
                 <Slider appStore={appStore} audioStore={audioStore} />
@@ -102,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             audioStore={audioStore}
                         />
                     ) : display === "settings" ? (
-                        <FretboardSettings
+                        <SettingsControls
                             appStore={appStore}
                             audioStore={audioStore}
                         />
@@ -129,7 +131,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         marginLeft={`${SP[4]}px`}
                         marginRight={`${SP[4]}px`}
                     >
-                        <PlayButton
+                        <AudioControls
                             appStore={appStore}
                             audioStore={audioStore}
                         />
@@ -141,7 +143,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         marginLeft={`${SP[4]}px`}
                         marginRight={`${SP[4]}px`}
                     >
-                        <SettingsButton appStore={appStore} />
+                        <DrawerControls appStore={appStore} />
                     </Div>
                     <Div flexShrink={1}>
                         <PositionControls

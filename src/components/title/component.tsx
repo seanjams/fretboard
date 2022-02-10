@@ -6,13 +6,14 @@ import {
     useStateRef,
 } from "../../store";
 import { FretboardNameType } from "../../types";
-import { darkGrey, DEFAULT_FRETBOARD_NAME } from "../../utils";
+import { DEFAULT_FRETBOARD_NAME, darkGrey } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { FlexRow } from "../Common";
 import {
     TitleContainerDiv,
     EmptyTitleContainerDiv,
     CurrentFretboardMarker,
+    titleFontSize,
 } from "./style";
 
 // Component
@@ -32,7 +33,7 @@ export const Title: React.FC<TitleProps> = ({
     audioStore,
     fretboardIndex,
 }) => {
-    const { progression, currentVisibleFretboardIndex, visibleFretboards } =
+    const { currentVisibleFretboardIndex, visibleFretboards } =
         appStore.getComputedState();
     const fretboard = visibleFretboards[fretboardIndex];
     const [getState, setState] = useStateRef<TitleState>(() => ({
@@ -44,30 +45,29 @@ export const Title: React.FC<TitleProps> = ({
     const { name, isCurrentFretboard } = getState();
     const { rootName, chordName } = name;
 
-    useEffect(() => {
-        return appStore.addListener((newState) => {
-            const {
-                progression,
-                currentVisibleFretboardIndex,
-                visibleFretboards,
-            } = getComputedAppState(newState);
+    useEffect(
+        () =>
+            appStore.addListener((newState) => {
+                const { currentVisibleFretboardIndex, visibleFretboards } =
+                    getComputedAppState(newState);
 
-            const fretboard = visibleFretboards[fretboardIndex];
-            const name = fretboard
-                ? fretboard.names.filter((name) => {
-                      return name.isSelected;
-                  })[0]
-                : DEFAULT_FRETBOARD_NAME();
-            const isCurrentFretboard =
-                fretboardIndex === currentVisibleFretboardIndex;
+                const fretboard = visibleFretboards[fretboardIndex];
+                const name = fretboard
+                    ? fretboard.names.filter((name) => {
+                          return name.isSelected;
+                      })[0]
+                    : DEFAULT_FRETBOARD_NAME();
+                const isCurrentFretboard =
+                    fretboardIndex === currentVisibleFretboardIndex;
 
-            if (
-                getState().name !== name ||
-                getState().isCurrentFretboard !== isCurrentFretboard
-            )
-                setState({ name, isCurrentFretboard });
-        });
-    }, []);
+                if (
+                    getState().name !== name ||
+                    getState().isCurrentFretboard !== isCurrentFretboard
+                )
+                    setState({ name, isCurrentFretboard });
+            }),
+        []
+    );
 
     // fix these parameters, used to make font size dynamic for longer names
 
@@ -79,12 +79,14 @@ export const Title: React.FC<TitleProps> = ({
 
     const getFontSize = () => {
         const { name } = getState();
-        const { chordName } = name;
+        let { chordName } = name;
+        // remove pesky comma's
+        chordName = chordName.split(",").join("");
 
-        const x0 = 10;
-        const y0 = 28;
-        const x1 = 37;
-        const y1 = 12;
+        const x0 = 8; // length of word needed to trigger shrink
+        const y0 = titleFontSize; // font size for short words
+        const x1 = 25; // length of word needed to max shrink
+        const y1 = 11; // font size for long words
         const buffer = 0;
 
         return chordName.length < x0
@@ -99,8 +101,8 @@ export const Title: React.FC<TitleProps> = ({
             <CurrentFretboardMarker
                 markerColor={isCurrentFretboard ? darkGrey : "transparent"}
             />
-            {fretboard ? (
-                <FlexRow height="calc(100% - 12px)">
+            {chordName ? (
+                <FlexRow height="100%">
                     <ChordSymbol
                         rootName={rootName}
                         chordName={chordName}
@@ -108,7 +110,9 @@ export const Title: React.FC<TitleProps> = ({
                     />
                 </FlexRow>
             ) : (
-                <EmptyTitleContainerDiv />
+                <FlexRow height="100%">
+                    <EmptyTitleContainerDiv>+</EmptyTitleContainerDiv>
+                </FlexRow>
             )}
         </TitleContainerDiv>
     );

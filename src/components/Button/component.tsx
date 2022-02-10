@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React from "react";
 import { useStateRef, useTouchHandlers } from "../../store";
 import { ReactMouseEvent, WindowMouseEvent } from "../../types";
 import { COLORS, darkGrey } from "../../utils";

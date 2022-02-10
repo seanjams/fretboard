@@ -44,6 +44,54 @@ export function useWindowListener<K extends keyof WindowEventMap>(
     }, []);
 }
 
+export const useKeyPressHandlers = (
+    onStart?: (event: KeyboardEvent) => void,
+    onEnd?: (event: KeyboardEvent) => void
+) => {
+    const isPressedRef = useRef(false);
+
+    const start = useCallback(
+        (event: KeyboardEvent) => {
+            // set isPressed
+            isPressedRef.current = true;
+
+            // call handler
+            if (onStart) onStart(event);
+        },
+        [onStart]
+    );
+
+    const clear = useCallback(
+        (event: KeyboardEvent) => {
+            if (!isPressedRef.current) return;
+            // set isPressed
+            isPressedRef.current = false;
+
+            // call handler
+            if (onEnd) onEnd(event);
+        },
+        [onEnd]
+    );
+
+    // handlers
+    const onKeyDown = (event: KeyboardEvent) => start(event);
+    const onKeyUp = (event: KeyboardEvent) => clear(event);
+
+    useEffect(() => {
+        window.addEventListener("keydown", onKeyDown);
+        window.addEventListener("keyup", onKeyUp);
+        return () => {
+            window.removeEventListener("keydown", onKeyDown);
+            window.removeEventListener("keyup", onKeyUp);
+        };
+    }, []);
+
+    return {
+        onKeyDown,
+        onKeyUp,
+    };
+};
+
 export const useTouchHandlers = (
     onStart?: (event: ReactMouseEvent) => void,
     onEnd?: (event: WindowMouseEvent) => void,

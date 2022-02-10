@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { CSSTransition } from "react-transition-group";
 import {
     useStateRef,
     AppStore,
     AudioStore,
-    getComputedAppState,
+    useKeyPressHandlers,
 } from "../../store";
 import { FretboardString } from "../FretboardString";
 import {
@@ -49,76 +49,105 @@ export const Fretboard: React.FC<FretboardProps> = ({
     const fretboardContainerRef = useRef<HTMLDivElement>(null);
     const scrollToFretRef = useRef(0);
 
-    useEffect(() => {
-        const destroyAppStoreListener = appStore.addListener((newState) => {
-            const {
-                showTopDrawer,
-                progression,
-                invert,
-                leftHand,
-                showBottomDrawer,
-            } = getComputedAppState(newState);
-            const { scrollToFret } = progression;
-            const highEBottom = invert !== leftHand;
-
-            if (
-                getState().highEBottom !== highEBottom ||
-                getState().showTopDrawer !== showTopDrawer ||
-                getState().showBottomDrawer !== showBottomDrawer
-            ) {
-                let transformOrigin =
-                    showTopDrawer && !getState().showTopDrawer
-                        ? "bottom"
-                        : showBottomDrawer && !getState().showBottomDrawer
-                        ? "top"
-                        : getState().transformOrigin;
-                setState({
-                    highEBottom,
+    useEffect(
+        () =>
+            appStore.addListener((newState) => {
+                const {
                     showTopDrawer,
+                    invert,
+                    leftHand,
                     showBottomDrawer,
-                    transformOrigin,
-                });
-            }
+                    scrollToFretUpdated,
+                } = newState;
+                const highEBottom = invert !== leftHand;
 
-            if (
-                fretboardContainerRef.current &&
-                scrollToFretRef.current !== scrollToFret
-            ) {
-                let fretXPosition = 0;
-                for (let i = 0; i < scrollToFret; i++) {
-                    fretXPosition += getFretWidth(
-                        FRETBOARD_WIDTH,
-                        STRING_SIZE,
-                        i
-                    );
+                if (
+                    getState().highEBottom !== highEBottom ||
+                    getState().showTopDrawer !== showTopDrawer ||
+                    getState().showBottomDrawer !== showBottomDrawer
+                ) {
+                    let transformOrigin =
+                        showTopDrawer && !getState().showTopDrawer
+                            ? "bottom"
+                            : showBottomDrawer && !getState().showBottomDrawer
+                            ? "top"
+                            : getState().transformOrigin;
+                    setState({
+                        highEBottom,
+                        showTopDrawer,
+                        showBottomDrawer,
+                        transformOrigin,
+                    });
                 }
 
-                const halfContainerWidth =
-                    fretboardContainerRef.current.offsetWidth / 2;
-                const scrollCenter = invert
-                    ? FRETBOARD_WIDTH - fretXPosition - halfContainerWidth
-                    : fretXPosition - halfContainerWidth;
-                // const left = invert
-                //     ? FRETBOARD_WIDTH - scrollCenter
-                //     : scrollCenter;
+                if (fretboardContainerRef.current && scrollToFretUpdated) {
+                    scrollFretboard();
+                }
+            }),
+        []
+    );
 
-                fretboardContainerRef.current.scrollTo({
-                    top: 0,
-                    left: scrollCenter,
-                    behavior: "smooth",
-                });
-                scrollToFretRef.current = scrollToFret;
-            }
+    const scrollFretboard = () => {
+        if (!fretboardContainerRef.current) return;
+
+        const { invert, strumMode, fretboard, scrollToFret } =
+            appStore.getComputedState();
+
+        // Get position of scrollToFret, oldScrollToFret
+        let fretXPosition = 0;
+        let oldFretXPosition = 0;
+        let newFretXPosition = 0;
+        for (
+            let i = 0;
+            i < Math.max(scrollToFret, scrollToFretRef.current);
+            i++
+        ) {
+            fretXPosition += getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, i);
+            if (i === Math.floor(scrollToFretRef.current) - 1)
+                oldFretXPosition = fretXPosition;
+            if (i === Math.floor(scrollToFret) - 1)
+                newFretXPosition = fretXPosition;
+        }
+
+        const containerWidth = fretboardContainerRef.current.offsetWidth;
+        const halfContainerWidth = containerWidth / 2;
+        const oldScrollCenter = invert
+            ? FRETBOARD_WIDTH - oldFretXPosition - halfContainerWidth
+            : oldFretXPosition - halfContainerWidth;
+        const newScrollCenter = invert
+            ? FRETBOARD_WIDTH - newFretXPosition - halfContainerWidth
+            : newFretXPosition - halfContainerWidth;
+
+        // should not delayStrum if we don't scroll.
+        // Otherwise delay by SCROLL_TIME
+        let delayStrum =
+            (oldScrollCenter > 0 &&
+                oldScrollCenter < FRETBOARD_WIDTH - containerWidth) ||
+            (newScrollCenter > 0 &&
+                newScrollCenter < FRETBOARD_WIDTH - containerWidth)
+                ? 468
+                : 150;
+
+        fretboardContainerRef.current.scrollTo({
+            top: 0,
+            left: newScrollCenter,
+            behavior: "smooth",
         });
 
-        window.addEventListener("keydown", onKeyPress);
-        return () => {
-            destroyAppStoreListener();
-            window.removeEventListener("keydown", onKeyPress);
-        };
-    }, []);
+        setTimeout(() => {
+            // const { fretboard, strumMode } =
+            //     appStore.getComputedState();
+            strumMode === STRUM_LOW_TO_HIGH
+                ? audioStore.strumChord(fretboard)
+                : audioStore.arpeggiateChord(fretboard);
+        }, delayStrum);
 
-    const onKeyPress = useCallback((event: KeyboardEvent) => {
+        // udpate ref
+        scrollToFretRef.current = scrollToFret;
+        appStore.setKey("scrollToFretUpdated", false);
+    };
+
+    useKeyPressHandlers((event: KeyboardEvent) => {
         const { progression } = appStore.getComputedState();
         const { label } = progression;
         let dir = event.key;
@@ -130,10 +159,6 @@ export const Fretboard: React.FC<FretboardProps> = ({
 
         if (isArrowDir) {
             appStore.dispatch.setHighlightedPosition(dir as ArrowTypes);
-            const { fretboard, strumMode } = appStore.getComputedState();
-            strumMode === STRUM_LOW_TO_HIGH
-                ? setTimeout(() => audioStore.strumChord(fretboard), 150)
-                : setTimeout(() => audioStore.arpeggiateChord(fretboard), 150);
         } else {
             const naturalNotesKeyMap = NATURAL_NOTE_KEYMAP[label];
             if (naturalNotesKeyMap.hasOwnProperty(event.key)) {
@@ -145,7 +170,7 @@ export const Fretboard: React.FC<FretboardProps> = ({
                 );
             }
         }
-    }, []);
+    });
 
     const strings = STANDARD_TUNING.map((value, i) => (
         <FretboardString
@@ -179,10 +204,11 @@ export const Fretboard: React.FC<FretboardProps> = ({
                 <OverflowContainerDiv
                     ref={fretboardContainerRef}
                     className="overflow-container"
+                    maxFretboardHeight={maxFretboardHeight}
                 >
                     <FretboardContainer
-                        width={`${FRETBOARD_WIDTH}px`}
                         className="fretboard-container"
+                        maxFretboardHeight={maxFretboardHeight}
                     >
                         <FretboardDiv>
                             {highEBottom ? strings : strings.reverse()}
