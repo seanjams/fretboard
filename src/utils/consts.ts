@@ -161,66 +161,228 @@ export const SLIDER_RIGHT_WINDOW = 1 - SLIDER_LEFT_WINDOW;
 export const SLIDER_WINDOW_LENGTH =
     1 + SLIDER_LEFT_WINDOW - SLIDER_RIGHT_WINDOW;
 
+// major chords
 export const majorChord = "maj";
-export const minorChord = "min";
 export const augChord = "aug";
-export const dimChord = "dim";
-export const susChord = "sus";
-export const maj7Chord = "maj__7";
-export const min7Chord = "min__7";
 export const maj6Chord = "maj__6";
-export const domChord = "__7";
+export const maj7Chord = "maj__7";
+export const maj7s11Chord = "maj__7♯11";
+export const aug7Chord = "aug__7";
+
+// minor chords
+export const minorChord = "min";
+export const min7Chord = "min__7";
+export const minmaj7Chord = "minmaj__7";
 export const min7b5Chord = "min__7♭5";
+export const min11Chord = "min__11";
+
+// diminished chords
+export const dimChord = "dim";
 export const dim7Chord = "dim__♭♭7";
+
+// suspended chords
+export const sus2Chord = "sus2";
+export const sus4Chord = "sus4";
+
+// dominant chords
+export const domChord = "7";
+export const dom9Chord = "9";
+export const domb9Chord = "7__♭9";
+export const doms9Chord = "7__♯9";
+export const doms11Chord = "7__♯11";
+export const dom11Chord = "11";
+export const domb5Chord = "7__♭5";
+export const domb13Chord = "7__♭13";
+export const dom13Chord = "13";
+export const domsusChord = "sus7";
+
+// scales
 export const pentaScale = "pentatonic";
 export const dimPentaScale = "dim. pentatonic";
+export const WholeToneScale = "Wholetone";
 export const majorScale = "Major";
-export const melMinScale = "Melodic Minor";
-export const harMajScale = "Harmonic Major";
-export const harMinScale = "Harmonic Minor";
+export const melMinScale = "Mel. Minor";
+export const harMajScale = "Harm. Major";
+export const harMinScale = "Harm. Minor";
+export const Hungarian = "Hungarian";
 export const NeoScale = "Neopolitan";
+export const SymDimScale = "Symmetric Dim.";
+export const ChromaticScale = "Chromatic";
 
 export const CHORD_NAMES: ChordTypes[] = [
     majorChord,
-    minorChord,
     augChord,
-    dimChord,
-    susChord,
-    maj7Chord,
-    min7Chord,
     maj6Chord,
-    domChord,
+    maj7Chord,
+    aug7Chord,
+    maj7s11Chord,
+    minorChord,
+    min7Chord,
+    minmaj7Chord,
+    min11Chord,
     min7b5Chord,
+    dimChord,
     dim7Chord,
+    sus2Chord,
+    sus4Chord,
+    domChord,
+    dom9Chord,
+    domb9Chord,
+    doms9Chord,
+    doms11Chord,
+    dom11Chord,
+    domb5Chord,
+    domb13Chord,
+    dom13Chord,
+    domsusChord,
     pentaScale,
     dimPentaScale,
+    WholeToneScale,
     majorScale,
     melMinScale,
     harMajScale,
     harMinScale,
+    Hungarian,
     NeoScale,
+    SymDimScale,
+    ChromaticScale,
 ];
 
-export const SHAPES: { [key in ChordTypes]: number[] } = {
-    [majorChord]: [0, 4, 7],
-    [minorChord]: [0, 3, 7],
-    [augChord]: [0, 4, 8],
-    [dimChord]: [0, 3, 6],
-    [susChord]: [0, 2, 7],
-    [maj7Chord]: [0, 4, 7, 11],
-    [min7Chord]: [0, 3, 7, 10],
-    [maj6Chord]: [0, 4, 7, 9],
-    [domChord]: [0, 4, 7, 10],
-    [min7b5Chord]: [0, 3, 6, 10],
-    [dim7Chord]: [0, 3, 6, 9],
-    [pentaScale]: [0, 2, 4, 7, 9],
-    [dimPentaScale]: [0, 3, 6, 8, 10],
-    [majorScale]: [0, 2, 4, 5, 7, 9, 11],
-    [melMinScale]: [0, 2, 3, 5, 7, 9, 11],
-    [harMajScale]: [0, 2, 4, 5, 7, 8, 11],
-    [harMinScale]: [0, 2, 3, 5, 7, 8, 11],
-    [NeoScale]: [0, 1, 3, 5, 7, 9, 11],
-};
+export const SHAPES: { label: ChordTypes; shapes: number[][] }[] = [
+    // major chords
+    { label: majorChord, shapes: [[0, 4, 7]] },
+    { label: augChord, shapes: [[0, 4, 8]] },
+    {
+        label: maj6Chord,
+        shapes: [
+            [0, 4, 7, 9],
+            [0, 4, 9],
+        ],
+    },
+    {
+        label: maj7Chord,
+        shapes: [
+            [0, 4, 7, 11],
+            [0, 4, 11],
+        ],
+    },
+    { label: aug7Chord, shapes: [[0, 4, 8, 11]] },
+    {
+        label: maj7s11Chord,
+        shapes: [
+            [0, 4, 6, 11],
+            [0, 4, 6, 7, 11],
+        ],
+    },
+
+    // minor chords
+    { label: minorChord, shapes: [[0, 3, 7]] },
+    {
+        label: min7Chord,
+        shapes: [
+            [0, 3, 7, 10],
+            [0, 3, 10],
+        ],
+    },
+    {
+        label: minmaj7Chord,
+        shapes: [
+            [0, 3, 7, 11],
+            [0, 3, 11],
+        ],
+    },
+
+    {
+        label: min11Chord,
+        shapes: [
+            [0, 3, 5, 10],
+            [0, 3, 5, 7, 10],
+        ],
+    },
+
+    { label: min7b5Chord, shapes: [[0, 3, 6, 10]] },
+
+    // diminished chords
+    { label: dimChord, shapes: [[0, 3, 6]] },
+    { label: dim7Chord, shapes: [[0, 3, 6, 9]] },
+
+    // sus chords
+    { label: sus2Chord, shapes: [[0, 2, 7]] },
+    { label: sus4Chord, shapes: [[0, 5, 7]] },
+
+    // dominant chords
+    {
+        label: domChord,
+        shapes: [
+            [0, 4, 7, 10],
+            [0, 4, 10],
+        ],
+    },
+    {
+        label: dom9Chord,
+        shapes: [
+            [0, 2, 4, 10],
+            [0, 2, 4, 7, 10],
+        ],
+    },
+    {
+        label: domb9Chord,
+        shapes: [
+            [0, 1, 4, 10],
+            [0, 1, 4, 7, 10],
+        ],
+    },
+    {
+        label: doms9Chord,
+        shapes: [
+            [0, 3, 4, 10],
+            [0, 3, 4, 7, 10],
+        ],
+    },
+    {
+        label: dom11Chord,
+        shapes: [
+            [0, 4, 5, 10],
+            [0, 4, 5, 7, 10],
+        ],
+    },
+    {
+        label: doms11Chord,
+        shapes: [
+            [0, 4, 6, 10],
+            [0, 4, 6, 7, 10],
+        ],
+    },
+    { label: domb5Chord, shapes: [[0, 4, 6, 10]] },
+    {
+        label: domb13Chord,
+        shapes: [
+            [0, 4, 8, 10],
+            [0, 4, 7, 8, 10],
+        ],
+    },
+    {
+        label: dom13Chord,
+        shapes: [
+            [0, 4, 9, 10],
+            [0, 4, 7, 9, 10],
+        ],
+    },
+    { label: domsusChord, shapes: [[0, 5, 7, 10]] },
+
+    // Scales
+    { label: pentaScale, shapes: [[0, 2, 4, 7, 9]] },
+    { label: dimPentaScale, shapes: [[0, 3, 6, 8, 10]] },
+    { label: WholeToneScale, shapes: [[0, 2, 4, 6, 8, 10]] },
+    { label: majorScale, shapes: [[0, 2, 4, 5, 7, 9, 11]] },
+    { label: melMinScale, shapes: [[0, 2, 3, 5, 7, 9, 11]] },
+    { label: harMajScale, shapes: [[0, 2, 4, 5, 7, 8, 11]] },
+    { label: harMinScale, shapes: [[0, 2, 3, 5, 7, 8, 11]] },
+    { label: Hungarian, shapes: [[0, 2, 3, 6, 7, 8, 11]] },
+    { label: NeoScale, shapes: [[0, 1, 3, 5, 7, 9, 11]] },
+    { label: SymDimScale, shapes: [[0, 1, 3, 4, 6, 7, 9, 10]] },
+    { label: ChromaticScale, shapes: [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]] },
+];
 
 export const BRUSH_MODES: {
     [key in StatusTypes]: HighlightTypes;

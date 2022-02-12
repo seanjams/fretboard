@@ -367,38 +367,49 @@ export function getFretboardNames(
     label: LabelTypes = "flat"
 ): FretboardNameType[] {
     const notes = getFretboardNotes(fretboard);
-    const matchingChordNames: FretboardNameType[] = [];
+    const matchingChordNames: [FretboardNameType, number][] = [];
 
     // find chord
-    for (let shapeName of Object.keys(SHAPES) as Array<ChordTypes>) {
+    for (let shapeOptions of SHAPES) {
         // build noteswitch for chord
-        const chordShape = noteSwitchFromValues(SHAPES[shapeName]);
+        const shapeName = shapeOptions.label;
+        for (let i = 0; i < shapeOptions.shapes.length; i++) {
+            const chordShape = noteSwitchFromValues(shapeOptions.shapes[i]);
+            const priority = i;
 
-        // copy notes
-        let tempNotes = notes.map((note) => +!!note); // convert to only 0 or 1
+            // copy notes
+            let tempNotes = notes.map((note) => +!!note); // convert to only 0 or 1
 
-        // rotate through notes and compare to chord to see if matches
-        for (let chordNote in chordShape) {
-            if (isEqual(tempNotes, chordShape)) {
-                matchingChordNames.push({
-                    rootIdx: +chordNote,
-                    rootName:
-                        label === "sharp"
-                            ? SHARP_NAMES[+chordNote]
-                            : FLAT_NAMES[+chordNote],
-                    chordName: shapeName,
-                    foundChordName: shapeName,
-                    isSelected: +chordNote === fretboard.currentRootIndex,
-                });
+            // rotate through notes and compare to chord to see if matches
+            for (let rootIdx in chordShape) {
+                if (isEqual(tempNotes, chordShape)) {
+                    matchingChordNames.push([
+                        {
+                            rootIdx: +rootIdx,
+                            rootName:
+                                label === "sharp"
+                                    ? SHARP_NAMES[+rootIdx]
+                                    : FLAT_NAMES[+rootIdx],
+                            chordName: shapeName,
+                            foundChordName: shapeName,
+                            isSelected: +rootIdx === fretboard.currentRootIndex,
+                        },
+                        priority,
+                    ]);
+                }
+                tempNotes = tempNotes.slice(1).concat(tempNotes[0]);
             }
-            tempNotes = tempNotes.slice(1).concat(tempNotes[0]);
         }
     }
 
+    // sort by priority
+    matchingChordNames.sort((a, b) => a[1] - b[1]);
+
     if (matchingChordNames.length) {
-        if (!matchingChordNames.some((name) => name.isSelected))
-            matchingChordNames[0].isSelected = true;
-        return matchingChordNames;
+        const matches = matchingChordNames.map((match) => match[0]);
+        if (!matches.some((name) => name.isSelected))
+            matches[0].isSelected = true;
+        return matches;
     }
 
     // if not found, build comma separated list of note names
@@ -516,7 +527,9 @@ export function moveHighight(
 }
 
 export function getNotesByChordName(rootIdx: number, chordName: ChordTypes) {
-    let notes = SHAPES[chordName].map((i) => mod(i + rootIdx, 12));
+    const shapeOptions = SHAPES.find((shape) => shape.label === chordName);
+    if (!shapeOptions) return [];
+    let notes = shapeOptions.shapes[0].map((i) => mod(i + rootIdx, 12));
     notes.sort((a, b) => a - b);
     return notes;
 }
@@ -620,6 +633,23 @@ export function updateIfChanged(
     }
 }
 
+export function setFretboardSelectedName(
+    fretboard: FretboardType,
+    rootIdx: number,
+    chordName: string
+) {
+    fretboard.names.forEach((name) => {
+        name.isSelected = name.rootIdx === rootIdx;
+        if (chordName)
+            name.isSelected = name.isSelected && name.chordName === chordName;
+        if (name.isSelected) fretboard.currentRootIndex = name.rootIdx;
+    });
+    if (!fretboard.names.filter((name) => name.isSelected)[0]) {
+        fretboard.names[0].isSelected = true;
+        fretboard.currentRootIndex = fretboard.names[0].rootIdx;
+    }
+}
+
 export function buildFretboardByChordName(
     rootIdx: number,
     chordName: ChordTypes,
@@ -634,7 +664,8 @@ export function buildFretboardByChordName(
         const fretIndex = mod(12 - EStringOffset + fretValue, 12);
         setFret(newFretboard, 0, fretIndex, SELECTED);
     }
-    newFretboard.currentRootIndex = rootIdx;
     newFretboard.names = getFretboardNames(newFretboard, label);
+    setFretboardSelectedName(newFretboard, rootIdx, chordName);
+
     return newFretboard;
 }

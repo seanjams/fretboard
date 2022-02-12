@@ -290,7 +290,10 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                 repositionSlider(clientX);
             }
         },
-        onDoubleClick: () => {
+        onDoubleClick: (event: ReactMouseEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+
             const display = appStore.state.display;
             if (display !== "change-name")
                 appStore.dispatch.setDisplay("change-name");

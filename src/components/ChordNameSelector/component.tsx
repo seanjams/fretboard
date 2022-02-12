@@ -85,7 +85,7 @@ export const ChordNameSelector: React.FC<ChordNameSelectorProps> = ({
             event.preventDefault();
             event.stopPropagation();
             const { display } = appStore.state;
-            appStore.dispatch.setFretboardName(name.rootIdx);
+            appStore.dispatch.setFretboardName(name.rootIdx, name.chordName);
             if (display !== "normal") appStore.dispatch.setDisplay("normal");
         };
 

@@ -25,6 +25,7 @@ import {
     buildFretboardByChordName,
     DEFAULT_FRETBOARD,
     getFretboardNames,
+    setFretboardSelectedName,
 } from "../utils";
 import { Store } from "./store";
 
@@ -343,19 +344,16 @@ export const appReducers = {
         return { ...state, fretDragStatus };
     },
 
-    setFretboardName(state: AppStateType, rootIdx: number): AppStateType {
+    setFretboardName(
+        state: AppStateType,
+        rootIdx: number,
+        chordName: string
+    ): AppStateType {
         let { fretboard, progression, currentFretboardIndex } =
             getComputedAppState(state);
         let { fretboards } = progression;
         const newFretboard = { ...fretboard };
-        newFretboard.names.forEach((name) => {
-            name.isSelected = name.rootIdx === rootIdx;
-            if (name.isSelected) newFretboard.currentRootIndex = name.rootIdx;
-        });
-        if (!newFretboard.names.filter((name) => name.isSelected)[0]) {
-            newFretboard.names[0].isSelected = true;
-            newFretboard.currentRootIndex = newFretboard.names[0].rootIdx;
-        }
+        setFretboardSelectedName(newFretboard, rootIdx, chordName);
         fretboards[currentFretboardIndex] = newFretboard;
         return this.setCurrentProgression(state, {
             ...progression,
@@ -551,7 +549,7 @@ const label = "flat";
 const fretboards1: FretboardType[] = [
     buildFretboardByChordName(9, "min__7", label),
     buildFretboardByChordName(2, "min__7", label),
-    buildFretboardByChordName(7, "__7", label),
+    buildFretboardByChordName(7, "7", label),
     buildFretboardByChordName(0, "maj__7", label),
 ];
 

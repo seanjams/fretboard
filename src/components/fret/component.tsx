@@ -32,6 +32,7 @@ import {
     lightGrey,
     getFretValue,
     colorFade,
+    gold,
 } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import {
@@ -44,7 +45,7 @@ import {
 } from "./style";
 
 const [secondaryColor, primaryColor] = COLORS[0];
-const playingColor = "#FFD700";
+const playingColor = gold;
 
 const getTopMargin = (diameter: number) => {
     // As circles resize, this top margin keeps them centered
