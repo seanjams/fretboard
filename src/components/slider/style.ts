@@ -15,6 +15,8 @@ export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
     align-items: center;
     justify-content: center;
     touch-action: none;
+    width: 100%;
+    height: 100%;
 
     user-select: none; /* standard syntax */
     -webkit-user-select: none; /* webkit (safari, chrome) browsers */

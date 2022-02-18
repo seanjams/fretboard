@@ -179,23 +179,17 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
         });
     }, []);
 
-    const onShowSettings = () => {
-        let display: DisplayTypes =
-            appStore.state.display === "settings" ? "normal" : "settings";
-        appStore.dispatch.setDisplay(display);
-    };
-
-    const onShowInput = () => {
-        let display: DisplayTypes =
-            appStore.state.display === "chord-input" ? "normal" : "chord-input";
-        appStore.dispatch.setDisplay(display);
+    const onShowDisplay = (display: DisplayTypes) => () => {
+        appStore.dispatch.setDisplay(
+            appStore.state.display === display ? "normal" : display
+        );
     };
 
     return (
         <CircleControlsContainer>
             <Div className="circle-button-container">
                 <CircleIconButton
-                    onClick={onShowSettings}
+                    onClick={onShowDisplay("settings")}
                     imageSrc={ClearIcon}
                     selected={display === "settings"}
                 />
@@ -203,11 +197,19 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
             </Div>
             <Div className="circle-button-container">
                 <CircleIconButton
-                    onClick={onShowInput}
+                    onClick={onShowDisplay("change-chord")}
                     imageSrc={PlusIcon}
-                    selected={display === "chord-input"}
+                    selected={display === "change-chord"}
                 />
                 <Label>Input</Label>
+            </Div>
+            <Div className="circle-button-container">
+                <CircleIconButton
+                    onClick={onShowDisplay("change-progression")}
+                    imageSrc={PlusIcon}
+                    selected={display === "change-progression"}
+                />
+                <Label>Progresion</Label>
             </Div>
         </CircleControlsContainer>
     );

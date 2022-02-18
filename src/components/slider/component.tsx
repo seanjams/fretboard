@@ -207,6 +207,7 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                         progressBarWidth
                 );
 
+                // set delay for closing drawer
                 let delay = 0;
                 if (currentFretboardIndex !== toIndex && showTopDrawer) {
                     appStore.dispatch.setDisplay("normal");
@@ -218,10 +219,12 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                         currentFretboardIndex,
                         toIndex,
                         () => {
-                            const { fretboard } = appStore.getComputedState();
-                            audioStore.strumChord(fretboard);
-                            if (!list(fretboard).length)
-                                appStore.dispatch.setDisplay("chord-input");
+                            // set delay for strumming chord (helps render)
+                            setTimeout(() => {
+                                const { fretboard } =
+                                    appStore.getComputedState();
+                                audioStore.strumChord(fretboard);
+                            }, 100);
                         }
                     );
                 }, delay);
@@ -295,17 +298,16 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             event.stopPropagation();
 
             const display = appStore.state.display;
-            if (display !== "change-name")
-                appStore.dispatch.setDisplay("change-name");
+            if (display !== "change-inversion")
+                appStore.dispatch.setDisplay("change-inversion");
         },
     });
 
     return (
-        <FlexRow width="100%">
+        <FlexRow width="100%" height="100%">
             <ProgressBar
                 id="progress-bar"
                 ref={progressBarRef}
-                width="100%"
                 {...conatinerTouchHandlers}
             >
                 <SliderBar

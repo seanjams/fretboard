@@ -35,21 +35,14 @@ import {
     gold,
 } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
-import {
-    CircleDiv,
-    FretDiv,
-    LegendDot,
-    OctaveDot,
-    ShadowDiv,
-    StringSegmentDiv,
-} from "./style";
+import { CircleDiv, FretDiv, LegendDot, OctaveDot, ShadowDiv } from "./style";
 
 const [secondaryColor, primaryColor] = COLORS[0];
 const playingColor = gold;
 
 const getTopMargin = (diameter: number) => {
     // As circles resize, this top margin keeps them centered
-    return `calc((100% - ${diameter}px) / 2)`;
+    return `calc(50% - ${diameter / 2}px)`;
 };
 
 const inRange = (value: number, leftBound: number, rightBound: number) => {
@@ -641,6 +634,17 @@ export const Fret: React.FC<FretProps> = ({
         },
     });
 
+    const stringSegment = (
+        <div
+            style={{
+                height: `${thickness}px`,
+                backgroundColor: !!fretIndex ? lightGrey : "transparent",
+                width: `calc(50% - ${CIRCLE_SIZE / 2}px)`,
+                margin: "auto 0",
+            }}
+        />
+    );
+
     return (
         <FretDiv
             width={`${fretWidth}px`}
@@ -649,10 +653,7 @@ export const Fret: React.FC<FretProps> = ({
             isTop={highEBottom ? stringIndex === 0 : stringIndex === 5}
             isBottom={highEBottom ? stringIndex === 5 : stringIndex === 0}
         >
-            <StringSegmentDiv
-                height={`${thickness}px`}
-                backgroundColor={!!fretIndex ? lightGrey : "transparent"}
-            />
+            {stringSegment}
             <CircleDiv {...touchHandlers} ref={circleRef} color={textColor}>
                 <ChordSymbol rootName={fretName} chordName="" fontSize={16} />
             </CircleDiv>
@@ -661,33 +662,17 @@ export const Fret: React.FC<FretProps> = ({
                 backgroundColor={backgroundColor}
                 top={top}
             />
-            <StringSegmentDiv
-                height={`${thickness}px`}
-                backgroundColor={!!fretIndex ? lightGrey : "transparent"}
-            />
-            <Legend stringIndex={stringIndex} fretIndex={fretIndex} />
+            {stringSegment}
+            {fretIndex !== 0 &&
+                (stringIndex === 0 || stringIndex === 5) &&
+                [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
+                    <LegendDot legendTop={stringIndex !== 0} />
+                )}
+            {fretIndex !== 0 &&
+                (stringIndex === 0 || stringIndex === 5) &&
+                mod(fretIndex, 12) === 0 && (
+                    <OctaveDot legendTop={stringIndex !== 0} />
+                )}
         </FretDiv>
     );
 };
-
-// the Dots that appear on the fretboard
-interface LegendProps {
-    stringIndex: number;
-    fretIndex: number;
-}
-
-const Legend: React.FC<LegendProps> = ({ stringIndex, fretIndex }) => (
-    <>
-        {" "}
-        {fretIndex !== 0 &&
-            (stringIndex === 0 || stringIndex === 5) &&
-            [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
-                <LegendDot legendTop={stringIndex !== 0} />
-            )}
-        {fretIndex !== 0 &&
-            (stringIndex === 0 || stringIndex === 5) &&
-            mod(fretIndex, 12) === 0 && (
-                <OctaveDot legendTop={stringIndex !== 0} />
-            )}
-    </>
-);

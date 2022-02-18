@@ -292,7 +292,7 @@ export const appReducers = {
         if (display === "normal") {
             showTopDrawer = false;
             showBottomDrawer = false;
-        } else if (display === "change-name") {
+        } else if (display === "change-inversion") {
             showTopDrawer = true;
             showBottomDrawer = false;
         } else {
@@ -369,6 +369,20 @@ export const appReducers = {
         progressions = [...progressions];
         progressions[currentProgressionIndex] = progression;
         return { ...state, progressions };
+    },
+
+    setCurrentProgressionIndex(
+        state: AppStateType,
+        currentProgressionIndex: number
+    ): AppStateType {
+        let { progressions } = state;
+        return {
+            ...state,
+            currentProgressionIndex: Math.min(
+                Math.max(currentProgressionIndex, 0),
+                progressions.length - 1
+            ),
+        };
     },
 
     setProgress(state: AppStateType, progress: number): AppStateType {

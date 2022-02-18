@@ -22,7 +22,8 @@ import {
     SettingsControls,
 } from "../Controls";
 import { ChordInput } from "../ChordInput";
-import { ChordNameSelector } from "../ChordNameSelector";
+import { InversionSelector } from "../InversionSelector";
+import { ProgressionSelector } from "../ProgressionSelector";
 import { Slider } from "../Slider";
 import { ContainerDiv } from "./style";
 import { BottomDrawer, TopDrawer } from "../Drawer";
@@ -74,8 +75,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </Div>
             <Div height={`${maxFretboardHeight}px`}>
                 <TopDrawer appStore={appStore}>
-                    {display === "change-name" ? (
-                        <ChordNameSelector
+                    {display === "change-inversion" ? (
+                        <InversionSelector
                             appStore={appStore}
                             audioStore={audioStore}
                         />
@@ -83,13 +84,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </TopDrawer>
                 <Fretboard appStore={appStore} audioStore={audioStore} />
                 <BottomDrawer appStore={appStore}>
-                    {display === "chord-input" ? (
+                    {display === "change-chord" ? (
                         <ChordInput
                             appStore={appStore}
                             audioStore={audioStore}
                         />
                     ) : display === "settings" ? (
                         <SettingsControls
+                            appStore={appStore}
+                            audioStore={audioStore}
+                        />
+                    ) : display === "change-progression" ? (
+                        <ProgressionSelector
                             appStore={appStore}
                             audioStore={audioStore}
                         />

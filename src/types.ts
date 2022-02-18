@@ -70,6 +70,7 @@ export type ChordTypes =
     | "min__7"
     | "minmaj__7"
     | "min__7♭5"
+    | "min__9"
     | "min__11"
     | "dim"
     | "dim__♭♭7"
@@ -101,9 +102,10 @@ export type DragStatusTypes = "on" | "off" | null;
 
 export type DisplayTypes =
     | "normal"
-    | "chord-input"
+    | "change-chord"
     | "settings"
-    | "change-name";
+    | "change-inversion"
+    | "change-progression";
 
 export type ReactMouseEvent =
     | React.MouseEvent<HTMLDivElement, MouseEvent>

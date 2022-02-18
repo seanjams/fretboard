@@ -72,7 +72,8 @@ export const ChordSymbol: React.FC<ChordSymbolProps> = ({
     chordName,
     fontSize,
 }) => {
-    const rootNameCrumbs = generateCrumbs(rootName, fontSize);
+    let rootNameCrumbs =
+        chordName === "Chromatic" ? [] : generateCrumbs(rootName, fontSize);
     const chordNameCrumbs = generateCrumbs(chordName, fontSize);
 
     return (

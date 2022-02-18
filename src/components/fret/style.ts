@@ -73,20 +73,11 @@ export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     z-index: 9998;
     position: absolute;
     left: 50%;
+    // box-shadow: 0 0 4px 0 #aaa;
 
     // box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0);
     // text-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0);
     // background: linear-gradient(rgba(255, 255, 255, 0), rgba(220, 220, 220, 1));
-`;
-
-export const StringSegmentDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-    },
-}))<CSSProps>`
-    width: calc(50% - ${CIRCLE_SIZE / 2}px);
-    margin: auto 0;
-    // box-shadow: 0px 2px 8px 0px #aaa;
 `;
 
 export const LegendDot = styled.div.attrs((props: CSSProps) => ({

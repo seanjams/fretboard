@@ -23,7 +23,7 @@ export const TitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
 export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    border: 4px dashed ${lighterGrey};
+    border: 3px dashed ${lighterGrey};
     border-radius: 10px;
     box-sizing: border-box;
     width: 80px;
@@ -33,7 +33,7 @@ export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     align-items: center;
     justify-content: center;
     color: ${lighterGrey};
-    font-size: ${titleFontSize - 10}px;
+    font-size: ${titleFontSize}px;
 `;
 
 export const CurrentFretboardMarker = styled.div.attrs((props: CSSProps) => ({

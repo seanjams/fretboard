@@ -12,13 +12,13 @@ import { ChordSymbol } from "../ChordSymbol";
 import { Div, FlexRow } from "../Common";
 
 // Component
-interface ChordNameOptionProps {
+interface InversionOptionProps {
     label: LabelTypes;
     name: FretboardNameType;
     onClick: (event: ReactMouseEvent) => void;
 }
 
-export const ChordNameOption: React.FC<ChordNameOptionProps> = ({
+export const InversionOption: React.FC<InversionOptionProps> = ({
     label,
     name,
     onClick,
@@ -40,12 +40,12 @@ export const ChordNameOption: React.FC<ChordNameOptionProps> = ({
     );
 };
 
-interface ChordNameSelectorProps {
+interface InversionSelectorProps {
     appStore: AppStore;
     audioStore: AudioStore;
 }
 
-export const ChordNameSelector: React.FC<ChordNameSelectorProps> = ({
+export const InversionSelector: React.FC<InversionSelectorProps> = ({
     audioStore,
     appStore,
 }) => {
@@ -99,8 +99,8 @@ export const ChordNameSelector: React.FC<ChordNameSelectorProps> = ({
             {names.map((name, i) => {
                 const onClick = getClickHandler(name);
                 return (
-                    <ChordNameOption
-                        key={`change-name-option-${i}`}
+                    <InversionOption
+                        key={`change-inversion-option-${i}`}
                         onClick={onClick}
                         name={name}
                         label={label}

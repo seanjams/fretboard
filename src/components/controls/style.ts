@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { COLORS, lightGrey, SP } from "../../utils";
+import { COLORS, lighterGrey, SP } from "../../utils";
 
 // should extend from some CSSProp default object so you dont have to add these manually
 interface CSSProps extends CSS.Properties {}
@@ -62,7 +62,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             height: ${highlightCheckboxHeight}px;
             border-radius: ${highlightCheckboxHeight}px;
             padding: 6px;
-            background-color: ${lightGrey};
+            background-color: ${lighterGrey};
             box-shadow: inset 0 0 4px 0 #777;
             margin-right: ${SP[2]}px;
 
@@ -85,7 +85,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
 
     .highlight-slide-enter {
         .highlight-checkbox {
-            background-color: ${lightGrey};
+            background-color: ${lighterGrey};
             div {
                 left: 0px;
             }
@@ -137,7 +137,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     }
     .highlight-slide-exit-active {
         .highlight-checkbox {
-            background-color: ${lightGrey};
+            background-color: ${lighterGrey};
             transition: background-color ${EXIT}ms ease-in-out;
 
             div {
@@ -153,7 +153,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     }
     .highlight-slide-exit-done {
         .highlight-checkbox {
-            background-color: ${lightGrey};
+            background-color: ${lighterGrey};
             div {
                 left: 0px;
             }
