@@ -8,7 +8,6 @@ import {
     DEFAULT_MAIN_STATE,
 } from "../store";
 import { Dashboard } from "./Dashboard";
-// import { Menu } from "./menu";
 
 interface AppProps {
     oldState?: AppStateType;

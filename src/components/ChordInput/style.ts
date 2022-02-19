@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { CIRCLE_SIZE, SAFETY_AREA_MARGIN, SP } from "../../utils";
+import { CIRCLE_SIZE, lightGrey, SAFETY_AREA_MARGIN, SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
@@ -25,7 +25,6 @@ export const Label = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     font-size: 14px;
     text-align: right;
-    font-weight: bold;
     line-height: ${CIRCLE_SIZE}px;
 `;
 

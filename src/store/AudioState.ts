@@ -1,10 +1,7 @@
-import { Howl, Howler } from "howler";
 import { FretboardType } from "../types";
 import { STANDARD_TUNING, mod, FLAT_NAMES, HIGHLIGHTED } from "../utils";
 import { Store } from "./store";
-
-import WebWorker from "../webworkers/WebWorker";
-import timerWorkerCode from "../webworkers/TimerWorker";
+import * as Tone from "tone";
 
 import String_0_E from "../assets/audio/String_0_E.json";
 import String_1_A from "../assets/audio/String_1_A.json";
@@ -25,12 +22,10 @@ import SOUND_STRING_4_B_OGG from "../assets/audio/String_4_B.ogg";
 import SOUND_STRING_4_B_MP3 from "../assets/audio/String_4_B.mp3";
 import SOUND_STRING_5_E_OGG from "../assets/audio/String_5_E.ogg";
 import SOUND_STRING_5_E_MP3 from "../assets/audio/String_5_E.mp3";
+import { PatternName } from "tone/build/esm/event/PatternGenerator";
 
-const VOLUME = 0.1;
-
-// Types
 export interface AudioStateType {
-    stringSounds: Howl[];
+    players: Tone.Players;
     isLoaded: boolean;
     isPlaying: Set<any>;
     isMuted: boolean;
@@ -58,10 +53,7 @@ export const audioReducers = {
     },
     toggleMute(state: AudioStateType) {
         const isMuted = !state.isMuted;
-        console.log(isMuted);
-        for (let sound of state.stringSounds) {
-            sound.volume(isMuted ? 0 : VOLUME);
-        }
+        state.players.mute = isMuted;
         return { ...state, isMuted };
     },
 };
@@ -72,60 +64,73 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         super(DEFAULT_AUDIO_STATE(), audioReducers);
     }
 
-    timerWorker: Worker = WebWorker(timerWorkerCode);
-    animationRef: ReturnType<typeof requestAnimationFrame>;
+    audioJson = [
+        String_0_E,
+        String_1_A,
+        String_2_D,
+        String_3_G,
+        String_4_B,
+        String_5_E,
+    ];
 
     playNote(stringIndex: number, fretIndex: number) {
         // play sound for note at stringIndex, fretIndex
+        if (!this.state.players || !this.state.players.loaded) return;
+
         const noteName =
             FLAT_NAMES[mod(STANDARD_TUNING[stringIndex] + fretIndex, 12)];
         const fretKey = `${stringIndex}_${fretIndex}_${noteName.replace(
             "♭",
             "b"
         )}`;
-        const stringSound = this.state.stringSounds[stringIndex];
-        if (stringSound) {
-            // stringSound.pause();
-            const fretName = `${stringIndex}_${fretIndex}`;
+
+        const player = this.state.players.player(stringIndex + "");
+        if (player && this.audioJson[stringIndex] !== undefined) {
+            // clear isPlaying data
+            player.stop();
             this.dispatch.clearIsPlaying();
-            this.dispatch.setIsPlaying(fretName, true);
-            const soundId = stringSound.play(fretKey);
-            stringSound.on(
-                "end",
-                (e) => {
+            // play note
+            const fretName = `${stringIndex}_${fretIndex}`;
+            const sprite = this.audioJson[stringIndex].sprite[fretKey];
+            if (sprite) {
+                this.dispatch.setIsPlaying(fretName, true);
+                player.onstop = () => {
                     this.dispatch.setIsPlaying(fretName, false);
-                },
-                soundId
-            );
+                };
+                player.start(0, sprite[0] / 1000, sprite[1] / 1000);
+            }
         }
     }
 
-    playNotes(sounds: [number, number][], interval: number) {
-        // start an animation to play each note at [stringIndex, fretIndex]
-        // in "sounds", every "interval" milliseconds
-        if (this.animationRef) cancelAnimationFrame(this.animationRef);
-        this.state.stringSounds.forEach((sound) => sound.stop());
+    playNotes(
+        sounds: [number, number][],
+        interval: number,
+        strumType: PatternName = "up"
+    ) {
+        if (!this.state.players || !this.state.players.loaded) return;
+        // play each note at [stringIndex, fretIndex] in "sounds",
+        // every "interval" milliseconds
+        Tone.Transport.cancel(0);
+        if (Tone.context.state !== "running") Tone.context.resume();
+
+        this.state.players.stopAll();
         this.dispatch.clearIsPlaying();
 
+        let i = 0;
         if (sounds.length) {
-            let notesPlayed = 0;
-            let nextNoteTime = Howler.ctx.currentTime;
-
-            const performAnimation = () => {
-                this.animationRef = requestAnimationFrame(performAnimation);
-                if (Howler.ctx.currentTime > nextNoteTime) {
-                    const sound = sounds[notesPlayed];
-                    if (sound) {
-                        this.playNote(sound[0], sound[1]);
-                        nextNoteTime += interval / 1000;
-                        notesPlayed++;
-                    } else {
-                        cancelAnimationFrame(this.animationRef);
-                    }
-                }
-            };
-
-            requestAnimationFrame(performAnimation);
+            const pattern = new Tone.Pattern(
+                (time, [stringIndex, fretIndex]) => {
+                    // the order of the notes passed in depends on the pattern
+                    this.playNote(stringIndex, fretIndex);
+                    i++;
+                    if (i === sounds.length) pattern.stop();
+                },
+                sounds,
+                strumType
+            );
+            pattern.interval = interval / 1000;
+            pattern.start();
+            Tone.Transport.start();
         }
     }
 
@@ -175,68 +180,29 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
 }
 
 // Default State
-
 export function DEFAULT_AUDIO_STATE(): AudioStateType {
-    const stringJson = {
-        String_0_E,
-        String_1_A,
-        String_2_D,
-        String_3_G,
-        String_4_B,
-        String_5_E,
-    };
-
-    const soundUrls: {
-        [key in keyof typeof stringJson]: [string, string];
-    } = {
-        String_0_E: [SOUND_STRING_0_E_OGG, SOUND_STRING_0_E_MP3],
-        String_1_A: [SOUND_STRING_1_A_OGG, SOUND_STRING_1_A_MP3],
-        String_2_D: [SOUND_STRING_2_D_OGG, SOUND_STRING_2_D_MP3],
-        String_3_G: [SOUND_STRING_3_G_OGG, SOUND_STRING_3_G_MP3],
-        String_4_B: [SOUND_STRING_4_B_OGG, SOUND_STRING_4_B_MP3],
-        String_5_E: [SOUND_STRING_5_E_OGG, SOUND_STRING_5_E_MP3],
-    };
-
-    function createHowl(name: keyof typeof stringJson): Howl {
-        const sprite = stringJson[name].sprite as {
-            [name: string]: [number, number];
-        };
-        const urls = soundUrls[name];
-
-        return new Howl({
-            src: urls,
-            autoplay: false,
-            loop: false,
-            volume: VOLUME,
-            preload: true,
-            sprite: sprite,
-            // onplay: function () {
-            //     console.log("Playing!", name);
-            // },
-            // onplayerror: function (e, code) {
-            //     console.log("Play Error", name, e, code);
-            // },
-            // onend: function () {
-            //     console.log("Finished!", name);
-            // },
-            // onload: function () {
-            //     console.log("Loaded!", name);
-            // },
-            // onloaderror: function (e, code) {
-            //     console.log("Load Error", name, e, code);
-            // },
-        });
-    }
+    Tone.start();
+    const players = new Tone.Players({
+        urls: {
+            0: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            1: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            2: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            3: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            4: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            5: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+        },
+        onload: function () {
+            console.log("Tone.Players Loaded!");
+        },
+        onerror: function (error) {
+            console.log("Tone.Players Error:", error.message);
+        },
+        fadeOut: 1,
+    }).toDestination();
+    players.volume.value = -6;
 
     return {
-        stringSounds: [
-            createHowl("String_0_E"),
-            createHowl("String_1_A"),
-            createHowl("String_2_D"),
-            createHowl("String_3_G"),
-            createHowl("String_4_B"),
-            createHowl("String_5_E"),
-        ],
+        players,
         isLoaded: false,
         isPlaying: new Set(),
         isMuted: false,

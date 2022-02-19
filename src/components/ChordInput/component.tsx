@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useEffect } from "react";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div, FlexRow } from "../Common";
 import {
@@ -22,7 +22,6 @@ import {
     SP,
     getFretboardDimensions,
     DEFAULT_FRETBOARD_NAME,
-    FRETBOARD_MARGIN,
 } from "../../utils";
 import { ChordInputContainer, OverflowContainerDiv, Tag, Label } from "./style";
 
@@ -135,7 +134,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                     width={`calc(15% - ${SP[2]}px)`}
                     flexShrink={0}
                 >
-                    Root:
+                    Root
                 </Label>
                 <FlexRow
                     marginLeft={`${SP[2]}px`}
@@ -166,7 +165,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                     marginLeft={`${SP[2]}px`}
                     width={`calc(15% - ${SP[2]}px)`}
                 >
-                    Chord/Scale:
+                    Chord/Scale
                 </Label>
                 <OverflowContainerDiv
                     marginLeft={`${SP[2]}px`}
@@ -177,9 +176,9 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                 >
                     <Div>
                         <FlexRow
-                            paddingLeft="66%"
-                            paddingRight="66%"
-                            width="100%"
+                            paddingLeft={`${2 * SP[6]}px`}
+                            paddingRight={`${2 * SP[6]}px`}
+                            width="fit-content"
                             height="100%"
                         >
                             {CHORD_NAMES.map((name, j) => (
