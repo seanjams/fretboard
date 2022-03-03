@@ -16,20 +16,26 @@ import {
     SAFETY_AREA_MARGIN,
 } from "../../utils";
 import {
-    CircleControlsContainer,
+    PillControlsContainer,
     HighlightCheckboxAnimation,
     Label,
 } from "./style";
-import { CircleIconButton } from "../Button";
+import { IconButton } from "../Button";
 import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
 import PlusIcon from "../../assets/icons/plus.png";
 import MinusIcon from "../../assets/icons/minus.png";
-import LeftIcon from "../../assets/icons/left-arrow.png";
-import DownIcon from "../../assets/icons/down-arrow.png";
-import UpIcon from "../../assets/icons/up-arrow.png";
-import RightIcon from "../../assets/icons/right-arrow.png";
-import ClearIcon from "../../assets/icons/clear.png";
+
+import PlayIcon from "../../assets/icons/play.svg";
+import SaveIcon from "../../assets/icons/database.svg";
+import ChordIcon from "../../assets/icons/music.svg";
+import TrashIcon from "../../assets/icons/bin.svg";
+import CogIcon from "../../assets/icons/cog.svg";
+
+import LeftArrowIcon from "../../assets/icons/arrow-left.svg";
+import RightArrowIcon from "../../assets/icons/arrow-right.svg";
+import UpArrowIcon from "../../assets/icons/arrow-up.svg";
+import DownArrowIcon from "../../assets/icons/arrow-down.svg";
 
 interface ControlsProps {
     appStore: AppStore;
@@ -48,36 +54,44 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
     };
 
     return (
-        <CircleControlsContainer>
-            <Div className="circle-button-container">
-                <CircleIconButton
+        <PillControlsContainer>
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={onArrowPress("ArrowLeft")}
-                    imageSrc={LeftIcon}
+                    imageSrc={LeftArrowIcon}
+                    iconHeight={18}
+                    iconWidth={18}
                 />
                 <Label>{""}</Label>
             </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={onArrowPress("ArrowDown")}
-                    imageSrc={DownIcon}
+                    imageSrc={DownArrowIcon}
+                    iconHeight={18}
+                    iconWidth={18}
                 />
                 <Label>{""}</Label>
             </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={onArrowPress("ArrowUp")}
-                    imageSrc={UpIcon}
+                    imageSrc={UpArrowIcon}
+                    iconHeight={18}
+                    iconWidth={18}
                 />
                 <Label>{""}</Label>
             </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={onArrowPress("ArrowRight")}
-                    imageSrc={RightIcon}
+                    imageSrc={RightArrowIcon}
+                    iconHeight={18}
+                    iconWidth={18}
                 />
                 <Label>{""}</Label>
             </Div>
-        </CircleControlsContainer>
+        </PillControlsContainer>
     );
 };
 
@@ -134,10 +148,13 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
                             <Label>{""}</Label>
                         </Div>
 
-                        <Div className="circle-button-container clear-button">
-                            <CircleIconButton
+                        <Div className="pill-button-container clear-button">
+                            <IconButton
                                 onClick={onClear}
-                                imageSrc={ClearIcon}
+                                imageSrc={TrashIcon}
+                                iconHeight={18}
+                                iconWidth={18}
+                                isCircular={true}
                             />
                             <Label>clear</Label>
                         </Div>
@@ -150,20 +167,20 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
 
 export const SliderControls: React.FC<ControlsProps> = ({ appStore }) => {
     return (
-        <CircleControlsContainer>
-            <Div className="circle-button-container">
-                <CircleIconButton
+        <PillControlsContainer>
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={appStore.dispatch.addFretboard}
                     imageSrc={PlusIcon}
                 />
             </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={appStore.dispatch.removeFretboard}
                     imageSrc={MinusIcon}
                 />
             </Div>
-        </CircleControlsContainer>
+        </PillControlsContainer>
     );
 };
 
@@ -186,32 +203,32 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
     };
 
     return (
-        <CircleControlsContainer>
-            <Div className="circle-button-container">
-                <CircleIconButton
+        <PillControlsContainer>
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={onShowDisplay("settings")}
-                    imageSrc={ClearIcon}
+                    imageSrc={CogIcon}
                     selected={display === "settings"}
                 />
                 <Label>Settings</Label>
             </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={onShowDisplay("change-chord")}
-                    imageSrc={PlusIcon}
+                    imageSrc={ChordIcon}
                     selected={display === "change-chord"}
                 />
                 <Label>Input</Label>
             </Div>
-            <Div className="circle-button-container">
-                <CircleIconButton
+            <Div className="pill-button-container">
+                <IconButton
                     onClick={onShowDisplay("change-progression")}
-                    imageSrc={PlusIcon}
+                    imageSrc={SaveIcon}
                     selected={display === "change-progression"}
                 />
-                <Label>Progresion</Label>
+                <Label>Progression</Label>
             </Div>
-        </CircleControlsContainer>
+        </PillControlsContainer>
     );
 };
 
@@ -229,12 +246,18 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
     };
 
     return (
-        <CircleControlsContainer>
-            <Div className="circle-button-container">
-                <CircleIconButton onClick={onPlayNotes} imageSrc={PlusIcon} />
+        <FlexRow justifyContent="start">
+            <Div>
+                <IconButton
+                    onClick={onPlayNotes}
+                    imageSrc={PlayIcon}
+                    iconHeight={22}
+                    iconWidth={22}
+                    isCircular={true}
+                />
                 <Label>Play</Label>
             </Div>
-        </CircleControlsContainer>
+        </FlexRow>
     );
 };
 

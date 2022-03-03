@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { CIRCLE_SIZE, SP, lightGrey, FRETBOARD_MARGIN } from "../../utils";
+import { CIRCLE_SIZE, SP, lightGrey } from "../../utils";
 
 // CSS
 interface CSSProps extends CSS.Properties {

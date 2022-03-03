@@ -7,31 +7,48 @@ interface CSSProps extends CSS.Properties {}
 
 const [secondaryColor, primaryColor] = COLORS[0];
 
-export const CircleControlsContainer = styled.div.attrs((props: CSSProps) => ({
+export const PillControlsContainer = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     display: flex;
     align-items: center;
     justify-content: start;
 
-    .circle-button-container {
-        .circle-button {
+    .pill-button-container {
+        .button-div {
+            border-top-left-radius: ${SP[0]}px;
+            border-top-right-radius: ${SP[0]}px;
+            border-bottom-left-radius: ${SP[0]}px;
+            border-bottom-right-radius: ${SP[0]}px;
             margin: 0 ${SP[0]}px;
         }
     }
 
-    .circle-button-container:first-child {
-        .circle-button {
+    .pill-button-container:first-child {
+        .button-div {
             border-top-left-radius: 100%;
+            border-top-right-radius: ${SP[1]}px;
             border-bottom-left-radius: 100%;
+            border-bottom-right-radius: ${SP[1]}px;
             margin-left: 0;
+
+            img {
+                padding-left: ${SP[0]}px;
+            }
         }
     }
 
-    .circle-button-container:last-child {
-        .circle-button {
+    .pill-button-container:last-child {
+        .button-div {
+            border-top-left-radius: ${SP[1]}px;
             border-top-right-radius: 100%;
+            border-bottom-left-radius: ${SP[1]}px;
             border-bottom-right-radius: 100%;
+            margin-right: 0;
+
+            img {
+                padding-right: ${SP[0]}px;
+            }
         }
     }
 `;
@@ -77,7 +94,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             }
         }
 
-        .clear-button .circle-button {
+        .clear-button .button-div {
             background-color: transparent !important;
             border-radius: 100%;
         }
@@ -91,7 +108,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             }
         }
 
-        .clear-button .circle-button {
+        .clear-button .button-div {
             background-color: transparent !important;
         }
     }
@@ -106,7 +123,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             }
         }
 
-        .clear-button .circle-button {
+        .clear-button .button-div {
             background-color: ${primaryColor} !important;
             transition: background-color ${ENTER}ms ease-in-out;
         }
@@ -119,7 +136,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             }
         }
 
-        .clear-button .circle-button {
+        .clear-button .button-div {
             background-color: ${primaryColor} !important;
         }
     }
@@ -131,7 +148,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             }
         }
 
-        .clear-button .circle-button {
+        .clear-button .button-div {
             background-color: ${primaryColor} !important;
         }
     }
@@ -146,7 +163,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             }
         }
 
-        .clear-button .circle-button {
+        .clear-button .button-div {
             background-color: transparent !important;
             transition: background-color ${EXIT}ms ease-in-out;
         }
@@ -159,7 +176,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             }
         }
 
-        .clear-button .circle-button {
+        .clear-button .button-div {
             background-color: transparent !important;
         }
     }

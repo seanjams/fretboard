@@ -271,7 +271,12 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
         },
         onMove: (event: WindowMouseEvent) => {
             // slider drag
-            if (!sliderBarRef.current) return;
+            if (
+                !progressBarRef.current ||
+                !sliderBarRef.current ||
+                !isPressedRef.current
+            )
+                return;
 
             let clientX: number;
             if (event instanceof MouseEvent) {
@@ -283,13 +288,9 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             }
 
             // drag slider
-            if (isPressedRef.current && !getState().dragging) {
+            if (!getState().dragging) {
                 setState({ dragging: true });
-            } else if (
-                isPressedRef.current &&
-                progressBarRef.current &&
-                getState().dragging
-            ) {
+            } else {
                 repositionSlider(clientX);
             }
         },

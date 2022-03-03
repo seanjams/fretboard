@@ -23,7 +23,6 @@ import {
     SELECTED,
     NOT_SELECTED,
     SAFETY_AREA_MARGIN,
-    FRETBOARD_MARGIN,
 } from "../utils";
 import { isEqual } from "lodash";
 import { DEFAULT_FRETBOARD, DEFAULT_FRETBOARD_NAME } from "./consts";
@@ -578,7 +577,7 @@ export const getFretboardDimensions = () => {
     // -------------------------------
     // Gutter
     // -------------------------------
-    // Input
+    // Top Drawer (starts at 0 height)
     // -------------------------------
     // Fretboard Margin
     // -------------------------------
@@ -586,7 +585,7 @@ export const getFretboardDimensions = () => {
     // -------------------------------
     // Fretboard Margin
     // -------------------------------
-    // Input
+    // Bottom Drawer (starts at 0 height)
     // -------------------------------
     // Gutter
     // -------------------------------

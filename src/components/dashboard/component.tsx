@@ -1,17 +1,6 @@
-import React, { useEffect, useCallback } from "react";
-import {
-    useStateRef,
-    AppStore,
-    AudioStore,
-    useOrientationChange,
-} from "../../store";
-import {
-    SAFETY_AREA_MARGIN,
-    getScreenDimensions,
-    getFretboardDimensions,
-    SP,
-    updateIfChanged,
-} from "../../utils";
+import React, { useEffect } from "react";
+import { useStateRef, AppStore, AudioStore } from "../../store";
+import { SAFETY_AREA_MARGIN, getFretboardDimensions, SP } from "../../utils";
 import { Fretboard } from "../Fretboard";
 import { Div } from "../Common";
 import {
@@ -39,7 +28,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
     const [getState, setState] = useStateRef(() => ({
         orientation: "portrait-primary",
-        // dimensions: getScreenDimensions(),
         display: appStore.state.display,
     }));
 
@@ -54,12 +42,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         []
     );
-
-    // useOrientationChange(() => {
-    //     setState({
-    //         dimensions: getScreenDimensions(),
-    //     });
-    // });
 
     return (
         <ContainerDiv>

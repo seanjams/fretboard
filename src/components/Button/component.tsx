@@ -2,7 +2,7 @@ import React from "react";
 import { useStateRef, useTouchHandlers } from "../../store";
 import { ReactMouseEvent, WindowMouseEvent } from "../../types";
 import { COLORS, darkGrey } from "../../utils";
-import { Circle } from "./style";
+import { ButtonDiv } from "./style";
 
 const [secondaryColor, primaryColor] = COLORS[0];
 
@@ -14,15 +14,21 @@ interface ButtonProps {
     diameter?: number;
     onClick?: (event: WindowMouseEvent) => void;
     selected?: boolean;
+    iconHeight?: number;
+    iconWidth?: number;
+    isCircular?: boolean;
 }
 
-export const CircleButton: React.FC<ButtonProps> = ({
+export const Button: React.FC<ButtonProps> = ({
     activeColor,
     backgroundColor,
     diameter,
     onClick,
     children,
     selected,
+    iconWidth,
+    iconHeight,
+    isCircular,
 }) => {
     const [getState, setState] = useStateRef(() => ({
         active: selected || false,
@@ -41,60 +47,52 @@ export const CircleButton: React.FC<ButtonProps> = ({
     });
 
     return (
-        <Circle
+        <ButtonDiv
             {...touchHandlers}
             backgroundColor={backgroundColor}
             active={active}
             pressed={selected}
             activeColor={activeColor}
             diameter={diameter}
-            className="circle-button"
+            className="button-div"
+            iconWidth={iconWidth}
+            iconHeight={iconHeight}
+            isCircular={isCircular}
         >
             {children}
-        </Circle>
+        </ButtonDiv>
     );
 };
 
-export interface HighlightButtonProps {
-    onClick?: (event: WindowMouseEvent) => void;
-}
-
-export const HighlightButton: React.FC<HighlightButtonProps> = ({
-    onClick,
-}) => {
-    const backgroundColor = primaryColor;
-    const activeColor = primaryColor;
-
-    return (
-        <CircleButton
-            backgroundColor={backgroundColor}
-            activeColor={activeColor}
-            onClick={onClick}
-            diameter={44}
-        />
-    );
-};
-
-export interface CircleButtonProps {
+export interface IconButtonProps {
     imageSrc?: string;
     onClick?: (event: WindowMouseEvent) => void;
     selected?: boolean;
+    iconHeight?: number;
+    iconWidth?: number;
+    isCircular?: boolean;
 }
 
-export const CircleIconButton: React.FC<CircleButtonProps> = ({
+export const IconButton: React.FC<IconButtonProps> = ({
     imageSrc,
     onClick,
     selected,
+    iconHeight,
+    iconWidth,
+    isCircular,
 }) => {
     return (
-        <CircleButton
+        <Button
             backgroundColor="transparent"
             activeColor={darkGrey}
             onClick={onClick}
             diameter={44}
             selected={selected}
+            iconHeight={iconHeight}
+            iconWidth={iconWidth}
+            isCircular={isCircular}
         >
             {imageSrc && <img src={imageSrc} width="20px" height="20px" />}
-        </CircleButton>
+        </Button>
     );
 };

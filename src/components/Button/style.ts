@@ -7,9 +7,12 @@ export interface CSSProps extends CSS.Properties {
     active?: boolean;
     pressed?: boolean;
     diameter?: number;
+    iconWidth?: number;
+    iconHeight?: number;
+    isCircular?: boolean;
 }
 
-export const Circle = styled.div.attrs((props: CSSProps) => ({
+export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
         boxShadow: props.active
@@ -21,6 +24,14 @@ export const Circle = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     width: ${(props) => props.diameter || 0}px;
     height: ${(props) => props.diameter || 0}px;
+    border-top-left-radius: ${(props) =>
+        props.isCircular ? "100%" : `${SP[1]}px`};
+    border-top-right-radius: ${(props) =>
+        props.isCircular ? "100%" : `${SP[1]}px`};
+    border-bottom-left-radius: ${(props) =>
+        props.isCircular ? "100%" : `${SP[1]}px`};
+    border-bottom-right-radius: ${(props) =>
+        props.isCircular ? "100%" : `${SP[1]}px`};
     text-align: center;
     line-height: 0;
     display: flex;
@@ -33,4 +44,13 @@ export const Circle = styled.div.attrs((props: CSSProps) => ({
     -moz-user-select: none; /* mozilla browsers */
     -khtml-user-select: none; /* webkit (konqueror) browsers */
     -ms-user-select: none; /* IE10+ */
+
+    img {
+        height: ${(props) => props.iconHeight || 16}px;
+        width: ${(props) => props.iconWidth || 16}px;
+        // filter: brightness(0) saturate(100%) invert(100%) sepia(1%)
+        //     saturate(2808%) hue-rotate(322deg) brightness(82%) contrast(80%);
+        filter: brightness(0) saturate(100%) invert(51%) sepia(4%) saturate(8%)
+            hue-rotate(358deg) brightness(97%) contrast(92%);
+    }
 `;
