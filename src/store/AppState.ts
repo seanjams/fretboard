@@ -1,3 +1,4 @@
+import moment from "moment";
 import {
     StatusTypes,
     DiffType,
@@ -23,9 +24,10 @@ import {
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
     buildFretboardByChordName,
-    DEFAULT_FRETBOARD,
     getFretboardNames,
     setFretboardSelectedName,
+    DEFAULT_STRINGSWITCH,
+    DEFAULT_FRETBOARD_NAME,
 } from "../utils";
 import { Store } from "./store";
 
@@ -35,6 +37,7 @@ export interface ProgressionStateType {
     leftDiffs: DiffType[];
     rightDiffs: DiffType[];
     label: LabelTypes;
+    lastUpdated?: string;
 }
 
 export interface AppStateType {
@@ -368,6 +371,7 @@ export const appReducers = {
         let { progressions, currentProgressionIndex } = state;
         progressions = [...progressions];
         progressions[currentProgressionIndex] = progression;
+        progression.lastUpdated = moment().toISOString();
         return { ...state, progressions };
     },
 
@@ -382,6 +386,31 @@ export const appReducers = {
                 Math.max(currentProgressionIndex, 0),
                 progressions.length - 1
             ),
+        };
+    },
+
+    addProgression(state: AppStateType): AppStateType {
+        const { progressions } = state;
+        progressions.unshift(DEFAULT_PROGRESSION());
+        return {
+            ...state,
+            progressions,
+            currentProgressionIndex: 0,
+        };
+    },
+
+    removeProgression(state: AppStateType): AppStateType {
+        let { currentProgressionIndex, progressions } = state;
+        progressions = [...progressions];
+        if (progressions.length > 1)
+            progressions.splice(currentProgressionIndex, 1);
+        return {
+            ...state,
+            progressions,
+            currentProgressionIndex:
+                currentProgressionIndex >= progressions.length
+                    ? progressions.length - 1
+                    : currentProgressionIndex,
         };
     },
 
@@ -584,10 +613,37 @@ const progression3: ProgressionStateType = {
     ...cascadeDiffs(fretboards1, 0),
     label,
 };
+const progression4: ProgressionStateType = {
+    ...cascadeDiffs(fretboards1, 0),
+    label,
+};
+
+export function DEFAULT_FRETBOARD(): FretboardType {
+    return {
+        strings: DEFAULT_STRINGSWITCH(),
+        names: [DEFAULT_FRETBOARD_NAME()],
+        currentRootIndex: 0,
+    };
+}
+
+export function DEFAULT_PROGRESSION(): ProgressionStateType {
+    return {
+        ...cascadeDiffs(
+            [
+                DEFAULT_FRETBOARD(),
+                DEFAULT_FRETBOARD(),
+                DEFAULT_FRETBOARD(),
+                DEFAULT_FRETBOARD(),
+            ],
+            0
+        ),
+        label: "flat",
+    };
+}
 
 export function DEFAULT_MAIN_STATE(): AppStateType {
     return {
-        progressions: [progression1, progression2, progression3],
+        progressions: [progression1, progression2, progression3, progression4],
         invert: false,
         leftHand: false,
         status: 1,

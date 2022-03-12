@@ -17,7 +17,6 @@ import {
     getFretWidth,
     mod,
     COLORS,
-    CIRCLE_SIZE,
     SLIDER_LEFT_WINDOW,
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
@@ -33,6 +32,7 @@ import {
     getFretValue,
     colorFade,
     gold,
+    getFretboardDimensions,
 } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { CircleDiv, FretDiv, LegendDot, OctaveDot, ShadowDiv } from "./style";
@@ -120,22 +120,14 @@ export const Fret: React.FC<FretProps> = ({
     const fretAudioKey = `${stringIndex}_${fretIndex}`;
     const isOpenString = fretIndex === 0;
 
-    const {
-        display,
-        fretboard,
-        progression,
-        progress,
-        status,
-        invert,
-        leftHand,
-    } = appStore.getComputedState();
+    const { display, fretboard, progression, progress, status } =
+        appStore.getComputedState();
     const { label } = progression;
 
     const [getState, setState] = useStateRef(() => ({
         fretName: getFretName(fretValue, label),
-        highEBottom: invert !== leftHand,
     }));
-    const { fretName, highEBottom } = getState();
+    const { fretName } = getState();
 
     // init refs
     const progressRef = useRef(progress);
@@ -170,24 +162,19 @@ export const Fret: React.FC<FretProps> = ({
     );
     const textColor =
         status === HIGHLIGHTED && !isSelectedRef.current ? lightGrey : darkGrey;
-    const top = getTopMargin(CIRCLE_SIZE);
     // makes frets progressively smaller
     const fretWidth = getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, fretIndex);
     // makes strings progressively thinner
     const thickness = (6 - stringIndex + 1) / 2;
 
+    const { circleSize } = getFretboardDimensions();
+    const top = getTopMargin(circleSize);
+
     useEffect(
         () =>
             appStore.addListener((newState) => {
-                const {
-                    display,
-                    fretboard,
-                    progress,
-                    progression,
-                    status,
-                    invert,
-                    leftHand,
-                } = getComputedAppState(newState);
+                const { display, fretboard, progress, progression, status } =
+                    getComputedAppState(newState);
                 const { label } = progression;
 
                 const isHighlighted = getIsHighlighted(
@@ -202,7 +189,6 @@ export const Fret: React.FC<FretProps> = ({
                 );
                 const isDisabled = display !== "normal";
                 const fretName = getFretName(fretValue, label);
-                const highEBottom = invert !== leftHand;
 
                 // set refs based on changes
                 if (
@@ -221,11 +207,7 @@ export const Fret: React.FC<FretProps> = ({
                 }
 
                 // set state based on changes
-                if (
-                    getState().fretName !== fretName ||
-                    getState().highEBottom !== highEBottom
-                )
-                    setState({ fretName, highEBottom });
+                if (getState().fretName !== fretName) setState({ fretName });
             }),
         []
     );
@@ -425,7 +407,7 @@ export const Fret: React.FC<FretProps> = ({
             shadowRef.current.style.backgroundColor = backgroundColor;
 
         // set shadow diameter/radius consts
-        const d = (CIRCLE_SIZE * fillPercentage) / 100;
+        const d = (circleSize * fillPercentage) / 100;
         const r = d / 2;
 
         // set shadow opacity
@@ -639,7 +621,7 @@ export const Fret: React.FC<FretProps> = ({
             style={{
                 height: `${thickness}px`,
                 backgroundColor: !!fretIndex ? lightGrey : "transparent",
-                width: `calc(50% - ${CIRCLE_SIZE / 2}px)`,
+                width: `calc(50% - ${circleSize / 2}px)`,
                 margin: "auto 0",
             }}
         />
@@ -650,17 +632,21 @@ export const Fret: React.FC<FretProps> = ({
             width={`${fretWidth}px`}
             onContextMenu={onContextMenu}
             isOpenString={isOpenString}
-            isTop={highEBottom ? stringIndex === 0 : stringIndex === 5}
-            isBottom={highEBottom ? stringIndex === 5 : stringIndex === 0}
         >
             {stringSegment}
-            <CircleDiv {...touchHandlers} ref={circleRef} color={textColor}>
+            <CircleDiv
+                {...touchHandlers}
+                ref={circleRef}
+                color={textColor}
+                circleSize={circleSize}
+            >
                 <ChordSymbol rootName={fretName} chordName="" fontSize={16} />
             </CircleDiv>
             <ShadowDiv
                 ref={shadowRef}
                 backgroundColor={backgroundColor}
                 top={top}
+                circleSize={circleSize}
             />
             {stringSegment}
             {fretIndex !== 0 &&

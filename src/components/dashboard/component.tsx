@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useStateRef, AppStore, AudioStore } from "../../store";
 import { SAFETY_AREA_MARGIN, getFretboardDimensions, SP } from "../../utils";
 import { Fretboard } from "../Fretboard";
-import { Div } from "../Common";
+import { Div, FlexRow } from "../Common";
 import {
     AudioControls,
     DrawerControls,
@@ -84,48 +84,47 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     ) : null}
                 </BottomDrawer>
             </Div>
-            <Div
+            <FlexRow
                 height={`${gutterHeight}px`}
                 marginTop="0px"
                 marginBottom={`${SAFETY_AREA_MARGIN}px`}
-                verticalAlign="bottom"
+                flexDirection="column"
+                justifyContent="flex-end"
             >
-                <Div
-                    display="flex"
-                    justifyContent="space-evenly"
-                    alignItems="start"
+                <FlexRow
+                    width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px`}
                     padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 >
                     <Div flexShrink={1}>
-                        <HighlightControls appStore={appStore} />
+                        <DrawerControls appStore={appStore} />
                     </Div>
-                    <Div
+                    <FlexRow
                         flexGrow={1}
-                        marginLeft={`${SP[4]}px`}
-                        marginRight={`${SP[4]}px`}
+                        justifyContent="flex-start"
+                        marginLeft={`${SP[2]}px`}
+                        marginRight={`${SP[2]}px`}
+                    >
+                        <HighlightControls appStore={appStore} />
+                    </FlexRow>
+                    <FlexRow
+                        flexGrow={1}
+                        justifyContent="flex-end"
+                        marginLeft={`${SP[2]}px`}
+                        marginRight={`${SP[2]}px`}
                     >
                         <AudioControls
                             appStore={appStore}
                             audioStore={audioStore}
                         />
-                    </Div>
-                    <Div
-                        flexGrow={1}
-                        display="flex"
-                        justifyContent="flex-end"
-                        marginLeft={`${SP[4]}px`}
-                        marginRight={`${SP[4]}px`}
-                    >
-                        <DrawerControls appStore={appStore} />
-                    </Div>
+                    </FlexRow>
                     <Div flexShrink={1}>
                         <PositionControls
                             appStore={appStore}
                             audioStore={audioStore}
                         />
                     </Div>
-                </Div>
-            </Div>
+                </FlexRow>
+            </FlexRow>
         </ContainerDiv>
     );
 };

@@ -2,6 +2,9 @@ export const darkGrey = "#404040";
 export const mediumGrey = "#808080";
 export const lightGrey = "#C1BFB5";
 export const lighterGrey = "#EEEEEE";
+export const lightBlue = "#2bdfff";
+export const sandy = "#F2E3BC";
+export const oliveGreen = "#BBDFC5";
 export const gold = "#FFD700";
 
 export const COLORS = [

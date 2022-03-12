@@ -146,7 +146,7 @@ export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
 
 export const FRETBOARD_WIDTH = 1700;
 
-export const FRETBOARD_MARGIN = SP[3];
+export const FRETBOARD_MARGIN = SP[4];
 
 export const STRING_SIZE = 23;
 

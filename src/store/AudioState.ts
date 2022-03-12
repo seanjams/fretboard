@@ -76,6 +76,7 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
     playNote(stringIndex: number, fretIndex: number) {
         // play sound for note at stringIndex, fretIndex
         if (!this.state.players || !this.state.players.loaded) return;
+        if (Tone.context.state !== "running") Tone.context.resume();
 
         const noteName =
             FLAT_NAMES[mod(STANDARD_TUNING[stringIndex] + fretIndex, 12)];
@@ -197,7 +198,7 @@ export function DEFAULT_AUDIO_STATE(): AudioStateType {
         onerror: function (error) {
             console.log("Tone.Players Error:", error.message);
         },
-        fadeOut: 1,
+        // fadeOut: 1,
     }).toDestination();
     players.volume.value = -6;
 

@@ -20,10 +20,17 @@ import {
     CHORD_NAMES,
     majorChord,
     SP,
-    getFretboardDimensions,
     DEFAULT_FRETBOARD_NAME,
 } from "../../utils";
-import { ChordInputContainer, OverflowContainerDiv, Tag, Label } from "./style";
+import {
+    ChordInputContainer,
+    ChordScaleContainer,
+    ChordScaleTag,
+    OverflowContainerDiv,
+    RootContainer,
+    RootTag,
+    ShadowOverlay,
+} from "./style";
 
 interface ChordInputProps {
     appStore: AppStore;
@@ -124,83 +131,78 @@ export const ChordInput: React.FC<ChordInputProps> = ({
             // });
         };
 
-    const { maxInputHeight } = getFretboardDimensions();
+    // const { maxInputHeight } = getFretboardDimensions();
 
     return (
         <ChordInputContainer>
-            <FlexRow width="100%" height="100%" alignItems="start">
-                <Label
-                    marginLeft={`${SP[2]}px`}
-                    width={`calc(15% - ${SP[2]}px)`}
-                    flexShrink={0}
-                >
-                    Root
-                </Label>
-                <FlexRow
-                    marginLeft={`${SP[2]}px`}
-                    marginRight={`${SP[2]}px`}
-                    width={`calc(85% - ${2 * SP[2]}px)`}
-                    height="100%"
-                >
-                    {noteNames.map((name, j) => (
-                        <FlexRow
-                            key={`${name}-key-${j}`}
-                            height="100%"
-                            onMouseDown={onRootChange(j)}
-                            onTouchStart={onRootChange(j)}
-                        >
-                            <Tag highlighted={rootIdx === j}>
+            <Div className="label-container">
+                <Div>Root</Div>
+                <Div>Chord/Scale</Div>
+            </Div>
+            <Div className="chord-scale-container">
+                <RootContainer>
+                    <FlexRow alignItems="start" width="100%" height="50%">
+                        {noteNames.slice(0, 6).map((name, j) => (
+                            <RootTag
+                                key={`${name}-key-${j}`}
+                                highlighted={rootIdx === j}
+                                onMouseDown={onRootChange(j)}
+                                onTouchStart={onRootChange(j)}
+                            >
                                 <ChordSymbol
                                     rootName={name}
                                     chordName=""
                                     fontSize={12}
                                 />
-                            </Tag>
-                        </FlexRow>
-                    ))}
-                </FlexRow>
-            </FlexRow>
-            <FlexRow width="100%" height="100%" alignItems="start">
-                <Label
-                    marginLeft={`${SP[2]}px`}
-                    width={`calc(15% - ${SP[2]}px)`}
-                >
-                    Chord/Scale
-                </Label>
-                <OverflowContainerDiv
-                    marginLeft={`${SP[2]}px`}
-                    marginRight={`${SP[2]}px`}
-                    width={`calc(85% - ${2 * SP[2]}px)`}
-                    height="100%"
-                    className="overflow-container"
-                >
-                    <Div>
-                        <FlexRow
-                            paddingLeft={`${2 * SP[6]}px`}
-                            paddingRight={`${2 * SP[6]}px`}
-                            width="fit-content"
-                            height="100%"
-                        >
+                            </RootTag>
+                        ))}
+                    </FlexRow>
+                    <FlexRow
+                        marginLeft={`calc(100% / 12)`}
+                        width="100%"
+                        height="50%"
+                        alignItems="start"
+                    >
+                        {noteNames.slice(6).map((name, j) => (
+                            <RootTag
+                                key={`${name}-key-${j + 6}`}
+                                highlighted={rootIdx === j + 6}
+                                onMouseDown={onRootChange(j + 6)}
+                                onTouchStart={onRootChange(j + 6)}
+                            >
+                                <ChordSymbol
+                                    rootName={name}
+                                    chordName=""
+                                    fontSize={12}
+                                />
+                            </RootTag>
+                        ))}
+                    </FlexRow>
+                </RootContainer>
+                <ChordScaleContainer>
+                    <ShadowOverlay className="overflow-container" />
+                    <OverflowContainerDiv className="overflow-container">
+                        <FlexRow width="fit-content" height="100%">
                             {CHORD_NAMES.map((name, j) => (
-                                <Tag
+                                <ChordScaleTag
                                     key={`${name}-key-${j}`}
                                     onMouseDown={onChordChange(name)}
                                     onTouchStart={onChordChange(name)}
                                     highlighted={chordName === name}
                                     wide={true}
-                                    id={`chordName-${name}`}
+                                    size={`calc(100% - ${SP[3]}px)`}
                                 >
                                     <ChordSymbol
                                         rootName=""
                                         chordName={name}
                                         fontSize={12}
                                     />
-                                </Tag>
+                                </ChordScaleTag>
                             ))}
                         </FlexRow>
-                    </Div>
-                </OverflowContainerDiv>
-            </FlexRow>
+                    </OverflowContainerDiv>
+                </ChordScaleContainer>
+            </Div>
         </ChordInputContainer>
     );
 };

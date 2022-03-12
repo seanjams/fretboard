@@ -1,96 +1,138 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { CIRCLE_SIZE, lightGrey, SAFETY_AREA_MARGIN, SP } from "../../utils";
+import {
+    sandy,
+    lighterGrey,
+    lightGrey,
+    SAFETY_AREA_MARGIN,
+    SP,
+} from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
     wide?: boolean;
+    size?: string;
 }
 
 export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    width: calc(100% - ${2 * SAFETY_AREA_MARGIN}px);
-    height: calc(100% - ${SP[1]}px);
-    padding-left: ${SAFETY_AREA_MARGIN}px;
-    padding-right: ${SAFETY_AREA_MARGIN}px;
-    padding-bottom: ${SP[1]}px;
+    height: 100%;
+    width: 100%;
+
+    .label-container,
+    .chord-scale-container {
+        display: flex;
+        width: calc(100% - ${2 * SAFETY_AREA_MARGIN}px);
+        padding-left: ${SAFETY_AREA_MARGIN}px;
+        padding-right: ${SAFETY_AREA_MARGIN}px;
+    }
+
+    .label-container {
+        height: 10%;
+        font-size: 10px;
+        color: ${lightGrey};
+
+        div:first-child {
+            width: calc(40% - ${SP[1]}px);
+            padding-left: ${SP[1]}px;
+            transform: translateY(-${SP[0]}px);
+        }
+
+        div:last-child {
+            width: calc(60% - ${SP[6]}px);
+            padding-left: ${SP[6]}px;
+            transform: translateY(-${SP[0]}px);
+        }
+    }
+
+    .chord-scale-container {
+        height: 90%;
+    }
 `;
 
-export const Label = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    font-size: 14px;
-    text-align: right;
-    line-height: ${CIRCLE_SIZE}px;
-`;
-
-export const Tag = styled.div.attrs((props: CSSProps) => ({
+export const RootContainer = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        // border: props.highlighted ? "2px solid #000" : "2px solid transparent",
-        boxShadow: props.highlighted
-            ? "0 0 4px 0 #aaa"
-            : "0px 0px 0px 0px transparent",
-        paddingLeft: `${props.wide ? (CIRCLE_SIZE - 4) / 2 : 2}px`,
-        paddingRight: `${props.wide ? (CIRCLE_SIZE - 4) / 2 : 2}px`,
     },
 }))<CSSProps>`
-    margin: 2px 8px;
-    border-radius: ${CIRCLE_SIZE - 4}px;
-    min-width: ${CIRCLE_SIZE - 4}px;
-    min-height: ${CIRCLE_SIZE - 4}px;
-    font-size: 11px;
+    height: 100%;
+    width: 40%;
+`;
+
+export const ChordScaleContainer = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        ...props,
+    },
+}))<CSSProps>`
+    height: 100%;
+    width: 60%;
+    position: relative;
+    top: 0;
+    left: 0;
+
+    .overflow-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: calc(100% - ${SP[6]}px);
+        height: calc(100% - ${2 * SP[0]}px);
+
+        margin-top: ${SP[0]}px;
+        margin-bottom: ${SP[0]}px;
+        margin-left: ${SP[6]}px;
+        border-radius: 999999px;
+    }
+`;
+
+export const RootTag = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        ...props,
+        backgroundColor: props.highlighted ? sandy : "white",
+    },
+}))<CSSProps>`
+    height: calc(100% - ${3 * SP[0]}px);
+    flex-grow: 1;
+    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    flex-shrink: 0;
+    margin: ${SP[0]}px ${SP[1]}px;
+    padding: ${SP[0] / 2}px;
+    font-size: 11px;
+    border-radius: 999999px;
     transition: border 150ms ease-in-out;
+    box-shadow: 0 0 4px 0 #aaa;
+    z-index: 0;
+`;
+
+export const ShadowOverlay = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    z-index: 9999;
+    box-shadow: inset 0 0 4px 0 #777;
+    pointer-events: none;
 `;
 
 export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    position: relative;
-    z-index: 999;
+    overflow-x: auto;
+    background-color: ${lighterGrey};
+`;
 
-    &:before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: ${3 * SP[4]}px;
-        background-image: linear-gradient(
-            to left,
-            rgba(255, 255, 255, 0),
-            white 85%
-        );
-        pointer-events: none;
-    }
-
-    &:after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        top: 0;
-        right: 0;
-        width: ${3 * SP[4]}px;
-        background-image: linear-gradient(
-            to right,
-            rgba(255, 255, 255, 0),
-            white 85%
-        );
-        pointer-events: none;
-    }
-
-    & > div {
-        width: 100%;
-        overflow-x: auto;
-    }
+export const ChordScaleTag = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        ...props,
+        backgroundColor: props.highlighted ? sandy : "transparent",
+    },
+}))<CSSProps>`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    height: 100%;
+    padding: 0 ${SP[4]}px;
+    z-index: 0;
 `;

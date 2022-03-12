@@ -605,12 +605,16 @@ export const getFretboardDimensions = () => {
     const minFretboardHeight = height * FRETBOARD_PERCENTAGE;
     const maxFretboardHeight = height * MAIN_PERCENTAGE;
 
+    // one sixth of x% of fretboard height, for some extra padding
+    const circleSize = Math.floor((maxFretboardHeight * 0.72) / 6);
+
     return {
         gutterHeight,
         minInputHeight,
         maxInputHeight,
         minFretboardHeight,
         maxFretboardHeight,
+        circleSize,
     };
 };
 

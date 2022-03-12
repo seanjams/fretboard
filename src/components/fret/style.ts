@@ -1,14 +1,13 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { CIRCLE_SIZE, SP, lightGrey } from "../../utils";
+import { SP, lightGrey } from "../../utils";
 
 // CSS
 interface CSSProps extends CSS.Properties {
     legendTop?: boolean;
     animationBackground?: string;
     isOpenString?: boolean;
-    isTop?: boolean;
-    isBottom?: boolean;
+    circleSize?: number;
 }
 
 export const FretDiv = styled.div.attrs((props: CSSProps) => ({
@@ -40,16 +39,16 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
         ...props,
     },
 }))<CSSProps>`
-    margin-left: -${CIRCLE_SIZE / 2}px;
-    margin-right: -${CIRCLE_SIZE / 2}px;
+    margin-left: -${(props) => (props.circleSize || 0) / 2}px;
+    margin-right: -${(props) => (props.circleSize || 0) / 2}px;
+    width: ${(props) => props.circleSize || 0}px;
+    height: ${(props) => props.circleSize || 0}px;
+    border-radius: 100%;
     box-sizing: border-box;
     color: ${lightGrey};
     display: flex;
     justify-content: center;
     align-items: center;
-    width: ${CIRCLE_SIZE}px;
-    height: ${CIRCLE_SIZE}px;
-    border-radius: 100%;
     background-color: transparent;
     z-index: 9999;
     touch-action: none;
@@ -65,10 +64,10 @@ export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
         ...props,
     },
 }))<CSSProps>`
-    margin-left: -${CIRCLE_SIZE / 2}px;
-    margin-right: -${CIRCLE_SIZE / 2}px;
-    width: ${CIRCLE_SIZE}px;
-    height: ${CIRCLE_SIZE}px;
+    margin-left: -${(props) => (props.circleSize || 0) / 2}px;
+    margin-right: -${(props) => (props.circleSize || 0) / 2}px;
+    width: ${(props) => props.circleSize || 0}px;
+    height: ${(props) => props.circleSize || 0}px;
     border-radius: 100%;
     z-index: 9998;
     position: absolute;

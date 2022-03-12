@@ -7,13 +7,19 @@ import {
     useTouchHandlers,
     getComputedAppState,
 } from "../../store";
-import { ArrowTypes, DisplayTypes, ReactMouseEvent } from "../../types";
+import {
+    ArrowTypes,
+    DisplayTypes,
+    ReactMouseEvent,
+    WindowMouseEvent,
+} from "../../types";
 import {
     HIGHLIGHTED,
     SELECTED,
     STRUM_LOW_TO_HIGH,
     ARPEGGIATE_LOW_TO_HIGH,
     SAFETY_AREA_MARGIN,
+    lightGrey,
 } from "../../utils";
 import {
     PillControlsContainer,
@@ -62,7 +68,6 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
                     iconHeight={18}
                     iconWidth={18}
                 />
-                <Label>{""}</Label>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
@@ -71,7 +76,6 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
                     iconHeight={18}
                     iconWidth={18}
                 />
-                <Label>{""}</Label>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
@@ -80,7 +84,6 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
                     iconHeight={18}
                     iconWidth={18}
                 />
-                <Label>{""}</Label>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
@@ -89,7 +92,6 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
                     iconHeight={18}
                     iconWidth={18}
                 />
-                <Label>{""}</Label>
             </Div>
         </PillControlsContainer>
     );
@@ -145,7 +147,6 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
                             >
                                 <Div />
                             </Div>
-                            <Label>{""}</Label>
                         </Div>
 
                         <Div className="pill-button-container clear-button">
@@ -156,7 +157,6 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
                                 iconWidth={18}
                                 isCircular={true}
                             />
-                            <Label>clear</Label>
                         </Div>
                     </FlexRow>
                 </CSSTransition>
@@ -210,7 +210,6 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
                     imageSrc={CogIcon}
                     selected={display === "settings"}
                 />
-                <Label>Settings</Label>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
@@ -218,7 +217,6 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
                     imageSrc={ChordIcon}
                     selected={display === "change-chord"}
                 />
-                <Label>Input</Label>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
@@ -226,7 +224,6 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
                     imageSrc={SaveIcon}
                     selected={display === "change-progression"}
                 />
-                <Label>Progression</Label>
             </Div>
         </PillControlsContainer>
     );
@@ -247,16 +244,13 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
 
     return (
         <FlexRow justifyContent="start">
-            <Div>
-                <IconButton
-                    onClick={onPlayNotes}
-                    imageSrc={PlayIcon}
-                    iconHeight={22}
-                    iconWidth={22}
-                    isCircular={true}
-                />
-                <Label>Play</Label>
-            </Div>
+            <IconButton
+                onClick={onPlayNotes}
+                imageSrc={PlayIcon}
+                iconHeight={22}
+                iconWidth={22}
+                isCircular={true}
+            />
         </FlexRow>
     );
 };
@@ -317,41 +311,72 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
     };
 
     return (
-        <FlexRow
+        <Div
+            padding={`0 ${SAFETY_AREA_MARGIN}px`}
+            height="100%"
             width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
-            padding={`0 ${2 * SAFETY_AREA_MARGIN}px`}
-            justifyContent="space-between"
         >
-            <Checkbox
-                checked={label === "sharp"}
-                leftLabel="Flat"
-                rightLabel="Sharp"
-                onClick={onLabelChange}
-            />
-            <Checkbox
-                checked={!!leftHand}
-                leftLabel="Right Hand"
-                rightLabel="Left Hand"
-                onClick={appStore.dispatch.toggleLeftHand}
-            />
-            <Checkbox
-                checked={!!invert}
-                leftLabel="Not"
-                rightLabel="Invert"
-                onClick={appStore.dispatch.toggleInvert}
-            />
-            <Checkbox
-                checked={strumMode !== STRUM_LOW_TO_HIGH}
-                leftLabel="Strum"
-                rightLabel="Arpeggiate"
-                onClick={onStrumModeChange}
-            />
-            <Checkbox
-                checked={isMuted}
-                leftLabel="Unmute"
-                rightLabel="Mute"
-                onClick={audioStore.dispatch.toggleMute}
-            />
-        </FlexRow>
+            <Div fontSize="10px" color={lightGrey} width="100%" height="10%">
+                Settings
+            </Div>
+            <FlexRow
+                height="90%"
+                padding={`0 ${SAFETY_AREA_MARGIN}px`}
+                justifyContent="space-between"
+            >
+                <Checkbox
+                    checked={label === "sharp"}
+                    leftLabel="Flat"
+                    rightLabel="Sharp"
+                    onClick={onLabelChange}
+                />
+                <Checkbox
+                    checked={!!leftHand}
+                    leftLabel="Right Hand"
+                    rightLabel="Left Hand"
+                    onClick={appStore.dispatch.toggleLeftHand}
+                />
+                <Checkbox
+                    checked={!!invert}
+                    leftLabel="Not"
+                    rightLabel="Invert"
+                    onClick={appStore.dispatch.toggleInvert}
+                />
+                <Checkbox
+                    checked={strumMode !== STRUM_LOW_TO_HIGH}
+                    leftLabel="Strum"
+                    rightLabel="Arpeggiate"
+                    onClick={onStrumModeChange}
+                />
+                <Checkbox
+                    checked={isMuted}
+                    leftLabel="Unmute"
+                    rightLabel="Mute"
+                    onClick={audioStore.dispatch.toggleMute}
+                />
+            </FlexRow>
+        </Div>
+    );
+};
+
+interface ProgressionControlsProps extends ControlsProps {
+    onAddClick: (event: WindowMouseEvent) => void;
+    onRemoveClick: (event: WindowMouseEvent) => void;
+}
+
+export const ProgressionControls: React.FC<ProgressionControlsProps> = ({
+    appStore,
+    onAddClick,
+    onRemoveClick,
+}) => {
+    return (
+        <PillControlsContainer>
+            <Div className="pill-button-container">
+                <IconButton onClick={onAddClick} imageSrc={PlusIcon} />
+            </Div>
+            <Div className="pill-button-container">
+                <IconButton onClick={onRemoveClick} imageSrc={MinusIcon} />
+            </Div>
+        </PillControlsContainer>
     );
 };
