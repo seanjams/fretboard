@@ -5,6 +5,8 @@ import {
     AudioStore,
     useStateRef,
     useTouchHandlers,
+    getCoordinates,
+    TouchStateType,
 } from "../../store";
 import {
     LabelTypes,
@@ -12,6 +14,7 @@ import {
     StatusTypes,
     ReactMouseEvent,
     WindowMouseEvent,
+    DragStatusTypes,
 } from "../../types";
 import {
     getFretWidth,
@@ -507,25 +510,29 @@ export const Fret: React.FC<FretProps> = ({
         }
     }
 
-    const touchHandlers = useTouchHandlers({
-        onStart: (event: ReactMouseEvent) => {
-            // dont select/deselect notes when disabled
-            if (isDisabledRef.current) return;
+    function setNextHighlightStatus(
+        highlightMode: StatusTypes,
+        fromStatus: StatusTypes,
+        fromDragStatus: DragStatusTypes,
+        isDragging: boolean
+    ): [StatusTypes, DragStatusTypes] {
+        // toggle selection of note
+        let toStatus = fromStatus;
+        let toDragStatus = fromDragStatus;
 
-            // highlight note if brush mode is highlight
-            const { status, fretboard, fretDragStatus } =
-                appStore.getComputedState();
-
-            // toggle selection of note
-            const fromStatus = fretboard.strings[stringIndex][fretIndex];
-            let toStatus = fromStatus;
-            let toDragStatus = fretDragStatus;
-            if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
-                // only handle events on selected notes, the rest are disabled
+        if (highlightMode === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
+            // only handle events on selected notes, the rest are disabled
+            if (isDragging) {
+                toStatus = fromDragStatus === "off" ? SELECTED : HIGHLIGHTED;
+            } else {
                 toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
                 toDragStatus = fromStatus === HIGHLIGHTED ? "off" : "on";
-            } else if (status === SELECTED) {
-                // Demote the selection status, or select if not selected already
+            }
+        } else if (highlightMode === SELECTED) {
+            // Demote the selection status, or select if not selected already
+            if (isDragging) {
+                toStatus = fromDragStatus === "on" ? SELECTED : NOT_SELECTED;
+            } else {
                 toStatus =
                     fromStatus === HIGHLIGHTED
                         ? SELECTED
@@ -536,78 +543,90 @@ export const Fret: React.FC<FretProps> = ({
                         : NOT_SELECTED;
                 toDragStatus = fromStatus === NOT_SELECTED ? "on" : "off";
             }
+        }
 
-            if (toStatus !== fromStatus) {
-                appStore.dispatch.setHighlightedNote(
-                    stringIndex,
-                    fretIndex,
-                    toStatus
-                );
-                playNoteAudio();
-            }
-            if (toDragStatus !== fretDragStatus)
-                appStore.dispatch.setFretDragStatus(toDragStatus);
+        if (toStatus !== fromStatus) {
+            appStore.dispatch.setHighlightedNote(
+                stringIndex,
+                fretIndex,
+                toStatus
+            );
+            playNoteAudio();
+        }
 
+        return [toStatus, toDragStatus];
+    }
+
+    function setHighlightNote(startDrag = false) {
+        // dont select/deselect notes when disabled
+        if (isDisabledRef.current) return;
+
+        // highlight note if brush mode is highlight
+        const { status, fretboard, fretDragStatus } =
+            appStore.getComputedState();
+
+        // toggle selection of note
+        const fromStatus = fretboard.strings[stringIndex][fretIndex];
+        const [_, toDragStatus] = setNextHighlightStatus(
+            status,
+            fromStatus,
+            fretDragStatus,
+            false
+        );
+
+        if (startDrag && toDragStatus !== fretDragStatus) {
+            appStore.dispatch.setFretDragStatus(toDragStatus);
+        }
+    }
+
+    const touchHandlers = useTouchHandlers({
+        onStart: (event: ReactMouseEvent) => {
+            const { fretDragStatus } = appStore.state;
             // this is needed to let onTouchMove know that this element started
             // the drag sequence, and therefore doesn't need to be processed
             startMouseOver();
+            if (fretDragStatus) appStore.dispatch.setFretDragStatus(null);
         },
-        onEnd: () => clearMouseOver(),
-        onMove: (event: WindowMouseEvent) => {
-            // dont select/deselect notes when disabled
-            if (isDisabledRef.current) return;
-
+        onEnd: (event: WindowMouseEvent, touchStore: TouchStateType) => {
+            setHighlightNote();
+            clearMouseOver();
+        },
+        onLongPress: () => {
+            setHighlightNote(true);
+        },
+        onMove: (event: WindowMouseEvent, touchStore: TouchStateType) => {
             const { fretboard, status, fretDragStatus } =
                 appStore.getComputedState();
+            const { coordinates } = touchStore;
 
-            if (!fretDragStatus || !circleRef.current) return;
-
-            let clientX: number;
-            let clientY: number;
-            if (event instanceof MouseEvent) {
-                clientX = event.clientX;
-                clientY = event.clientY;
-            } else if (event instanceof TouchEvent) {
-                clientX = event.touches[0].clientX;
-                clientY = event.touches[0].clientY;
-            } else {
+            // dont select/deselect notes when disabled or not isLongPress
+            if (
+                isDisabledRef.current ||
+                !fretDragStatus ||
+                !circleRef.current ||
+                !coordinates
+            )
                 return;
-            }
+
+            const [clientX, clientY] = coordinates;
 
             // could speed up by cacheing this
             const circleBoundary = circleRef.current.getBoundingClientRect();
-            if (isWithinBoundary(circleBoundary, clientX, clientY)) {
-                if (!isMouseOverRef.current) {
-                    const fromStatus =
-                        fretboard.strings[stringIndex][fretIndex];
-                    let toStatus = fromStatus;
-                    let toDragStatus = fretDragStatus;
+            if (
+                clientX &&
+                clientY &&
+                isWithinBoundary(circleBoundary, clientX, clientY)
+            ) {
+                if (isMouseOverRef.current) return;
+                const fromStatus = fretboard.strings[stringIndex][fretIndex];
+                setNextHighlightStatus(
+                    status,
+                    fromStatus,
+                    fretDragStatus,
+                    true
+                );
 
-                    if (status === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
-                        // case when dragging over a selected/highlighted note in highlight mode
-                        toStatus =
-                            fretDragStatus === "off" ? SELECTED : HIGHLIGHTED;
-                    } else if (status === SELECTED) {
-                        // case when dragging over any note in standard mode
-                        toStatus =
-                            fretDragStatus === "on" ? SELECTED : NOT_SELECTED;
-                    }
-
-                    if (toStatus !== fromStatus) {
-                        appStore.dispatch.setHighlightedNote(
-                            stringIndex,
-                            fretIndex,
-                            toStatus
-                        );
-                        playNoteAudio();
-                    }
-                    if (toDragStatus !== fretDragStatus) {
-                        appStore.dispatch.setFretDragStatus(fretDragStatus);
-                        playNoteAudio();
-                    }
-
-                    startMouseOver();
-                }
+                startMouseOver();
             } else {
                 // remove isMouseOver when leaving the circle boundaries,
                 // with small delay to prevent flickering

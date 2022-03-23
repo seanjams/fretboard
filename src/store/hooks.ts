@@ -92,74 +92,195 @@ export const useKeyPressHandlers = (
     };
 };
 
+export interface TouchStateType {
+    isDragging: boolean;
+    isPressed: boolean;
+    isPendingDoubleClick: boolean;
+    isLongPress: boolean;
+    longPressTimeout: ReturnType<typeof setTimeout> | null;
+    origin: [number, number] | null; // where touch was initiated
+    coordinates: [number, number] | null; // current touch location
+    isWithinThreshold: boolean;
+}
+
+export function getCoordinates(
+    event: ReactMouseEvent | WindowMouseEvent
+): [number, number] | null {
+    let clientX: number;
+    let clientY: number;
+    if (event instanceof MouseEvent) {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    } else if (event instanceof TouchEvent) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+    } else {
+        return null;
+    }
+
+    return [clientX, clientY];
+}
+
 export const useTouchHandlers = (
     handlers: {
-        onStart?: (event: ReactMouseEvent) => void;
-        onEnd?: (event: WindowMouseEvent) => void;
-        onMove?: (event: WindowMouseEvent) => void;
-        onDoubleClick?: (event: ReactMouseEvent) => void;
+        onStart?: (event: ReactMouseEvent, touchStore: TouchStateType) => void;
+        onEnd?: (event: WindowMouseEvent, touchStore: TouchStateType) => void;
+        onMove?: (event: WindowMouseEvent, touchStore: TouchStateType) => void;
+        onDoubleClick?: (
+            event: ReactMouseEvent,
+            touchStore: TouchStateType
+        ) => void;
+        onLongPress?: (
+            event: ReactMouseEvent,
+            touchStore: TouchStateType
+        ) => void;
     },
-    { delay = 600 } = {}
+    { longPressDelay = 800, doubleClickDelay = 600, threshold = 10 } = {}
 ) => {
-    const isDraggingRef = useRef(false);
-    const isPressedRef = useRef(false);
-    const isPendingDoubleClickRef = useRef(false);
-    const { onStart, onEnd, onMove, onDoubleClick } = handlers;
+    const { onStart, onEnd, onMove, onDoubleClick, onLongPress } = handlers;
+
+    const touchStoreRef = useRef<TouchStateType>({
+        isDragging: false,
+        isPressed: false,
+        isPendingDoubleClick: false,
+        isLongPress: false,
+        longPressTimeout: null,
+        origin: null,
+        coordinates: null,
+        isWithinThreshold: false,
+    });
 
     const start = useCallback(
         (event: ReactMouseEvent) => {
             // set isPressed
-            isPressedRef.current = true;
+            touchStoreRef.current.isPressed = true;
 
-            if (isPendingDoubleClickRef.current) {
+            // set press origin, coordinates
+            let origin = (touchStoreRef.current.origin = getCoordinates(event));
+            touchStoreRef.current.coordinates = origin;
+            touchStoreRef.current.isWithinThreshold = true;
+
+            if (touchStoreRef.current.isPendingDoubleClick) {
                 // call double click handler
-                isPendingDoubleClickRef.current = false;
-                if (onDoubleClick) onDoubleClick(event);
-            } else {
-                // set timeout for double click
-                isPendingDoubleClickRef.current = true;
-                setTimeout(() => {
-                    isPendingDoubleClickRef.current = false;
-                }, delay);
-
-                // call single click handler
-                if (onStart) onStart(event);
+                touchStoreRef.current.isPendingDoubleClick = false;
+                if (onDoubleClick) {
+                    onDoubleClick(event, touchStoreRef.current);
+                    return;
+                }
             }
+            // set timeout for double click
+            touchStoreRef.current.isPendingDoubleClick = true;
+            setTimeout(() => {
+                touchStoreRef.current.isPendingDoubleClick = false;
+            }, doubleClickDelay);
+
+            // set timeout for long press
+            touchStoreRef.current.isLongPress = false;
+            touchStoreRef.current.longPressTimeout = setTimeout(() => {
+                touchStoreRef.current.isLongPress = true;
+                if (onLongPress) {
+                    console.log("LONG PRESSING");
+                    onLongPress(event, touchStoreRef.current);
+                }
+            }, longPressDelay);
+
+            // call single click handler
+            if (onStart) onStart(event, touchStoreRef.current);
         },
-        [onDoubleClick, onStart, delay]
+        [onDoubleClick, onStart, longPressDelay, doubleClickDelay]
     );
 
     const move = useCallback(
         (event: WindowMouseEvent) => {
             // set isDragging
-            if (isPressedRef.current && !isDraggingRef.current)
-                isDraggingRef.current = true;
+            let {
+                isPressed,
+                isDragging,
+                origin,
+                longPressTimeout,
+                isWithinThreshold,
+            } = touchStoreRef.current;
 
-            // call handler
-            if (onMove) onMove(event);
+            if (isPressed && !isDragging) {
+                touchStoreRef.current.isDragging = true;
+            }
+            // else if (!isPressed) {
+            //     // for window events
+            //     touchStoreRef.current.isDragging = false;
+            // }
+
+            // set coordinates if entering this component from drag
+            let coordinates = (touchStoreRef.current.coordinates =
+                getCoordinates(event));
+            if (!origin) origin = touchStoreRef.current.origin = coordinates;
+
+            // check if moved outside of boundary
+            if (coordinates && origin && isPressed) {
+                // set isWithinThreshold by checking current location hypotenuse length
+                const [x0, y0] = origin;
+                const [x1, y1] = coordinates;
+
+                const newIsWithinThreshold =
+                    (x1 - x0) ** 2 + (y1 - y0) ** 2 < threshold ** 2;
+
+                // set isLongPress
+                if (isWithinThreshold && !newIsWithinThreshold) {
+                    if (longPressTimeout) {
+                        clearTimeout(longPressTimeout);
+                        touchStoreRef.current.longPressTimeout = null;
+                    }
+                    touchStoreRef.current.isLongPress = false;
+                }
+
+                touchStoreRef.current.isWithinThreshold = newIsWithinThreshold;
+            }
+
+            if (onMove)
+                // call handler
+                onMove(event, touchStoreRef.current);
         },
         [onMove]
     );
 
     const clear = useCallback(
-        (event: WindowMouseEvent, shouldTriggerClick = true) => {
+        (event: WindowMouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
 
-            if (!isPressedRef.current) return;
+            const {
+                isPressed,
+                isLongPress,
+                longPressTimeout,
+                isWithinThreshold,
+                isPendingDoubleClick,
+            } = touchStoreRef.current;
+
+            if (!isPressed) return;
+            let shouldTriggerClick = isWithinThreshold && isPendingDoubleClick;
+
             // set isPressed
-            isPressedRef.current = false;
+            touchStoreRef.current.isPressed = false;
+
+            // set press coordinates
+            touchStoreRef.current.origin = null;
+            touchStoreRef.current.coordinates = null;
+            touchStoreRef.current.isWithinThreshold = false;
 
             // set isDragging
-            isDraggingRef.current = false;
+            touchStoreRef.current.isDragging = false;
+
+            // set isLongPress
+            if (isLongPress) shouldTriggerClick = false;
+            if (longPressTimeout) {
+                clearTimeout(longPressTimeout);
+                touchStoreRef.current.longPressTimeout = null;
+            }
+            touchStoreRef.current.isLongPress = false;
 
             // call handler
-            if (
-                shouldTriggerClick &&
-                isPendingDoubleClickRef.current &&
-                onEnd
-            ) {
-                onEnd(event);
+            if (shouldTriggerClick && onEnd) {
+                console.log("ENDING");
+                onEnd(event, touchStoreRef.current);
             }
         },
         [onEnd]

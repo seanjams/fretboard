@@ -16,7 +16,8 @@
         "deps": "rm -rf node_modules && yarn install",
         "clean": "rm -f www/bundle.js && rm -rf www/assets",
         "serve-ios": "nodemon --watch www/bundle.js --exec \"cordova run ios\"",
-        "start": "npm-run-all -c -n -l -p watch serve-ios"
+        "start": "npm-run-all -c -n -l -p watch serve-ios",
+        "xcode": "build && cordova prepare ios"
     },
     "devDependencies": {
         "@types/react": "^16.9.25",
@@ -46,6 +47,7 @@
         "@types/lodash": "^4.14.168",
         "@types/react-transition-group": "^4.4.2",
         "lodash": "^4.17.21",
+        "moment": "^2.29.1",
         "react": "^16.13.1",
         "react-device-detect": "^1.17.0",
         "react-dom": "^16.13.1",
