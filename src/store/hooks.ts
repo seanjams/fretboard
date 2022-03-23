@@ -256,7 +256,15 @@ export const useTouchHandlers = (
             } = touchStoreRef.current;
 
             if (!isPressed) return;
-            let shouldTriggerClick = isWithinThreshold && isPendingDoubleClick;
+            let shouldTriggerClick =
+                isWithinThreshold && isPendingDoubleClick && !isLongPress;
+
+            // call handler before resetting touchStore
+            if (shouldTriggerClick && onEnd) {
+                onEnd(event, touchStoreRef.current);
+            }
+
+            // Reset touchStore
 
             // set isPressed
             touchStoreRef.current.isPressed = false;
@@ -270,18 +278,11 @@ export const useTouchHandlers = (
             touchStoreRef.current.isDragging = false;
 
             // set isLongPress
-            if (isLongPress) shouldTriggerClick = false;
             if (longPressTimeout) {
                 clearTimeout(longPressTimeout);
                 touchStoreRef.current.longPressTimeout = null;
             }
             touchStoreRef.current.isLongPress = false;
-
-            // call handler
-            if (shouldTriggerClick && onEnd) {
-                console.log("ENDING");
-                onEnd(event, touchStoreRef.current);
-            }
         },
         [onEnd]
     );

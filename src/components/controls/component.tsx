@@ -26,9 +26,9 @@ import {
     HighlightCheckboxAnimation,
     Label,
 } from "./style";
-import { IconButton } from "../Button";
 import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
+import { IconButton } from "../IconButton";
 import PlusIcon from "../../assets/icons/plus.png";
 import MinusIcon from "../../assets/icons/minus.png";
 
@@ -332,8 +332,8 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
                 />
                 <Checkbox
                     checked={!!leftHand}
-                    leftLabel="Right Hand"
-                    rightLabel="Left Hand"
+                    leftLabel="Right"
+                    rightLabel="Left"
                     onClick={appStore.dispatch.toggleLeftHand}
                 />
                 <Checkbox

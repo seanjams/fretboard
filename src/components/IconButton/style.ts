@@ -48,8 +48,7 @@ export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
     img {
         height: ${(props) => props.iconHeight || 16}px;
         width: ${(props) => props.iconWidth || 16}px;
-        // filter: brightness(0) saturate(100%) invert(100%) sepia(1%)
-        //     saturate(2808%) hue-rotate(322deg) brightness(82%) contrast(80%);
+        // use this codepen to generate filter colors https://codepen.io/sosuke/pen/Pjoqqp
         filter: brightness(0) saturate(100%) invert(51%) sepia(4%) saturate(8%)
             hue-rotate(358deg) brightness(97%) contrast(92%);
     }

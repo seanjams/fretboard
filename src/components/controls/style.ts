@@ -68,6 +68,11 @@ const EXIT = 250;
 const highlightCheckboxHeight = 32;
 const highlightCheckboxWidth = 80;
 
+const whiteFilter =
+    "invert(93%) sepia(100%) saturate(29%) hue-rotate(36deg) brightness(105%) contrast(108%)";
+const greyFilter =
+    "brightness(0) saturate(100%) invert(51%) sepia(4%) saturate(8%) hue-rotate(358deg) brightness(97%) contrast(92%)";
+
 const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     (props: CSSProps) => ({
         style: { ...props },
@@ -97,6 +102,10 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .clear-button .button-div {
             background-color: transparent !important;
             border-radius: 100%;
+
+            img {
+                filter: ${greyFilter};
+            }
         }
     }
 
@@ -110,6 +119,10 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
 
         .clear-button .button-div {
             background-color: transparent !important;
+
+            img {
+                filter: ${greyFilter};
+            }
         }
     }
     .highlight-slide-enter-active {
@@ -126,6 +139,11 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .clear-button .button-div {
             background-color: ${primaryColor} !important;
             transition: background-color ${ENTER}ms ease-in-out;
+
+            img {
+                filter: ${whiteFilter};
+                transition: filter ${ENTER}ms ease-in-out;
+            }
         }
     }
     .highlight-slide-enter-done {
@@ -138,6 +156,10 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
 
         .clear-button .button-div {
             background-color: ${primaryColor} !important;
+
+            img {
+                filter: ${whiteFilter};
+            }
         }
     }
     .highlight-slide-exit {
@@ -150,6 +172,10 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
 
         .clear-button .button-div {
             background-color: ${primaryColor} !important;
+
+            img {
+                filter: ${whiteFilter};
+            }
         }
     }
     .highlight-slide-exit-active {
@@ -166,6 +192,11 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .clear-button .button-div {
             background-color: transparent !important;
             transition: background-color ${EXIT}ms ease-in-out;
+
+            img {
+                filter: ${greyFilter};
+                transition: filter ${EXIT}ms ease-in-out;
+            }
         }
     }
     .highlight-slide-exit-done {
@@ -178,6 +209,10 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
 
         .clear-button .button-div {
             background-color: transparent !important;
+
+            img {
+                filter: ${greyFilter};
+            }
         }
     }
 `;

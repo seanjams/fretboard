@@ -6,6 +6,7 @@ import {
     AppStore,
     getComputedAppState,
     AudioStore,
+    useTouchHandlers,
 } from "../../store";
 import {
     ChordTypes,
@@ -13,6 +14,7 @@ import {
     LabelTypes,
     NoteTypes,
     ReactMouseEvent,
+    WindowMouseEvent,
 } from "../../types";
 import {
     FLAT_NAMES,
@@ -31,6 +33,58 @@ import {
     RootTag,
     ShadowOverlay,
 } from "./style";
+
+interface ChordNameProps {
+    highlighted: boolean;
+    chordName?: ChordTypes;
+    rootName?: NoteTypes;
+    onClick: (event: ReactMouseEvent | WindowMouseEvent) => void;
+}
+
+const ChordRoot: React.FC<ChordNameProps> = ({
+    highlighted,
+    rootName,
+    onClick,
+}) => {
+    const touchHandlers = useTouchHandlers({
+        onEnd: (event) => {
+            onClick && onClick(event);
+        },
+    });
+
+    return (
+        <RootTag highlighted={highlighted} {...touchHandlers}>
+            <ChordSymbol rootName={rootName || ""} chordName="" fontSize={12} />
+        </RootTag>
+    );
+};
+
+const ChordName: React.FC<ChordNameProps> = ({
+    highlighted,
+    chordName,
+    onClick,
+}) => {
+    const touchHandlers = useTouchHandlers({
+        onEnd: (event) => {
+            onClick && onClick(event);
+        },
+    });
+
+    return (
+        <ChordScaleTag
+            highlighted={highlighted}
+            wide={true}
+            size={`calc(100% - ${SP[3]}px)`}
+            {...touchHandlers}
+        >
+            <ChordSymbol
+                rootName=""
+                chordName={chordName || ""}
+                fontSize={12}
+            />
+        </ChordScaleTag>
+    );
+};
 
 interface ChordInputProps {
     appStore: AppStore;
@@ -143,18 +197,12 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                 <RootContainer>
                     <FlexRow alignItems="start" width="100%" height="50%">
                         {noteNames.slice(0, 6).map((name, j) => (
-                            <RootTag
+                            <ChordRoot
                                 key={`${name}-key-${j}`}
                                 highlighted={rootIdx === j}
-                                onMouseDown={onRootChange(j)}
-                                onTouchStart={onRootChange(j)}
-                            >
-                                <ChordSymbol
-                                    rootName={name}
-                                    chordName=""
-                                    fontSize={12}
-                                />
-                            </RootTag>
+                                rootName={name}
+                                onClick={onRootChange(j)}
+                            />
                         ))}
                     </FlexRow>
                     <FlexRow
@@ -164,18 +212,12 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                         alignItems="start"
                     >
                         {noteNames.slice(6).map((name, j) => (
-                            <RootTag
+                            <ChordRoot
                                 key={`${name}-key-${j + 6}`}
                                 highlighted={rootIdx === j + 6}
-                                onMouseDown={onRootChange(j + 6)}
-                                onTouchStart={onRootChange(j + 6)}
-                            >
-                                <ChordSymbol
-                                    rootName={name}
-                                    chordName=""
-                                    fontSize={12}
-                                />
-                            </RootTag>
+                                rootName={name}
+                                onClick={onRootChange(j + 6)}
+                            />
                         ))}
                     </FlexRow>
                 </RootContainer>
@@ -184,20 +226,12 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                     <OverflowContainerDiv className="overflow-container">
                         <FlexRow width="fit-content" height="100%">
                             {CHORD_NAMES.map((name, j) => (
-                                <ChordScaleTag
+                                <ChordName
                                     key={`${name}-key-${j}`}
-                                    onMouseDown={onChordChange(name)}
-                                    onTouchStart={onChordChange(name)}
                                     highlighted={chordName === name}
-                                    wide={true}
-                                    size={`calc(100% - ${SP[3]}px)`}
-                                >
-                                    <ChordSymbol
-                                        rootName=""
-                                        chordName={name}
-                                        fontSize={12}
-                                    />
-                                </ChordScaleTag>
+                                    chordName={name}
+                                    onClick={onChordChange(name)}
+                                />
                             ))}
                         </FlexRow>
                     </OverflowContainerDiv>
