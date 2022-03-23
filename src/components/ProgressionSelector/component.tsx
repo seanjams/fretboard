@@ -9,7 +9,7 @@ import {
     useStateRef,
     useTouchHandlers,
 } from "../../store";
-import { FretboardNameType, LabelTypes, ReactMouseEvent } from "../../types";
+import { WindowMouseEvent } from "../../types";
 import { FLAT_NAMES, lightGrey, list, SHARP_NAMES, SP } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { ProgressionControls } from "../Controls";
@@ -17,7 +17,6 @@ import { Div, FlexRow } from "../Common";
 import {
     EmptyOption,
     LastUpdatedTime,
-    OptionAnimation,
     OverflowContainerDiv,
     ProgressionOptionContainer,
     ProgressionSelectorContainer,
@@ -40,7 +39,7 @@ interface ProgressionOptionProps {
     selected: boolean;
     progressionIndex: number;
     progression: ProgressionStateType;
-    onClick: (event: ReactMouseEvent) => void;
+    onClick: (event: WindowMouseEvent) => void;
 }
 
 export const ProgressionOption: React.FC<ProgressionOptionProps> = ({
@@ -63,12 +62,12 @@ export const ProgressionOption: React.FC<ProgressionOptionProps> = ({
             : FLAT_NAMES[rootIdx];
     }
 
-    const touchHandlers = useTouchHandlers({ onStart: onClick });
+    const touchHandlers = useTouchHandlers({ onEnd: onClick });
 
     return (
         <ProgressionOptionContainer {...touchHandlers} selected={selected}>
-            {progressionNames.length ? (
-                <>
+            <>
+                {progressionNames.length ? (
                     <FlexRow width="100%" height="100%">
                         {progressionNames.map((name, i) => {
                             return (
@@ -86,23 +85,23 @@ export const ProgressionOption: React.FC<ProgressionOptionProps> = ({
                             );
                         })}
                     </FlexRow>
-                    {progression.lastUpdated && (
-                        <LastUpdatedTime>
-                            {moment(progression.lastUpdated).format(
-                                "M/D/YY, h:mm:ss a"
-                            )}
-                        </LastUpdatedTime>
-                    )}
-                </>
-            ) : (
-                <FlexRow width="100%" height="100%">
-                    <EmptyOption
-                        key={`change-progression-name-${progressionIndex}-0`}
-                    >
-                        Empty
-                    </EmptyOption>
-                </FlexRow>
-            )}
+                ) : (
+                    <FlexRow width="100%" height="100%">
+                        <EmptyOption
+                            key={`change-progression-name-${progressionIndex}-0`}
+                        >
+                            Empty
+                        </EmptyOption>
+                    </FlexRow>
+                )}
+                <LastUpdatedTime>
+                    {progression.lastUpdated
+                        ? moment(progression.lastUpdated).format(
+                              "M/D/YY, h:mm:ss a"
+                          )
+                        : "Just Now"}
+                </LastUpdatedTime>
+            </>
         </ProgressionOptionContainer>
     );
 };
@@ -163,7 +162,7 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
         });
     }, []);
 
-    const getClickHandler = (i: number) => (event: ReactMouseEvent) => {
+    const getClickHandler = (i: number) => (event: WindowMouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
         appStore.dispatch.setCurrentProgressionIndex(i);
@@ -226,34 +225,13 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
                             {progressions.map((progression, i) => {
                                 const onClick = getClickHandler(i);
                                 return (
-                                    <OptionAnimation.wrapper
+                                    <ProgressionOption
                                         key={`change-progression-option-${i}`}
-                                    >
-                                        <CSSTransition
-                                            in={
-                                                getState().progressionActive[
-                                                    getProgressionString(
-                                                        progression,
-                                                        i
-                                                    )
-                                                ]
-                                            }
-                                            timeout={OptionAnimation.timeout}
-                                            classNames="option-shrink"
-                                            onEntered={onComplete}
-                                            onExited={onComplete}
-                                        >
-                                            <ProgressionOption
-                                                onClick={onClick}
-                                                progressionIndex={i}
-                                                progression={progression}
-                                                selected={
-                                                    i ===
-                                                    currentProgressionIndex
-                                                }
-                                            />
-                                        </CSSTransition>
-                                    </OptionAnimation.wrapper>
+                                        onClick={onClick}
+                                        progressionIndex={i}
+                                        progression={progression}
+                                        selected={i === currentProgressionIndex}
+                                    />
                                 );
                             })}
                         </FlexRow>

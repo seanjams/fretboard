@@ -1,11 +1,11 @@
 import CSS from "csstype";
 import styled from "styled-components";
 import {
-    oliveGreen,
     lighterGrey,
     mediumGrey,
     SAFETY_AREA_MARGIN,
     SP,
+    sandy,
 } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
@@ -54,8 +54,7 @@ export const SelectorContainer = styled.div.attrs((props: CSSProps) => ({
         height: calc(100% - ${2 * SP[0]}px);
         margin-top: ${SP[0]}px;
         margin-bottom: ${SP[0]}px;
-        // border-radius: 999999px;
-        border-radius: ${SP[3]}px;
+        border-radius: 999999px;
     }
 `;
 
@@ -78,19 +77,18 @@ export const ProgressionOptionContainer = styled.div.attrs(
     (props: CSSProps) => ({
         style: {
             ...props,
-            backgroundColor: props.selected ? oliveGreen : "white",
+            backgroundColor: props.selected ? sandy : "transparent",
         },
     })
 )<CSSProps>`
-    border-radius: ${SP[2]}px;
-    box-shadow: 0 0 4px 0 #aaa;
-    margin-top: ${SP[1]}px;
-    margin-bottom: ${SP[1]}px;
-    margin-left: ${SP[2]}px;
-    margin-right: ${SP[2]}px;
-    height: calc(100% - ${2 * SP[1]}px);
-    min-width: 100px;
-    opacity: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    height: 100%;
+    padding: 0 ${SP[4]}px;
+    z-index: 0;
 `;
 
 export const EmptyOption = styled.div.attrs((props: CSSProps) => ({
@@ -99,6 +97,8 @@ export const EmptyOption = styled.div.attrs((props: CSSProps) => ({
     },
 }))<CSSProps>`
     font-size: 12px;
+    min-width: 120px;
+    text-align: center;
     color: ${mediumGrey};
     padding-left: ${SP[1]}px;
     padding-right: ${SP[1]}px;
@@ -112,7 +112,7 @@ export const LastUpdatedTime = styled.div.attrs((props: CSSProps) => ({
     width: calc(100% - 10px);
     text-align: right;
     font-size: 8px;
-    margin-top: -10px;
+    margin-top: -12px;
     margin-right: 10px;
     color: ${mediumGrey};
 `;

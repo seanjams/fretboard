@@ -29,8 +29,8 @@ import {
 import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
 import { IconButton } from "../IconButton";
-import PlusIcon from "../../assets/icons/plus.png";
-import MinusIcon from "../../assets/icons/minus.png";
+import PlusIcon from "../../assets/icons/plus.svg";
+import MinusIcon from "../../assets/icons/minus.svg";
 
 import PlayIcon from "../../assets/icons/play.svg";
 import SaveIcon from "../../assets/icons/database.svg";

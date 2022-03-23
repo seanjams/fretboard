@@ -297,8 +297,8 @@ export const SHAPES: { label: ChordTypes; shapes: number[][] }[] = [
     {
         label: min9Chord,
         shapes: [
-            [0, 2, 3, 10],
             [0, 2, 3, 7, 10],
+            [0, 2, 3, 10],
         ],
     },
     {
