@@ -1,9 +1,12 @@
 import React, { useEffect } from "react";
-import { CSSTransition } from "react-transition-group";
 import { useStateRef, AppStore } from "../../store";
-import { getFretboardDimensions, SAFETY_AREA_MARGIN } from "../../utils";
-import { FlexRow } from "../Common";
-import { BottomDrawerAnimation, TopDrawerAnimation } from "./style";
+import { getFretboardDimensions } from "../../utils";
+import {
+    BottomDrawerAnimation,
+    BottomDrawerContainer,
+    TopDrawerAnimation,
+    TopDrawerContainer,
+} from "./style";
 
 interface DrawerProps {
     appStore: AppStore;
@@ -25,29 +28,14 @@ export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
         []
     );
 
-    const { maxInputHeight, minInputHeight } = getFretboardDimensions();
+    const fretboardDimensions = getFretboardDimensions();
 
     return (
-        <TopDrawerAnimation.wrapper
-            minInputHeight={minInputHeight}
-            maxInputHeight={maxInputHeight}
-        >
-            <CSSTransition
-                in={showTopDrawer}
-                timeout={TopDrawerAnimation.timeout}
-                classNames="top-drawer-grow"
-                // onEnter={() => setShowButton(false)}
-                // onExited={() => setShowButton(true)}
-            >
-                <FlexRow
-                    className="top-drawer-form"
-                    height={`${maxInputHeight}px`}
-                    width="100%"
-                >
-                    {showTopDrawer ? children : null}
-                </FlexRow>
-            </CSSTransition>
-        </TopDrawerAnimation.wrapper>
+        <TopDrawerAnimation trigger={showTopDrawer} {...fretboardDimensions}>
+            <TopDrawerContainer {...fretboardDimensions}>
+                {showTopDrawer ? children : null}
+            </TopDrawerContainer>
+        </TopDrawerAnimation>
     );
 };
 
@@ -67,28 +55,16 @@ export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
         []
     );
 
-    const { minInputHeight, maxInputHeight } = getFretboardDimensions();
+    const fretboardDimensions = getFretboardDimensions();
 
     return (
-        <BottomDrawerAnimation.wrapper
-            minInputHeight={minInputHeight}
-            maxInputHeight={maxInputHeight}
+        <BottomDrawerAnimation
+            trigger={showBottomDrawer}
+            {...fretboardDimensions}
         >
-            <CSSTransition
-                in={showBottomDrawer}
-                timeout={BottomDrawerAnimation.timeout}
-                classNames="bottom-drawer-grow"
-                // onEnter={() => setShowButton(false)}
-                // onExited={() => setShowButton(true)}
-            >
-                <FlexRow
-                    className="bottom-drawer-form"
-                    height={`${maxInputHeight}px`}
-                    width="100%"
-                >
-                    {showBottomDrawer ? children : null}
-                </FlexRow>
-            </CSSTransition>
-        </BottomDrawerAnimation.wrapper>
+            <BottomDrawerContainer {...fretboardDimensions}>
+                {showBottomDrawer ? children : null}
+            </BottomDrawerContainer>
+        </BottomDrawerAnimation>
     );
 };

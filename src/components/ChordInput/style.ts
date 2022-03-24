@@ -3,9 +3,9 @@ import styled from "styled-components";
 import {
     sandy,
     lighterGrey,
-    lightGrey,
     SAFETY_AREA_MARGIN,
     SP,
+    mediumGrey,
 } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
@@ -31,7 +31,7 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     .label-container {
         height: 10%;
         font-size: 10px;
-        color: ${lightGrey};
+        color: ${mediumGrey};
 
         div:first-child {
             width: calc(40% - ${SP[1]}px);

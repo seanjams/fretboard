@@ -1,6 +1,7 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { COLORS, lighterGrey, SP } from "../../utils";
+import { COLORS, lighterGrey, lightGrey, mediumGrey, SP } from "../../utils";
+import { generateAnimationWrapper } from "../Animation";
 
 // should extend from some CSSProp default object so you dont have to add these manually
 interface CSSProps extends CSS.Properties {}
@@ -57,10 +58,13 @@ export const Label = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     height: 8px;
-    margin: 3px 0;
+    margin: 0 0 ${SP[3]}px ${SP[2]}px;
+    padding-bottom: ${SP[0]}px;
+    border-bottom: 1px solid ${lightGrey}px;
     font-size: 9px;
-    text-align: center;
+    text-align: left;
     white-space: nowrap;
+    color: ${mediumGrey};
 `;
 
 const ENTER = 250;
@@ -73,42 +77,50 @@ const whiteFilter =
 const greyFilter =
     "brightness(0) saturate(100%) invert(51%) sepia(4%) saturate(8%) hue-rotate(358deg) brightness(97%) contrast(92%)";
 
+export const HighlightCheckboxContainer = styled.div.attrs(
+    (props: CSSProps) => ({
+        style: { ...props },
+    })
+)<CSSProps>`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .highlight-checkbox {
+        width: ${highlightCheckboxWidth}px;
+        height: ${highlightCheckboxHeight}px;
+        border-radius: ${highlightCheckboxHeight}px;
+        padding: 6px;
+        background-color: ${lighterGrey};
+        box-shadow: inset 0 0 4px 0 #777;
+        margin-right: ${SP[2]}px;
+
+        div {
+            position: relative;
+            left: 0;
+            height: ${highlightCheckboxHeight}px;
+            width: ${highlightCheckboxHeight}px;
+            border-radius: ${highlightCheckboxHeight}px;
+            background-color: white;
+            box-shadow: 0 0 4px 0 #777;
+        }
+    }
+
+    .clear-button .button-div {
+        background-color: transparent !important;
+        border-radius: 100%;
+
+        img {
+            filter: ${greyFilter};
+        }
+    }
+`;
+
 const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     (props: CSSProps) => ({
         style: { ...props },
     })
 )<CSSProps>`
-    .highlight-form {
-        .highlight-checkbox {
-            width: ${highlightCheckboxWidth}px;
-            height: ${highlightCheckboxHeight}px;
-            border-radius: ${highlightCheckboxHeight}px;
-            padding: 6px;
-            background-color: ${lighterGrey};
-            box-shadow: inset 0 0 4px 0 #777;
-            margin-right: ${SP[2]}px;
-
-            div {
-                position: relative;
-                left: 0;
-                height: ${highlightCheckboxHeight}px;
-                width: ${highlightCheckboxHeight}px;
-                border-radius: ${highlightCheckboxHeight}px;
-                background-color: white;
-                box-shadow: 0 0 4px 0 #777;
-            }
-        }
-
-        .clear-button .button-div {
-            background-color: transparent !important;
-            border-radius: 100%;
-
-            img {
-                filter: ${greyFilter};
-            }
-        }
-    }
-
     .highlight-slide-enter {
         .highlight-checkbox {
             background-color: ${lighterGrey};
@@ -217,7 +229,8 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     }
 `;
 
-export const HighlightCheckboxAnimation = {
-    timeout: { enter: ENTER, exit: EXIT },
-    wrapper: HighlightCheckboxAnimationWrapper,
-};
+export const HighlightCheckboxAnimation = generateAnimationWrapper(
+    HighlightCheckboxAnimationWrapper,
+    { enter: ENTER, exit: EXIT },
+    "highlight-slide"
+);

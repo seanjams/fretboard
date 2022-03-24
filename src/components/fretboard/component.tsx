@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import { CSSTransition } from "react-transition-group";
 import {
     useStateRef,
     AppStore,
@@ -182,40 +181,28 @@ export const Fretboard: React.FC<FretboardProps> = ({
         />
     ));
 
-    const { maxFretboardHeight, minFretboardHeight, maxInputHeight } =
-        getFretboardDimensions();
+    const fretboardDimensions = getFretboardDimensions();
 
     return (
-        <FretboardAnimation.wrapper
-            maxFretboardHeight={maxFretboardHeight}
-            minFretboardHeight={minFretboardHeight}
-            maxInputHeight={maxInputHeight}
+        <FretboardAnimation
+            trigger={showTopDrawer || showBottomDrawer}
             transformOrigin={transformOrigin}
+            {...fretboardDimensions}
         >
-            <CSSTransition
-                in={showTopDrawer || showBottomDrawer}
-                timeout={FretboardAnimation.timeout}
-                classNames="fretboard-shrink"
-                // onEnter={() => console.log("ENTER")}
-                // onEntered={() => console.log("ENTERED")}
-                // onExit={() => console.log("EXIT")}
-                // onExited={() => console.log("EXITED")}
+            <OverflowContainerDiv
+                ref={fretboardContainerRef}
+                className="overflow-container"
+                {...fretboardDimensions}
             >
-                <OverflowContainerDiv
-                    ref={fretboardContainerRef}
-                    className="overflow-container"
-                    maxFretboardHeight={maxFretboardHeight}
+                <FretboardContainer
+                    className="fretboard-container"
+                    {...fretboardDimensions}
                 >
-                    <FretboardContainer
-                        className="fretboard-container"
-                        maxFretboardHeight={maxFretboardHeight}
-                    >
-                        <FretboardDiv>
-                            {highEBottom ? strings : strings.reverse()}
-                        </FretboardDiv>
-                    </FretboardContainer>
-                </OverflowContainerDiv>
-            </CSSTransition>
-        </FretboardAnimation.wrapper>
+                    <FretboardDiv>
+                        {highEBottom ? strings : strings.reverse()}
+                    </FretboardDiv>
+                </FretboardContainer>
+            </OverflowContainerDiv>
+        </FretboardAnimation>
     );
 };

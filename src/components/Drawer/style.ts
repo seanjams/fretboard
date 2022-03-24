@@ -1,5 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
+import { generateAnimationWrapper } from "../Animation";
 
 interface CSSProps extends CSS.Properties {
     maxFretboardHeight?: number;
@@ -16,16 +17,23 @@ const TOP_ENTER = 150;
 const TOP_DELAY = 150;
 const TOP_EXIT = 150;
 
+// Top Drawer
+
+export const TopDrawerContainer = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    height: ${(props) => props.maxInputHeight}px;
+    width: 100%;
+    max-height: ${(props) => props.minInputHeight}px;
+`;
+
 const TopDrawerAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    .top-drawer-form {
-        opacity: 0;
-        height: ${(props) => props.maxInputHeight}px;
-        width: 100%;
-        max-height: ${(props) => props.minInputHeight}px;
-    }
-
     .top-drawer-grow-enter {
         opacity: 0;
         max-height: ${(props) => props.minInputHeight}px;
@@ -61,25 +69,33 @@ const TopDrawerAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
 `;
 
-export const TopDrawerAnimation = {
-    timeout: { enter: TOP_ENTER + TOP_DELAY, exit: TOP_EXIT },
-    wrapper: TopDrawerAnimationWrapper,
-};
+export const TopDrawerAnimation = generateAnimationWrapper(
+    TopDrawerAnimationWrapper,
+    { enter: TOP_ENTER + TOP_DELAY, exit: TOP_EXIT },
+    "top-drawer-grow"
+);
+
+// Bottom Drawer
 
 const BOTTOM_ENTER = 300;
 // const BOTTOM_DELAY = 150
 const BOTTOM_EXIT = 150;
 
+export const BottomDrawerContainer = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    height: ${(props) => props.maxInputHeight}px;
+    width: 100%;
+    max-height: ${(props) => props.minInputHeight}px;
+`;
+
 const BottomDrawerAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    .bottom-drawer-form {
-        opacity: 0;
-        height: ${(props) => props.maxInputHeight}px;
-        width: 100%;
-        max-height: ${(props) => props.minInputHeight}px;
-    }
-
     .bottom-drawer-grow-enter {
         opacity: 0;
         max-height: ${(props) => props.minInputHeight}px;
@@ -114,7 +130,8 @@ const BottomDrawerAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
 `;
 
-export const BottomDrawerAnimation = {
-    timeout: { enter: BOTTOM_ENTER, exit: BOTTOM_EXIT },
-    wrapper: BottomDrawerAnimationWrapper,
-};
+export const BottomDrawerAnimation = generateAnimationWrapper(
+    BottomDrawerAnimationWrapper,
+    { enter: BOTTOM_ENTER, exit: BOTTOM_EXIT },
+    "bottom-drawer-grow"
+);

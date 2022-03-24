@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { CSSTransition } from "react-transition-group";
 import {
     useStateRef,
     AppStore,
@@ -24,6 +23,7 @@ import {
 import {
     PillControlsContainer,
     HighlightCheckboxAnimation,
+    HighlightCheckboxContainer,
     Label,
 } from "./style";
 import { Checkbox } from "../Checkbox";
@@ -133,34 +133,25 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
 
     return (
         <FlexRow>
-            <HighlightCheckboxAnimation.wrapper>
-                <CSSTransition
-                    in={status === HIGHLIGHTED}
-                    timeout={HighlightCheckboxAnimation.timeout}
-                    classNames="highlight-slide"
-                >
-                    <FlexRow className="highlight-form">
-                        <Div>
-                            <Div
-                                className="highlight-checkbox"
-                                {...touchHandlers}
-                            >
-                                <Div />
-                            </Div>
+            <HighlightCheckboxAnimation trigger={status === HIGHLIGHTED}>
+                <HighlightCheckboxContainer>
+                    <Div>
+                        <Div className="highlight-checkbox" {...touchHandlers}>
+                            <Div />
                         </Div>
+                    </Div>
 
-                        <Div className="pill-button-container clear-button">
-                            <IconButton
-                                onClick={onClear}
-                                imageSrc={TrashIcon}
-                                iconHeight={18}
-                                iconWidth={18}
-                                isCircular={true}
-                            />
-                        </Div>
-                    </FlexRow>
-                </CSSTransition>
-            </HighlightCheckboxAnimation.wrapper>
+                    <Div className="pill-button-container clear-button">
+                        <IconButton
+                            onClick={onClear}
+                            imageSrc={TrashIcon}
+                            iconHeight={18}
+                            iconWidth={18}
+                            isCircular={true}
+                        />
+                    </Div>
+                </HighlightCheckboxContainer>
+            </HighlightCheckboxAnimation>
         </FlexRow>
     );
 };
@@ -316,44 +307,57 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
             height="100%"
             width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
         >
-            <Div fontSize="10px" color={lightGrey} width="100%" height="10%">
-                Settings
-            </Div>
             <FlexRow
-                height="90%"
+                height="100%"
                 padding={`0 ${SAFETY_AREA_MARGIN}px`}
                 justifyContent="space-between"
             >
-                <Checkbox
-                    checked={label === "sharp"}
-                    leftLabel="Flat"
-                    rightLabel="Sharp"
-                    onClick={onLabelChange}
-                />
-                <Checkbox
-                    checked={!!leftHand}
-                    leftLabel="Right"
-                    rightLabel="Left"
-                    onClick={appStore.dispatch.toggleLeftHand}
-                />
-                <Checkbox
-                    checked={!!invert}
-                    leftLabel="Not"
-                    rightLabel="Invert"
-                    onClick={appStore.dispatch.toggleInvert}
-                />
-                <Checkbox
-                    checked={strumMode !== STRUM_LOW_TO_HIGH}
-                    leftLabel="Strum"
-                    rightLabel="Arpeggiate"
-                    onClick={onStrumModeChange}
-                />
-                <Checkbox
-                    checked={isMuted}
-                    leftLabel="Unmute"
-                    rightLabel="Mute"
-                    onClick={audioStore.dispatch.toggleMute}
-                />
+                <Div>
+                    <Label>Label</Label>
+                    <Checkbox
+                        checked={label === "sharp"}
+                        leftLabel="Flat"
+                        rightLabel="Sharp"
+                        onClick={onLabelChange}
+                    />
+                </Div>
+                <Div>
+                    <Label>Hand</Label>
+                    <Checkbox
+                        checked={!!leftHand}
+                        leftLabel="Right"
+                        rightLabel="Left"
+                        onClick={appStore.dispatch.toggleLeftHand}
+                    />
+                </Div>
+                <Div>
+                    <Label>Y-Axis</Label>
+                    <Checkbox
+                        checked={!!invert}
+                        leftLabel="Standard"
+                        rightLabel="Invert"
+                        onClick={appStore.dispatch.toggleInvert}
+                    />
+                </Div>
+
+                <Div>
+                    <Label>Strum Mode</Label>
+                    <Checkbox
+                        checked={strumMode !== STRUM_LOW_TO_HIGH}
+                        leftLabel="Strum"
+                        rightLabel="Arpeggiate"
+                        onClick={onStrumModeChange}
+                    />
+                </Div>
+                <Div>
+                    <Label>Volume</Label>
+                    <Checkbox
+                        checked={isMuted}
+                        leftLabel="Unmute"
+                        rightLabel="Mute"
+                        onClick={audioStore.dispatch.toggleMute}
+                    />
+                </Div>
             </FlexRow>
         </Div>
     );

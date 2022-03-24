@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { CSSTransition } from "react-transition-group";
 import { useTouchHandlers } from "../../store";
 import { ReactMouseEvent } from "../../types";
-import { CheckboxAnimation } from "./style";
+import { CheckboxAnimation, CheckboxContainer, CheckboxLabel } from "./style";
 import { Div, FlexRow } from "../Common";
 
 export interface CheckboxProps {
@@ -26,35 +25,15 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 
     return (
         <FlexRow>
-            <CheckboxAnimation.wrapper>
-                <CSSTransition
-                    in={isChecked}
-                    timeout={CheckboxAnimation.timeout}
-                    classNames="checkbox-slide"
-                >
-                    <FlexRow className="checkbox-form" alignItems="center">
-                        <Div
-                            fontSize="10px"
-                            paddingRight="6px"
-                            paddingLeft="12px"
-                            textAlign="right"
-                        >
-                            {leftLabel}
-                        </Div>
-                        <Div className="checkbox" {...touchHandlers}>
-                            <Div />
-                        </Div>
-                        <Div
-                            fontSize="10px"
-                            paddingRight="12px"
-                            paddingLeft="6px"
-                            textAlign="left"
-                        >
-                            {rightLabel}
-                        </Div>
-                    </FlexRow>
-                </CSSTransition>
-            </CheckboxAnimation.wrapper>
+            <CheckboxAnimation trigger={isChecked}>
+                <CheckboxContainer>
+                    <CheckboxLabel isLeft={true}>{leftLabel}</CheckboxLabel>
+                    <Div className="checkbox" {...touchHandlers}>
+                        <Div />
+                    </Div>
+                    <CheckboxLabel isLeft={false}>{rightLabel}</CheckboxLabel>
+                </CheckboxContainer>
+            </CheckboxAnimation>
         </FlexRow>
     );
 };

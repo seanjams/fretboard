@@ -1,6 +1,7 @@
 import CSS from "csstype";
 import styled from "styled-components";
 import { FRETBOARD_MARGIN, FRETBOARD_WIDTH } from "../../utils";
+import { generateAnimationWrapper } from "../Animation";
 
 interface CSSProps extends CSS.Properties {
     maxFretboardHeight?: number;
@@ -124,7 +125,8 @@ const FretboardAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
 `;
 
-export const FretboardAnimation = {
-    timeout: { enter: ENTER, exit: EXIT + DELAY },
-    wrapper: FretboardAnimationWrapper,
-};
+export const FretboardAnimation = generateAnimationWrapper(
+    FretboardAnimationWrapper,
+    { enter: ENTER, exit: EXIT + DELAY },
+    "fretboard-shrink"
+);

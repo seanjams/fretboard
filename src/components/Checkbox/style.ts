@@ -1,9 +1,12 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { COLORS, lightGrey } from "../../utils";
+import { COLORS, lightGrey, mediumGrey } from "../../utils";
+import { generateAnimationWrapper } from "../Animation";
 
 // should extend from some CSSProp default object so you dont have to add these manually
-interface CSSProps extends CSS.Properties {}
+interface CSSProps extends CSS.Properties {
+    isLeft?: boolean;
+}
 
 const [secondaryColor, primaryColor] = COLORS[0];
 
@@ -12,30 +15,50 @@ const EXIT = 250;
 const checkboxHeight = 16;
 const checkboxWidth = 40;
 
+export const CheckboxContainer = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        ...props,
+    },
+}))<CSSProps>`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .checkbox {
+        width: ${checkboxWidth}px;
+        height: ${checkboxHeight}px;
+        border-radius: ${checkboxHeight}px;
+        padding: 4px;
+        background-color: #eee;
+        box-shadow: inset 0 0 2px 0 #777;
+
+        div {
+            position: relative;
+            left: 0;
+            height: ${checkboxHeight}px;
+            width: ${checkboxHeight}px;
+            border-radius: ${checkboxHeight}px;
+            background-color: white;
+            box-shadow: 0 0 2px 0 #777;
+        }
+    }
+`;
+
+export const CheckboxLabel = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        ...props,
+        paddingLeft: props.isLeft ? "12px" : "6px",
+        paddingRight: props.isLeft ? "6px" : "12px",
+        textAlign: props.isLeft ? "right" : "left",
+    },
+}))<CSSProps>`
+    font-size: 10px;
+    color: ${mediumGrey};
+`;
+
 const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    .checkbox-form {
-        .checkbox {
-            width: ${checkboxWidth}px;
-            height: ${checkboxHeight}px;
-            border-radius: ${checkboxHeight}px;
-            padding: 4px;
-            background-color: #eee;
-            box-shadow: inset 0 0 2px 0 #777;
-
-            div {
-                position: relative;
-                left: 0;
-                height: ${checkboxHeight}px;
-                width: ${checkboxHeight}px;
-                border-radius: ${checkboxHeight}px;
-                background-color: white;
-                box-shadow: 0 0 2px 0 #777;
-            }
-        }
-    }
-
     .checkbox-slide-enter {
         .checkbox {
             // background-color: ${lightGrey};
@@ -92,7 +115,8 @@ const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
 `;
 
-export const CheckboxAnimation = {
-    timeout: { enter: ENTER, exit: EXIT },
-    wrapper: CheckboxAnimationWrapper,
-};
+export const CheckboxAnimation = generateAnimationWrapper(
+    CheckboxAnimationWrapper,
+    { enter: ENTER, exit: EXIT },
+    "checkbox-slide"
+);

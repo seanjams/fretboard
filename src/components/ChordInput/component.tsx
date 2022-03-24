@@ -53,9 +53,15 @@ const ChordRoot: React.FC<ChordNameProps> = ({
     });
 
     return (
-        <RootTag highlighted={highlighted} {...touchHandlers}>
-            <ChordSymbol rootName={rootName || ""} chordName="" fontSize={12} />
-        </RootTag>
+        <FlexRow height="100%" width="100%" {...touchHandlers}>
+            <RootTag highlighted={highlighted}>
+                <ChordSymbol
+                    rootName={rootName || ""}
+                    chordName=""
+                    fontSize={12}
+                />
+            </RootTag>
+        </FlexRow>
     );
 };
 
@@ -71,18 +77,19 @@ const ChordName: React.FC<ChordNameProps> = ({
     });
 
     return (
-        <ChordScaleTag
-            highlighted={highlighted}
-            wide={true}
-            size={`calc(100% - ${SP[3]}px)`}
-            {...touchHandlers}
-        >
-            <ChordSymbol
-                rootName=""
-                chordName={chordName || ""}
-                fontSize={12}
-            />
-        </ChordScaleTag>
+        <FlexRow height="100%" width="100%" {...touchHandlers}>
+            <ChordScaleTag
+                highlighted={highlighted}
+                wide={true}
+                size={`calc(100% - ${SP[3]}px)`}
+            >
+                <ChordSymbol
+                    rootName=""
+                    chordName={chordName || ""}
+                    fontSize={12}
+                />
+            </ChordScaleTag>
+        </FlexRow>
     );
 };
 
