@@ -175,7 +175,7 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
             arpeggiateSounds.slice(0, -1).reverse()
         );
 
-        const arpeggiateDelay = 250;
+        const arpeggiateDelay = 350;
         this.playNotes(arpeggiateSounds, arpeggiateDelay);
     }
 }

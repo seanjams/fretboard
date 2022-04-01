@@ -6,22 +6,18 @@ import {
     getComputedAppState,
     ProgressionStateType,
     useStateRef,
-    useTouchHandlers,
 } from "../../store";
 import { WindowMouseEvent } from "../../types";
-import { FLAT_NAMES, lightGrey, list, SHARP_NAMES, SP } from "../../utils";
+import { FLAT_NAMES, list, mediumGrey, SHARP_NAMES, SP } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { ProgressionControls } from "../Controls";
 import { Div, FlexRow } from "../Common";
 import {
     EmptyOption,
     LastUpdatedTime,
-    OverflowContainerDiv,
-    ProgressionOptionContainer,
     ProgressionSelectorContainer,
-    SelectorContainer,
-    ShadowOverlay,
 } from "./style";
+import { ScrollSelect, ScrollSelectOption } from "../ScrollSelect";
 
 const getProgressionString = (
     progression: ProgressionStateType,
@@ -30,78 +26,6 @@ const getProgressionString = (
     return (
         progression.fretboards.map((fretboard) => list(fretboard)).join("") +
         index
-    );
-};
-
-// Component
-interface ProgressionOptionProps {
-    selected: boolean;
-    progressionIndex: number;
-    progression: ProgressionStateType;
-    onClick: (event: WindowMouseEvent) => void;
-}
-
-export const ProgressionOption: React.FC<ProgressionOptionProps> = ({
-    selected,
-    progressionIndex,
-    progression,
-    onClick,
-}) => {
-    const progressionNames = progression.fretboards
-        .map(
-            (fretboard) =>
-                fretboard.names.find((name) => name.isSelected) ||
-                fretboard.names[0]
-        )
-        .filter((name) => name.chordName);
-
-    function getNoteName(rootIdx: number) {
-        return progression.label === "sharp"
-            ? SHARP_NAMES[rootIdx]
-            : FLAT_NAMES[rootIdx];
-    }
-
-    const touchHandlers = useTouchHandlers({ onEnd: onClick });
-
-    return (
-        <ProgressionOptionContainer {...touchHandlers} selected={selected}>
-            <>
-                {progressionNames.length ? (
-                    <FlexRow width="100%" height="100%">
-                        {progressionNames.map((name, i) => {
-                            return (
-                                <Div
-                                    paddingLeft={`${SP[1]}px`}
-                                    paddingRight={`${SP[1]}px`}
-                                    key={`change-progression-name-${progressionIndex}-${i}`}
-                                >
-                                    <ChordSymbol
-                                        rootName={getNoteName(name.rootIdx)}
-                                        chordName={name.chordName}
-                                        fontSize={12}
-                                    />
-                                </Div>
-                            );
-                        })}
-                    </FlexRow>
-                ) : (
-                    <FlexRow width="100%" height="100%">
-                        <EmptyOption
-                            key={`change-progression-name-${progressionIndex}-0`}
-                        >
-                            Empty
-                        </EmptyOption>
-                    </FlexRow>
-                )}
-                <LastUpdatedTime>
-                    {progression.lastUpdated
-                        ? moment(progression.lastUpdated).format(
-                              "M/D/YY, h:mm:ss a"
-                          )
-                        : "Just Now"}
-                </LastUpdatedTime>
-            </>
-        </ProgressionOptionContainer>
     );
 };
 
@@ -161,7 +85,7 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
         });
     }, []);
 
-    const getClickHandler = (i: number) => (event: WindowMouseEvent) => {
+    const getClickHandler = (event: WindowMouseEvent, i: number) => {
         event.preventDefault();
         event.stopPropagation();
         appStore.dispatch.setCurrentProgressionIndex(i);
@@ -185,24 +109,80 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
         setState({ progressionActive, isDeleting: true, isUpdating: true });
     };
 
-    const onComplete = () => {
-        if (!getState().isUpdating) return;
-        setState({ isUpdating: false });
-        if (getState().isDeleting) {
-            // setState({
-            //     progressionActive: Array(
-            //         getState().progressions.length - 1
-            //     ).fill(false),
-            // });
-            appStore.dispatch.removeProgression();
-        } else {
-            // appStore.dispatch.addProgression();
+    // const onComplete = () => {
+    //     if (!getState().isUpdating) return;
+    //     setState({ isUpdating: false });
+    //     if (getState().isDeleting) {
+    //         // setState({
+    //         //     progressionActive: Array(
+    //         //         getState().progressions.length - 1
+    //         //     ).fill(false),
+    //         // });
+    //         appStore.dispatch.removeProgression();
+    //     } else {
+    //         // appStore.dispatch.addProgression();
+    //     }
+    // };
+
+    const options = progressions.map((progression, i) => {
+        const progressionNames = progression.fretboards
+            .map(
+                (fretboard) =>
+                    fretboard.names.find((name) => name.isSelected) ||
+                    fretboard.names[0]
+            )
+            .filter((name) => name.chordName);
+
+        function getNoteName(rootIdx: number) {
+            return progression.label === "sharp"
+                ? SHARP_NAMES[rootIdx]
+                : FLAT_NAMES[rootIdx];
         }
-    };
+
+        return (
+            <ScrollSelectOption
+                key={`progression-option-${i}`}
+                value={`progression-option-${i}`}
+            >
+                {progressionNames.length ? (
+                    <FlexRow width="100%" height="100%">
+                        {progressionNames.map((name, j) => {
+                            return (
+                                <Div
+                                    paddingLeft={`${SP[1]}px`}
+                                    paddingRight={`${SP[1]}px`}
+                                    key={`change-progression-name-${i}-${j}`}
+                                >
+                                    <ChordSymbol
+                                        rootName={getNoteName(name.rootIdx)}
+                                        chordName={name.chordName}
+                                        fontSize={12}
+                                    />
+                                </Div>
+                            );
+                        })}
+                    </FlexRow>
+                ) : (
+                    <FlexRow width="100%" height="100%">
+                        <EmptyOption key={`change-progression-name-${i}-0`}>
+                            Empty
+                        </EmptyOption>
+                    </FlexRow>
+                )}
+                <LastUpdatedTime>
+                    {progression.lastUpdated
+                        ? moment(progression.lastUpdated).format(
+                              "M/D/YY, h:mm:ss a"
+                          )
+                        : "Just Now"}
+                </LastUpdatedTime>
+            </ScrollSelectOption>
+        );
+    });
 
     return (
         <ProgressionSelectorContainer>
-            <Div width="100%" height="10%" fontSize="10px" color={lightGrey}>
+            <Div width="100%" height="10%" fontSize="10px" color={mediumGrey}>
                 Load/Save Progression
             </Div>
             <FlexRow width="100%" height="90%">
@@ -213,29 +193,14 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
                         onRemoveClick={onRemoveProgression}
                     />
                 </FlexRow>
-                <SelectorContainer>
-                    <ShadowOverlay className="overflow-container" />
-                    <OverflowContainerDiv className="overflow-container">
-                        <FlexRow
-                            justifyContent="space-evenly"
-                            width="fit-content"
-                            height="100%"
-                        >
-                            {progressions.map((progression, i) => {
-                                const onClick = getClickHandler(i);
-                                return (
-                                    <ProgressionOption
-                                        key={`change-progression-option-${i}`}
-                                        onClick={onClick}
-                                        progressionIndex={i}
-                                        progression={progression}
-                                        selected={i === currentProgressionIndex}
-                                    />
-                                );
-                            })}
-                        </FlexRow>
-                    </OverflowContainerDiv>
-                </SelectorContainer>
+                <Div width="80%" height="100%">
+                    <ScrollSelect
+                        onChange={getClickHandler}
+                        value={`progression-option-${currentProgressionIndex}`}
+                    >
+                        {options}
+                    </ScrollSelect>
+                </Div>
             </FlexRow>
         </ProgressionSelectorContainer>
     );

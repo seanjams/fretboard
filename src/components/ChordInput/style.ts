@@ -1,12 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import {
-    sandy,
-    lighterGrey,
-    SAFETY_AREA_MARGIN,
-    SP,
-    mediumGrey,
-} from "../../utils";
+import { sandy, SAFETY_AREA_MARGIN, SP, mediumGrey } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
@@ -51,6 +45,8 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     }
 `;
 
+// This is the staggered root selector in the ChordInput component
+
 export const RootContainer = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
@@ -58,31 +54,6 @@ export const RootContainer = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     height: 100%;
     width: 40%;
-`;
-
-export const ChordScaleContainer = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-    },
-}))<CSSProps>`
-    height: 100%;
-    width: 60%;
-    position: relative;
-    top: 0;
-    left: 0;
-
-    .overflow-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: calc(100% - ${SP[6]}px);
-        height: calc(100% - ${2 * SP[0]}px);
-
-        margin-top: ${SP[0]}px;
-        margin-bottom: ${SP[0]}px;
-        margin-left: ${SP[6]}px;
-        border-radius: 999999px;
-    }
 `;
 
 export const RootTag = styled.div.attrs((props: CSSProps) => ({
@@ -106,33 +77,13 @@ export const RootTag = styled.div.attrs((props: CSSProps) => ({
     z-index: 0;
 `;
 
-export const ShadowOverlay = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    z-index: 9999;
-    box-shadow: inset 0 0 4px 0 #777;
-    pointer-events: none;
-`;
-
-export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    overflow-x: auto;
-    background-color: ${lighterGrey};
-`;
-
-export const ChordScaleTag = styled.div.attrs((props: CSSProps) => ({
+// This is the scrollable chord selector in the ChordInput component
+export const ChordScaleContainer = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        backgroundColor: props.highlighted ? sandy : "transparent",
     },
 }))<CSSProps>`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
     height: 100%;
-    padding: 0 ${SP[4]}px;
-    z-index: 0;
+    width: calc(60% - ${SP[6]}px);
+    margin-left: ${SP[6]}px;
 `;

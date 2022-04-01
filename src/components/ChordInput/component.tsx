@@ -27,12 +27,10 @@ import {
 import {
     ChordInputContainer,
     ChordScaleContainer,
-    ChordScaleTag,
-    OverflowContainerDiv,
     RootContainer,
     RootTag,
-    ShadowOverlay,
 } from "./style";
+import { ScrollSelect, ScrollSelectOption } from "../ScrollSelect";
 
 interface ChordNameProps {
     highlighted: boolean;
@@ -76,21 +74,7 @@ const ChordName: React.FC<ChordNameProps> = ({
         },
     });
 
-    return (
-        <FlexRow height="100%" width="100%" {...touchHandlers}>
-            <ChordScaleTag
-                highlighted={highlighted}
-                wide={true}
-                size={`calc(100% - ${SP[3]}px)`}
-            >
-                <ChordSymbol
-                    rootName=""
-                    chordName={chordName || ""}
-                    fontSize={12}
-                />
-            </ChordScaleTag>
-        </FlexRow>
-    );
+    return <FlexRow height="100%" width="100%" {...touchHandlers}></FlexRow>;
 };
 
 interface ChordInputProps {
@@ -170,27 +154,19 @@ export const ChordInput: React.FC<ChordInputProps> = ({
         );
     };
 
-    const onChordChange =
-        (newChordName: ChordTypes) => (event: ReactMouseEvent) => {
-            const { name } = getState();
-            const { rootIdx, foundChordName } = name;
-            if (newChordName === foundChordName) return;
-            // default rootIdx to "C" if not set
-            appStore.chordInputAnimation(
-                Math.max(rootIdx, 0),
-                newChordName,
-                () => {
-                    // strum fretboard
-                    const { fretboard } = appStore.getComputedState();
-                    audioStore.strumChord(fretboard);
-                }
-            );
-            // scroll the current element into view
-            // event.currentTarget.scrollIntoView({
-            //     inline: "center",
-            //     behavior: "smooth",
-            // });
-        };
+    const onChordChange = (event: ReactMouseEvent, index: number) => {
+        const { name } = getState();
+        const { rootIdx, foundChordName } = name;
+        const newChordName = CHORD_NAMES[index];
+        if (!newChordName) return;
+        if (newChordName === foundChordName) return;
+        // default rootIdx to "C" if not set
+        appStore.chordInputAnimation(Math.max(rootIdx, 0), newChordName, () => {
+            // strum fretboard
+            const { fretboard } = appStore.getComputedState();
+            audioStore.strumChord(fretboard);
+        });
+    };
 
     // const { maxInputHeight } = getFretboardDimensions();
 
@@ -201,6 +177,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                 <Div>Chord/Scale</Div>
             </Div>
             <Div className="chord-scale-container">
+                {/* This is the staggered root selector in the ChordInput component */}
                 <RootContainer>
                     <FlexRow alignItems="start" width="100%" height="50%">
                         {noteNames.slice(0, 6).map((name, j) => (
@@ -228,20 +205,22 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                         ))}
                     </FlexRow>
                 </RootContainer>
+                {/* This is the scrollable chord selector in the ChordInput component */}
                 <ChordScaleContainer>
-                    <ShadowOverlay className="overflow-container" />
-                    <OverflowContainerDiv className="overflow-container">
-                        <FlexRow width="fit-content" height="100%">
-                            {CHORD_NAMES.map((name, j) => (
-                                <ChordName
-                                    key={`${name}-key-${j}`}
-                                    highlighted={chordName === name}
-                                    chordName={name}
-                                    onClick={onChordChange(name)}
+                    <ScrollSelect onChange={onChordChange} value={chordName}>
+                        {CHORD_NAMES.map((name, j) => (
+                            <ScrollSelectOption
+                                key={`${name}-key-${j}`}
+                                value={name}
+                            >
+                                <ChordSymbol
+                                    rootName=""
+                                    chordName={name || ""}
+                                    fontSize={12}
                                 />
-                            ))}
-                        </FlexRow>
-                    </OverflowContainerDiv>
+                            </ScrollSelectOption>
+                        ))}
+                    </ScrollSelect>
                 </ChordScaleContainer>
             </Div>
         </ChordInputContainer>

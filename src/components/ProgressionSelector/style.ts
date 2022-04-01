@@ -1,27 +1,10 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import {
-    lighterGrey,
-    mediumGrey,
-    SAFETY_AREA_MARGIN,
-    SP,
-    sandy,
-} from "../../utils";
+import { mediumGrey, SAFETY_AREA_MARGIN, SP, sandy } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     selected?: boolean;
 }
-
-export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-        // add style props here and style below
-    },
-}))<CSSProps>`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-`;
 
 export const ProgressionSelectorContainer = styled.div.attrs(
     (props: CSSProps) => ({
@@ -33,44 +16,6 @@ export const ProgressionSelectorContainer = styled.div.attrs(
     width: calc(100% - ${2 * SAFETY_AREA_MARGIN}px);
     padding: 0 ${SAFETY_AREA_MARGIN}px;
     height: 100%;
-`;
-
-export const SelectorContainer = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-    },
-}))<CSSProps>`
-    height: 100%;
-    width: 80%;
-    position: relative;
-    top: 0;
-    left: 0;
-
-    .overflow-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: calc(100% - ${2 * SP[0]}px);
-        margin-top: ${SP[0]}px;
-        margin-bottom: ${SP[0]}px;
-        border-radius: 999999px;
-    }
-`;
-
-export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    overflow-x: auto;
-    background-color: ${lighterGrey};
-`;
-
-export const ShadowOverlay = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    z-index: 9999;
-    box-shadow: inset 0 0 4px 0 #777;
-    pointer-events: none;
 `;
 
 export const ProgressionOptionContainer = styled.div.attrs(

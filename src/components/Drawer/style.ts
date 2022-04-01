@@ -9,7 +9,7 @@ interface CSSProps extends CSS.Properties {
     minInputHeight?: number;
 }
 
-const getOverflowMargin = (height: number | undefined) => {
+const getMargin = (height: number | undefined) => {
     return -(height || 0);
 };
 
@@ -42,19 +42,19 @@ const TopDrawerAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .top-drawer-grow-enter-active {
         opacity: 1;
         max-height: ${(props) => props.maxInputHeight}px;
-        margin-bottom: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
+        margin-bottom: ${(props) => getMargin(props.maxInputHeight)}px;
         transition: all ${TOP_ENTER}ms ease-in-out;
         transition-delay: ${TOP_DELAY}ms;
     }
     .top-drawer-grow-enter-done {
         opacity: 1;
         max-height: ${(props) => props.maxInputHeight}px;
-        margin-bottom: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
+        margin-bottom: ${(props) => getMargin(props.maxInputHeight)}px;
     }
     .top-drawer-grow-exit {
         opacity: 1;
         max-height: ${(props) => props.maxInputHeight}px;
-        margin-bottom: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
+        margin-bottom: ${(props) => getMargin(props.maxInputHeight)}px;
     }
     .top-drawer-grow-exit-active {
         opacity: 0;
@@ -104,18 +104,18 @@ const BottomDrawerAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     .bottom-drawer-grow-enter-active {
         opacity: 1;
         max-height: ${(props) => props.maxInputHeight}px;
-        margin-top: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
+        margin-top: ${(props) => getMargin(props.maxInputHeight)}px;
         transition: opacity ${BOTTOM_ENTER}ms ease-out;
     }
     .bottom-drawer-grow-enter-done {
         opacity: 1;
         max-height: ${(props) => props.maxInputHeight}px;
-        margin-top: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
+        margin-top: ${(props) => getMargin(props.maxInputHeight)}px;
     }
     .bottom-drawer-grow-exit {
         opacity: 1;
         max-height: ${(props) => props.maxInputHeight}px;
-        margin-top: ${(props) => getOverflowMargin(props.maxInputHeight)}px;
+        margin-top: ${(props) => getMargin(props.maxInputHeight)}px;
     }
     .bottom-drawer-grow-exit-active {
         opacity: 0;

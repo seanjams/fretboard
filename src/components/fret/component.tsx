@@ -579,61 +579,68 @@ export const Fret: React.FC<FretProps> = ({
         }
     }
 
-    const touchHandlers = useTouchHandlers({
-        onStart: (event: ReactMouseEvent) => {
-            const { fretDragStatus } = appStore.state;
-            // this is needed to let onTouchMove know that this element started
-            // the drag sequence, and therefore doesn't need to be processed
-            startMouseOver();
-            if (fretDragStatus) appStore.dispatch.setFretDragStatus(null);
-        },
-        onEnd: (event: WindowMouseEvent, touchStore: TouchStateType) => {
-            setHighlightNote();
-            clearMouseOver();
-        },
-        onLongPress: () => {
-            setHighlightNote(true);
-        },
-        onMove: (event: WindowMouseEvent, touchStore: TouchStateType) => {
-            const { fretboard, status, fretDragStatus } =
-                appStore.getComputedState();
-            const { coordinates } = touchStore;
-
-            // dont select/deselect notes when disabled or not isLongPress
-            if (
-                isDisabledRef.current ||
-                !fretDragStatus ||
-                !circleRef.current ||
-                !coordinates
-            )
-                return;
-
-            const [clientX, clientY] = coordinates;
-
-            // could speed up by cacheing this
-            const circleBoundary = circleRef.current.getBoundingClientRect();
-            if (
-                clientX &&
-                clientY &&
-                isWithinBoundary(circleBoundary, clientX, clientY)
-            ) {
-                if (isMouseOverRef.current) return;
-                const fromStatus = fretboard.strings[stringIndex][fretIndex];
-                setNextHighlightStatus(
-                    status,
-                    fromStatus,
-                    fretDragStatus,
-                    true
-                );
-
+    const touchHandlers = useTouchHandlers(
+        {
+            onStart: (event: ReactMouseEvent) => {
+                const { fretDragStatus } = appStore.state;
+                // this is needed to let onTouchMove know that this element started
+                // the drag sequence, and therefore doesn't need to be processed
                 startMouseOver();
-            } else {
-                // remove isMouseOver when leaving the circle boundaries,
-                // with small delay to prevent flickering
-                clearMouseOver(50);
-            }
+                if (fretDragStatus) appStore.dispatch.setFretDragStatus(null);
+            },
+            onEnd: (event: WindowMouseEvent, touchStore: TouchStateType) => {
+                setHighlightNote();
+                clearMouseOver();
+            },
+            onLongPress: () => {
+                setHighlightNote(true);
+            },
+            onMove: (event: WindowMouseEvent, touchStore: TouchStateType) => {
+                const { fretboard, status, fretDragStatus } =
+                    appStore.getComputedState();
+                const { coordinates } = touchStore;
+
+                // dont select/deselect notes when disabled or not isLongPress
+                if (
+                    isDisabledRef.current ||
+                    !fretDragStatus ||
+                    !circleRef.current ||
+                    !coordinates
+                )
+                    return;
+
+                const [clientX, clientY] = coordinates;
+
+                // could speed up by cacheing this
+                const circleBoundary =
+                    circleRef.current.getBoundingClientRect();
+                if (
+                    clientX &&
+                    clientY &&
+                    isWithinBoundary(circleBoundary, clientX, clientY)
+                ) {
+                    if (isMouseOverRef.current) return;
+                    const fromStatus =
+                        fretboard.strings[stringIndex][fretIndex];
+                    setNextHighlightStatus(
+                        status,
+                        fromStatus,
+                        fretDragStatus,
+                        true
+                    );
+
+                    startMouseOver();
+                } else {
+                    // remove isMouseOver when leaving the circle boundaries,
+                    // with small delay to prevent flickering
+                    clearMouseOver(50);
+                }
+            },
         },
-    });
+        {
+            longPressDelay: 400,
+        }
+    );
 
     const stringSegment = (
         <div

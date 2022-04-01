@@ -58,9 +58,9 @@ export const Label = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     height: 8px;
-    margin: 0 0 ${SP[3]}px ${SP[2]}px;
+    margin: 0 ${SP[2]}px ${SP[3]}px ${SP[2]}px;
     padding-bottom: ${SP[0]}px;
-    border-bottom: 1px solid ${lightGrey}px;
+    border-bottom: 1px solid ${lightGrey};
     font-size: 9px;
     text-align: left;
     white-space: nowrap;

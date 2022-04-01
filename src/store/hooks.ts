@@ -135,7 +135,7 @@ export const useTouchHandlers = (
             touchStore: TouchStateType
         ) => void;
     },
-    { longPressDelay = 800, doubleClickDelay = 600, threshold = 10 } = {}
+    { longPressDelay = 600, doubleClickDelay = 600, threshold = 10 } = {}
 ) => {
     const { onStart, onEnd, onMove, onDoubleClick, onLongPress } = handlers;
 
@@ -179,7 +179,6 @@ export const useTouchHandlers = (
             touchStoreRef.current.longPressTimeout = setTimeout(() => {
                 touchStoreRef.current.isLongPress = true;
                 if (onLongPress) {
-                    console.log("LONG PRESSING");
                     onLongPress(event, touchStoreRef.current);
                 }
             }, longPressDelay);
