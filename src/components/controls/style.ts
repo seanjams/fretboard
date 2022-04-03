@@ -133,7 +133,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             background-color: transparent !important;
 
             img {
-                filter: ${greyFilter};
+                filter: ${greyFilter} !important;
             }
         }
     }
@@ -153,7 +153,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             transition: background-color ${ENTER}ms ease-in-out;
 
             img {
-                filter: ${whiteFilter};
+                filter: ${whiteFilter} !important;
                 transition: filter ${ENTER}ms ease-in-out;
             }
         }
@@ -170,7 +170,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             background-color: ${primaryColor} !important;
 
             img {
-                filter: ${whiteFilter};
+                filter: ${whiteFilter} !important;
             }
         }
     }
@@ -186,7 +186,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             background-color: ${primaryColor} !important;
 
             img {
-                filter: ${whiteFilter};
+                filter: ${whiteFilter} !important;
             }
         }
     }
@@ -206,7 +206,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             transition: background-color ${EXIT}ms ease-in-out;
 
             img {
-                filter: ${greyFilter};
+                filter: ${greyFilter} !important;
                 transition: filter ${EXIT}ms ease-in-out;
             }
         }
@@ -223,7 +223,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             background-color: transparent !important;
 
             img {
-                filter: ${greyFilter};
+                filter: ${greyFilter} !important;
             }
         }
     }

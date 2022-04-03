@@ -25,6 +25,7 @@ import SOUND_STRING_5_E_MP3 from "../assets/audio/String_5_E.mp3";
 import { PatternName } from "tone/build/esm/event/PatternGenerator";
 
 export interface AudioStateType {
+    poolSize: number;
     players: Tone.Players;
     isLoaded: boolean;
     isPlaying: Set<any>;
@@ -64,6 +65,8 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         super(DEFAULT_AUDIO_STATE(), audioReducers);
     }
 
+    isPlaying: { [key in number]: boolean } = {};
+
     audioJson = [
         String_0_E,
         String_1_A,
@@ -72,6 +75,17 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         String_4_B,
         String_5_E,
     ];
+
+    getAvailablePlayer(stringIndex: number): [Tone.Player | null, number] {
+        // try to get next available player for given stringIndex
+        for (let i = 0; i < this.state.poolSize; i++) {
+            const playerIndex = stringIndex + i * 6;
+            if (this.isPlaying[playerIndex]) continue;
+            return [this.state.players.player(playerIndex + ""), playerIndex];
+        }
+        // return first player if all are unavailable
+        return [this.state.players.player(stringIndex + ""), stringIndex];
+    }
 
     playNote(stringIndex: number, fretIndex: number) {
         // play sound for note at stringIndex, fretIndex
@@ -85,7 +99,7 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
             "b"
         )}`;
 
-        const player = this.state.players.player(stringIndex + "");
+        const [player, playerIndex] = this.getAvailablePlayer(stringIndex);
         if (player && this.audioJson[stringIndex] !== undefined) {
             // clear isPlaying data
             player.stop();
@@ -95,8 +109,10 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
             const sprite = this.audioJson[stringIndex].sprite[fretKey];
             if (sprite) {
                 this.dispatch.setIsPlaying(fretName, true);
+                this.isPlaying[playerIndex] = true;
                 player.onstop = () => {
                     this.dispatch.setIsPlaying(fretName, false);
+                    this.isPlaying[playerIndex] = false;
                 };
                 player.start(0, sprite[0] / 1000, sprite[1] / 1000);
             }
@@ -115,6 +131,7 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         if (Tone.context.state !== "running") Tone.context.resume();
 
         this.state.players.stopAll();
+        this.isPlaying = {};
         this.dispatch.clearIsPlaying();
 
         let i = 0;
@@ -184,13 +201,50 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
 export function DEFAULT_AUDIO_STATE(): AudioStateType {
     Tone.start();
     const players = new Tone.Players({
+        // should contain <poolSize> sets
         urls: {
+            // set of players
             0: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
             1: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
             2: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
             3: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
             4: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
             5: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            6: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            7: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            8: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            9: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            10: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            11: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            12: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            13: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            14: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            15: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            16: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            17: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            18: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            19: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            20: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            21: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            22: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            23: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            // 24: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            // 25: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            // 26: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            // 27: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            // 28: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            // 29: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // // set of players
+            // 30: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            // 31: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            // 32: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            // 33: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            // 34: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            // 35: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
         },
         onload: function () {
             console.log("Tone.Players Loaded!");
@@ -200,9 +254,10 @@ export function DEFAULT_AUDIO_STATE(): AudioStateType {
         },
         // fadeOut: 1,
     }).toDestination();
-    players.volume.value = -6;
+    players.volume.value = -12;
 
     return {
+        poolSize: 4,
         players,
         isLoaded: false,
         isPlaying: new Set(),

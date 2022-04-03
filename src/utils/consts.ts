@@ -176,6 +176,7 @@ export const minmaj7Chord = "minmaj__7";
 export const min7b5Chord = "min__7♭5";
 export const min9Chord = "min__9";
 export const min11Chord = "min__11";
+export const min6Chord = "min__6";
 
 // diminished chords
 export const dimChord = "dim";
@@ -222,6 +223,7 @@ export const CHORD_NAMES: ChordTypes[] = [
     minmaj7Chord,
     min9Chord,
     min11Chord,
+    min6Chord,
     min7b5Chord,
     dimChord,
     dim7Chord,
@@ -307,6 +309,10 @@ export const SHAPES: { label: ChordTypes; shapes: number[][] }[] = [
             [0, 3, 5, 10],
             [0, 3, 5, 7, 10],
         ],
+    },
+    {
+        label: min6Chord,
+        shapes: [[0, 3, 7, 9]],
     },
 
     { label: min7b5Chord, shapes: [[0, 3, 6, 10]] },

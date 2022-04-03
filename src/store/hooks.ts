@@ -98,6 +98,8 @@ export interface TouchStateType {
     isPendingDoubleClick: boolean;
     isLongPress: boolean;
     longPressTimeout: ReturnType<typeof setTimeout> | null;
+    isExtraLongPress: boolean;
+    extraLongPressTimeout: ReturnType<typeof setTimeout> | null;
     origin: [number, number] | null; // where touch was initiated
     coordinates: [number, number] | null; // current touch location
     isWithinThreshold: boolean;
@@ -124,6 +126,7 @@ export function getCoordinates(
 export const useTouchHandlers = (
     handlers: {
         onStart?: (event: ReactMouseEvent, touchStore: TouchStateType) => void;
+        onClick?: (event: WindowMouseEvent, touchStore: TouchStateType) => void;
         onEnd?: (event: WindowMouseEvent, touchStore: TouchStateType) => void;
         onMove?: (event: WindowMouseEvent, touchStore: TouchStateType) => void;
         onDoubleClick?: (
@@ -134,10 +137,27 @@ export const useTouchHandlers = (
             event: ReactMouseEvent,
             touchStore: TouchStateType
         ) => void;
+        onExtraLongPress?: (
+            event: ReactMouseEvent,
+            touchStore: TouchStateType
+        ) => void;
     },
-    { longPressDelay = 600, doubleClickDelay = 600, threshold = 10 } = {}
+    {
+        extraLongPressDelay = 1200,
+        longPressDelay = 600,
+        doubleClickDelay = 600,
+        threshold = 10,
+    } = {}
 ) => {
-    const { onStart, onEnd, onMove, onDoubleClick, onLongPress } = handlers;
+    const {
+        onStart,
+        onClick,
+        onEnd,
+        onMove,
+        onDoubleClick,
+        onLongPress,
+        onExtraLongPress,
+    } = handlers;
 
     const touchStoreRef = useRef<TouchStateType>({
         isDragging: false,
@@ -145,6 +165,8 @@ export const useTouchHandlers = (
         isPendingDoubleClick: false,
         isLongPress: false,
         longPressTimeout: null,
+        isExtraLongPress: false,
+        extraLongPressTimeout: null,
         origin: null,
         coordinates: null,
         isWithinThreshold: false,
@@ -183,10 +205,27 @@ export const useTouchHandlers = (
                 }
             }, longPressDelay);
 
+            // set timeout for extra long press
+            touchStoreRef.current.isExtraLongPress = false;
+            touchStoreRef.current.extraLongPressTimeout = setTimeout(() => {
+                touchStoreRef.current.isExtraLongPress = true;
+                if (onExtraLongPress) {
+                    onExtraLongPress(event, touchStoreRef.current);
+                }
+            }, extraLongPressDelay);
+
             // call single click handler
             if (onStart) onStart(event, touchStoreRef.current);
         },
-        [onDoubleClick, onStart, longPressDelay, doubleClickDelay]
+        [
+            onDoubleClick,
+            onStart,
+            onLongPress,
+            onExtraLongPress,
+            doubleClickDelay,
+            longPressDelay,
+            extraLongPressDelay,
+        ]
     );
 
     const move = useCallback(
@@ -197,6 +236,7 @@ export const useTouchHandlers = (
                 isDragging,
                 origin,
                 longPressTimeout,
+                extraLongPressTimeout,
                 isWithinThreshold,
             } = touchStoreRef.current;
 
@@ -222,13 +262,20 @@ export const useTouchHandlers = (
                 const newIsWithinThreshold =
                     (x1 - x0) ** 2 + (y1 - y0) ** 2 < threshold ** 2;
 
-                // set isLongPress
+                // set isLongPress and isExtraLongPress
                 if (isWithinThreshold && !newIsWithinThreshold) {
+                    // isLongPress
                     if (longPressTimeout) {
                         clearTimeout(longPressTimeout);
                         touchStoreRef.current.longPressTimeout = null;
                     }
                     touchStoreRef.current.isLongPress = false;
+                    // isExtraLongPress
+                    if (extraLongPressTimeout) {
+                        clearTimeout(extraLongPressTimeout);
+                        touchStoreRef.current.extraLongPressTimeout = null;
+                    }
+                    touchStoreRef.current.isExtraLongPress = false;
                 }
 
                 touchStoreRef.current.isWithinThreshold = newIsWithinThreshold;
@@ -249,17 +296,25 @@ export const useTouchHandlers = (
             const {
                 isPressed,
                 isLongPress,
+                isExtraLongPress,
                 longPressTimeout,
+                extraLongPressTimeout,
                 isWithinThreshold,
                 isPendingDoubleClick,
             } = touchStoreRef.current;
 
             if (!isPressed) return;
             let shouldTriggerClick =
-                isWithinThreshold && isPendingDoubleClick && !isLongPress;
+                isWithinThreshold &&
+                isPendingDoubleClick &&
+                !isLongPress &&
+                !isExtraLongPress;
 
             // call handler before resetting touchStore
-            if (shouldTriggerClick && onEnd) {
+            if (shouldTriggerClick && onClick) {
+                onClick(event, touchStoreRef.current);
+            }
+            if (onEnd) {
                 onEnd(event, touchStoreRef.current);
             }
 
@@ -282,8 +337,15 @@ export const useTouchHandlers = (
                 touchStoreRef.current.longPressTimeout = null;
             }
             touchStoreRef.current.isLongPress = false;
+
+            // set isExtraLongPress
+            if (extraLongPressTimeout) {
+                clearTimeout(extraLongPressTimeout);
+                touchStoreRef.current.extraLongPressTimeout = null;
+            }
+            touchStoreRef.current.isExtraLongPress = false;
         },
-        [onEnd]
+        [onClick, onEnd]
     );
 
     // handlers

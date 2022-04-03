@@ -32,20 +32,20 @@ import {
 } from "./style";
 import { ScrollSelect, ScrollSelectOption } from "../ScrollSelect";
 
-interface ChordNameProps {
+interface ChordRootProps {
     highlighted: boolean;
     chordName?: ChordTypes;
     rootName?: NoteTypes;
     onClick: (event: ReactMouseEvent | WindowMouseEvent) => void;
 }
 
-const ChordRoot: React.FC<ChordNameProps> = ({
+const ChordRoot: React.FC<ChordRootProps> = ({
     highlighted,
     rootName,
     onClick,
 }) => {
     const touchHandlers = useTouchHandlers({
-        onEnd: (event) => {
+        onClick: (event) => {
             onClick && onClick(event);
         },
     });
@@ -61,20 +61,6 @@ const ChordRoot: React.FC<ChordNameProps> = ({
             </RootTag>
         </FlexRow>
     );
-};
-
-const ChordName: React.FC<ChordNameProps> = ({
-    highlighted,
-    chordName,
-    onClick,
-}) => {
-    const touchHandlers = useTouchHandlers({
-        onEnd: (event) => {
-            onClick && onClick(event);
-        },
-    });
-
-    return <FlexRow height="100%" width="100%" {...touchHandlers}></FlexRow>;
 };
 
 interface ChordInputProps {

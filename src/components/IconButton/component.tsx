@@ -30,10 +30,11 @@ export const IconButton: React.FC<IconButtonProps> = ({
         onStart: (event: ReactMouseEvent) => {
             if (!getState().active) setState({ active: true });
         },
+        onClick: (event: WindowMouseEvent) => {
+            if (onClick) onClick(event);
+        },
         onEnd: (event: WindowMouseEvent) => {
             if (getState().active) setState({ active: false });
-
-            if (onClick) onClick(event);
         },
     });
 

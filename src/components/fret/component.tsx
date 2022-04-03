@@ -155,6 +155,9 @@ export const Fret: React.FC<FretProps> = ({
         useRef<ReturnType<typeof requestAnimationFrame>>();
     // for disabling note selection when fretboard is small
     const isDisabledRef = useRef(display !== "normal");
+    // for turning Highlight status off after drag sequence
+    const temporaryHighlightMode = useRef(false);
+    const temporaryEraseMode = useRef(false);
 
     // state CSS props for first render
     const backgroundColor = getBackgroundColor(
@@ -530,12 +533,15 @@ export const Fret: React.FC<FretProps> = ({
             }
         } else if (highlightMode === SELECTED) {
             // Demote the selection status, or select if not selected already
-            if (isDragging) {
+            if (temporaryEraseMode.current) {
+                toStatus = NOT_SELECTED;
+                toDragStatus = "off";
+            } else if (isDragging) {
                 toStatus = fromDragStatus === "on" ? SELECTED : NOT_SELECTED;
             } else {
                 toStatus =
                     fromStatus === HIGHLIGHTED
-                        ? SELECTED
+                        ? NOT_SELECTED
                         : fromStatus === SELECTED
                         ? NOT_SELECTED
                         : fromStatus === NOT_SELECTED
@@ -579,6 +585,14 @@ export const Fret: React.FC<FretProps> = ({
         }
     }
 
+    /*
+    1) If i long press a note that is NOT_SELECTED, a drag sequence should start for selecting notes normally
+    2) If I long press a note that is SELECTED, highlight mode should turn on and I should only be allowed to highlight currently selected notes
+    3) If I long press a note that is HIGHLIGHTED, highlight mode should turn on and I should only be allowed to unhighlight currently highlighted notes
+    4) If I click a note that is NOT_SELECTED, it should become SELECTED
+    5) If I click a note that is SELECTED, it should become NOT_SELECTED
+    6) If I click a note that is HIGHLIGHTED, it should become NOT_SELECTED (OR SELECTED, undecided on this one)
+     */
     const touchHandlers = useTouchHandlers(
         {
             onStart: (event: ReactMouseEvent) => {
@@ -587,13 +601,40 @@ export const Fret: React.FC<FretProps> = ({
                 // the drag sequence, and therefore doesn't need to be processed
                 startMouseOver();
                 if (fretDragStatus) appStore.dispatch.setFretDragStatus(null);
+                temporaryHighlightMode.current = false;
+                temporaryEraseMode.current = false;
+            },
+            onClick: (event: WindowMouseEvent) => {
+                setHighlightNote();
             },
             onEnd: (event: WindowMouseEvent, touchStore: TouchStateType) => {
-                setHighlightNote();
                 clearMouseOver();
+                if (temporaryHighlightMode.current) {
+                    appStore.dispatch.setStatus(SELECTED);
+                }
+                temporaryHighlightMode.current = false;
+                temporaryEraseMode.current = false;
             },
             onLongPress: () => {
+                const { fretboard, status } = appStore.getComputedState();
+                const fromStatus = fretboard.strings[stringIndex][fretIndex];
+
+                if (fromStatus !== NOT_SELECTED && status !== HIGHLIGHTED) {
+                    appStore.dispatch.setStatus(HIGHLIGHTED);
+                    temporaryHighlightMode.current = true;
+                    temporaryEraseMode.current = false;
+                }
+                // start highlighting notes regardless of temporaryHighlightMode
                 setHighlightNote(true);
+            },
+            onExtraLongPress: () => {
+                if (temporaryHighlightMode.current) {
+                    appStore.dispatch.setStatus(SELECTED);
+                    temporaryHighlightMode.current = false;
+                    temporaryEraseMode.current = true;
+                    // only start erasing notes if in temporaryHighlightMode
+                    setHighlightNote(true);
+                }
             },
             onMove: (event: WindowMouseEvent, touchStore: TouchStateType) => {
                 const { fretboard, status, fretDragStatus } =
@@ -638,6 +679,7 @@ export const Fret: React.FC<FretProps> = ({
             },
         },
         {
+            extraLongPressDelay: 1500,
             longPressDelay: 400,
         }
     );

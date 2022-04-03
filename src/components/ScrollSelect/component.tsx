@@ -21,7 +21,7 @@ export const ScrollSelectOption: React.FC<OptionProps> = ({
     onClick,
 }) => {
     const touchHandlers = useTouchHandlers({
-        onEnd: (event) => {
+        onClick: (event) => {
             onClick && onClick(event);
         },
     });

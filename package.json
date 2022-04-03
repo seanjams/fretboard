@@ -17,7 +17,7 @@
         "clean": "rm -f www/bundle.js && rm -rf www/assets",
         "serve-ios": "nodemon --watch www/bundle.js --exec \"cordova run ios\"",
         "start": "npm-run-all -c -n -l -p watch serve-ios",
-        "xcode": "build && cordova prepare ios"
+        "xcode": "yarn run build && cordova prepare ios"
     },
     "devDependencies": {
         "@types/react": "^16.9.25",

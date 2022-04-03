@@ -72,6 +72,7 @@ export type ChordTypes =
     | "min__7♭5"
     | "min__9"
     | "min__11"
+    | "min__6"
     | "dim"
     | "dim__♭♭7"
     | "sus2"
