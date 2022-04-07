@@ -4,6 +4,7 @@ import {
     AppStore,
     AudioStore,
     useKeyPressHandlers,
+    useTouchHandlers,
 } from "../../store";
 import { FretboardString } from "../FretboardString";
 import {
@@ -183,6 +184,13 @@ export const Fretboard: React.FC<FretboardProps> = ({
 
     const fretboardDimensions = getFretboardDimensions();
 
+    const touchHandlers = useTouchHandlers({
+        onClick: () => {
+            if (appStore.state.display !== "normal")
+                appStore.dispatch.setDisplay("normal");
+        },
+    });
+
     return (
         <FretboardAnimation
             trigger={showTopDrawer || showBottomDrawer}
@@ -193,6 +201,7 @@ export const Fretboard: React.FC<FretboardProps> = ({
                 ref={fretboardContainerRef}
                 className="overflow-container"
                 {...fretboardDimensions}
+                {...touchHandlers}
             >
                 <FretboardContainer
                     className="fretboard-container"

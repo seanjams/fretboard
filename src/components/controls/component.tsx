@@ -122,9 +122,10 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
 
     const touchHandlers = useTouchHandlers({
         // change status
-        onStart: (event: ReactMouseEvent) => {
+        onClick: (event: WindowMouseEvent) => {
             event.preventDefault();
-            const { status } = appStore.state;
+            const { display, status } = appStore.state;
+            if (display !== "normal") appStore.dispatch.setDisplay("normal");
             appStore.dispatch.setStatus(
                 status === HIGHLIGHTED ? SELECTED : HIGHLIGHTED
             );
@@ -187,9 +188,11 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
         });
     }, []);
 
-    const onShowDisplay = (display: DisplayTypes) => () => {
+    const onShowDisplay = (newDisplay: DisplayTypes) => () => {
+        const { display, status } = appStore.state;
+        if (status === HIGHLIGHTED) appStore.dispatch.setStatus(SELECTED);
         appStore.dispatch.setDisplay(
-            appStore.state.display === display ? "normal" : display
+            display === newDisplay ? "normal" : newDisplay
         );
     };
 

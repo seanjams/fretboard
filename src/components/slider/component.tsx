@@ -6,7 +6,12 @@ import {
     AudioStore,
     useTouchHandlers,
 } from "../../store";
-import { SLIDER_RIGHT_WINDOW, SLIDER_LEFT_WINDOW, list } from "../../utils";
+import {
+    SLIDER_RIGHT_WINDOW,
+    SLIDER_LEFT_WINDOW,
+    getFretboardNotes,
+    SELECTED,
+} from "../../utils";
 import { FlexRow } from "../Common";
 import { Title } from "../Title";
 import { ProgressBar, SliderBar } from "./style";
@@ -253,9 +258,22 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
             // grab slider
             if (progressBarRef.current && sliderBarRef.current)
                 deltaRef.current = clientX - sliderBarRef.current.offsetLeft;
-
-            const display = appStore.state.display;
-            if (display !== "normal") appStore.dispatch.setDisplay("normal");
+        },
+        onClick: () => {
+            const { display, fretboard } = appStore.getComputedState();
+            if (display === "change-inversion") {
+                // set display to normal when inversion menu open
+                appStore.dispatch.setDisplay("normal");
+            } else if (["normal", "change-chord"].includes(display)) {
+                // set chord input when clicking on empty chord
+                const notes = getFretboardNotes(fretboard);
+                let isEmpty = !notes.some((note) => note === SELECTED);
+                if (isEmpty) {
+                    appStore.dispatch.setDisplay(
+                        display === "normal" ? "change-chord" : "normal"
+                    );
+                }
+            }
         },
         onEnd: (event: WindowMouseEvent) => {
             // slider drag release
@@ -297,9 +315,11 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
         onDoubleClick: (event: ReactMouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-
-            const display = appStore.state.display;
-            if (display !== "change-inversion")
+            const { display, fretboard } = appStore.getComputedState();
+            const notes = getFretboardNotes(fretboard);
+            let isEmpty = !notes.some((note) => note === SELECTED);
+            // set display to inversion menu when double clicking
+            if (!isEmpty && display !== "change-inversion")
                 appStore.dispatch.setDisplay("change-inversion");
         },
     });
