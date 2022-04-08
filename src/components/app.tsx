@@ -24,33 +24,16 @@ export const App: React.FC<AppProps> = ({ oldState }) => {
         audioStore.setState(DEFAULT_AUDIO_STATE());
     };
 
-    function onPause() {
-        // Handle the pause event
-        saveToLocalStorage();
-    }
-
-    function onResume() {
-        // Handle the resume event
-        rehydrateState();
-        audioStore.setState(DEFAULT_AUDIO_STATE());
-    }
-
-    function onMenuKeyDown() {
-        // Handle the menubutton event
-    }
-
     useEffect(() => {
-        window.addEventListener("beforeunload", onPause, false);
-        document.addEventListener("pause", onPause, false);
-        document.addEventListener("resume", onResume, false);
-        document.addEventListener("menubutton", onMenuKeyDown, false);
+        window.addEventListener("beforeunload", saveToLocalStorage, false);
         rehydrateState();
         return () => {
             saveToLocalStorage();
-            window.removeEventListener("beforeunload", onPause, false);
-            document.removeEventListener("pause", onPause, false);
-            document.removeEventListener("resume", onResume, false);
-            document.removeEventListener("menubutton", onMenuKeyDown, false);
+            window.removeEventListener(
+                "beforeunload",
+                saveToLocalStorage,
+                false
+            );
         };
     }, []);
 

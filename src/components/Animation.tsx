@@ -2,6 +2,7 @@
 
 import React from "react";
 import { CSSTransition } from "react-transition-group";
+import { TransitionChildren } from "react-transition-group/Transition";
 
 interface AnimationWrapperProps {
     trigger?: any;
@@ -19,19 +20,21 @@ export function generateAnimationWrapper(
 ) {
     const AnimationWrapper: React.FC<
         AnimationWrapperProps & { [key in string]: any }
-    > = ({ trigger, children, ...props }) => (
-        <Wrapper {...props}>
-            <CSSTransition
-                in={!!trigger}
-                timeout={timeout}
-                classNames={className}
-                // onEnter={() => setShowButton(false)}
-                // onExited={() => setShowButton(true)}
-            >
-                {children}
-            </CSSTransition>
-        </Wrapper>
-    );
-
+    > = ({ trigger, children, ...props }) => {
+        let wrapped = children as TransitionChildren;
+        return (
+            <Wrapper {...props}>
+                <CSSTransition
+                    in={!!trigger}
+                    timeout={timeout}
+                    classNames={className}
+                    // onEnter={() => setShowButton(false)}
+                    // onExited={() => setShowButton(true)}
+                >
+                    {wrapped}
+                </CSSTransition>
+            </Wrapper>
+        );
+    };
     return AnimationWrapper;
 }

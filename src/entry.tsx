@@ -2,6 +2,25 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { App } from "./components/App";
 
+const w = window as any;
+const initialHref = w.location.href;
+
+function onPause() {
+    // Handle the pause event
+    const root = document.getElementById("root");
+    if (root) ReactDOM.unmountComponentAtNode(root);
+}
+
+function onResume() {
+    // Handle the resume event
+    w.navigator && w.navigator.splashscreen && w.navigator.splashscreen.show();
+    w.location = initialHref;
+}
+
+function onMenuKeyDown() {
+    // Handle the menubutton event
+}
+
 function init() {
     // set to landscape on mobile
     if (screen) screen.orientation.lock("landscape");
@@ -11,6 +30,10 @@ function init() {
     const root = document.createElement("div");
     root.setAttribute("id", "root");
     document.body.appendChild(root);
+
+    document.addEventListener("pause", onPause, false);
+    document.addEventListener("resume", onResume, false);
+    document.addEventListener("menubutton", onMenuKeyDown, false);
 
     try {
         let oldState = JSON.parse(

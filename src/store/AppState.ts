@@ -643,7 +643,8 @@ export function DEFAULT_PROGRESSION(): ProgressionStateType {
 
 export function DEFAULT_MAIN_STATE(): AppStateType {
     return {
-        progressions: [progression1, progression2, progression3, progression4],
+        // progressions: [progression1, progression2, progression3, progression4],
+        progressions: [DEFAULT_PROGRESSION()],
         invert: false,
         leftHand: false,
         status: 1,

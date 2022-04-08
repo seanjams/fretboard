@@ -22,4 +22,11 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
     </platform>
+    <preference name="Allow3DTouchLinkPreview" value="true" />
+    <preference name="AllowBackForwardNavigationGestures" value="false" />
+    <preference name="AllowNewWindows" value="false" />
+    <preference name="AutoHideSplashScreen" value="true" />
+    <preference name="MediaPlaybackAllowsAirPlay" value="true" />
+    <preference name="SuppressesLongPressGesture" value="true" />
+    <preference name="Suppresses3DTouchGesture" value="true" />
 </widget>
