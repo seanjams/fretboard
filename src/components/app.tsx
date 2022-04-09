@@ -14,14 +14,28 @@ interface AppProps {
 }
 
 export const App: React.FC<AppProps> = ({ oldState }) => {
-    const appStore = useMemo(() => new AppStore(), []);
-    const audioStore = useMemo(() => new AudioStore(), []);
-
     const w = window as any;
+    const onAudioLoad = () => {
+        w.navigator &&
+            w.navigator.splashscreen &&
+            w.navigator.splashscreen.hide();
+        console.log("Tone.Players Loaded!");
+    };
+    const onAudioError = (error: Error) => {
+        console.log("Tone.Players Error:", error.message);
+    };
+
+    // create data stores to hold app state
+    const appStore = useMemo(() => new AppStore(), []);
+    const audioStore = useMemo(
+        () => new AudioStore(onAudioLoad, onAudioError),
+        []
+    );
+
     w.reset = () => {
         localStorage.clear();
         appStore.setState(DEFAULT_MAIN_STATE());
-        audioStore.setState(DEFAULT_AUDIO_STATE());
+        audioStore.setState(DEFAULT_AUDIO_STATE(onAudioLoad, onAudioError));
     };
 
     useEffect(() => {

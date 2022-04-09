@@ -21,11 +21,48 @@
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
+        <!-- Universal Icons -->
+        <!-- https://cordova.apache.org/docs/en/latest/config_ref/images.html -->
+        <!-- iOS 8.0+ -->
+        <!-- iPhone 6 Plus  -->
+        <icon src="res/screen/ios/icon-60@3x.png" width="180" height="180" />
+        <!-- iOS 7.0+ -->
+        <!-- iPhone / iPod Touch  -->
+        <icon src="res/screen/ios/icon-60.png" width="60" height="60" />
+        <icon src="res/screen/ios/icon-60@2x.png" width="120" height="120" />
+        <!-- iPad -->
+        <icon src="res/screen/ios/icon-76.png" width="76" height="76" />
+        <icon src="res/screen/ios/icon-76@2x.png" width="152" height="152" />
+        <!-- Spotlight Icon -->
+        <icon src="res/screen/ios/icon-40.png" width="40" height="40" />
+        <icon src="res/screen/ios/icon-40@2x.png" width="80" height="80" />
+        <!-- iOS 6.1 -->
+        <!-- iPhone / iPod Touch -->
+        <icon src="res/screen/ios/icon.png" width="57" height="57" />
+        <icon src="res/screen/ios/icon@2x.png" width="114" height="114" />
+        <!-- iPad -->
+        <icon src="res/screen/ios/icon-72.png" width="72" height="72" />
+        <icon src="res/screen/ios/icon-72@2x.png" width="144" height="144" />
+        <!-- iPad Pro -->
+        <icon src="res/screen/ios/icon-167.png" width="167" height="167" />
+        <!-- iPhone Spotlight and Settings Icon -->
+        <icon src="res/screen/ios/icon-small.png" width="29" height="29" />
+        <icon src="res/screen/ios/icon-small@2x.png" width="58" height="58" />
+        <icon src="res/screen/ios/icon-small@3x.png" width="87" height="87" />
+        <!-- iPad Spotlight and Settings Icon -->
+        <icon src="res/screen/ios/icon-50.png" width="50" height="50" />
+        <icon src="res/screen/ios/icon-50@2x.png" width="100" height="100" />
+        <!-- iTunes Marketing Image -->
+        <icon src="res/screen/ios/icon-1024.png" width="1024" height="1024" />
+
+        <!-- Universal Splash Screen -->
+        <!-- https://cordova.apache.org/docs/en/10.x/reference/cordova-plugin-splashscreen/#designing-launch-storyboard-images -->
+        <splash src="res/screen/ios/Default@2x~universal~anyany.png" />
     </platform>
     <preference name="Allow3DTouchLinkPreview" value="true" />
     <preference name="AllowBackForwardNavigationGestures" value="false" />
     <preference name="AllowNewWindows" value="false" />
-    <preference name="AutoHideSplashScreen" value="true" />
+    <preference name="AutoHideSplashScreen" value="false" />
     <preference name="MediaPlaybackAllowsAirPlay" value="true" />
     <preference name="SuppressesLongPressGesture" value="true" />
     <preference name="Suppresses3DTouchGesture" value="true" />

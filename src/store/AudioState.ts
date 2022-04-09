@@ -61,8 +61,8 @@ export const audioReducers = {
 
 // Store
 export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
-    constructor() {
-        super(DEFAULT_AUDIO_STATE(), audioReducers);
+    constructor(onLoad?: () => void, onError?: (error: Error) => void) {
+        super(DEFAULT_AUDIO_STATE(onLoad, onError), audioReducers);
     }
 
     isPlaying: { [key in number]: boolean } = {};
@@ -198,7 +198,10 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
 }
 
 // Default State
-export function DEFAULT_AUDIO_STATE(): AudioStateType {
+export function DEFAULT_AUDIO_STATE(
+    onLoad?: () => void,
+    onError?: (error: Error) => void
+): AudioStateType {
     Tone.start();
     const players = new Tone.Players({
         // should contain <poolSize> sets
@@ -246,12 +249,8 @@ export function DEFAULT_AUDIO_STATE(): AudioStateType {
             // 34: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
             // 35: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
         },
-        onload: function () {
-            console.log("Tone.Players Loaded!");
-        },
-        onerror: function (error) {
-            console.log("Tone.Players Error:", error.message);
-        },
+        onload: onLoad,
+        onerror: onError,
         // fadeOut: 1,
     }).toDestination();
     players.volume.value = -12;
