@@ -7,7 +7,7 @@ import {
     useTouchHandlers,
 } from "../../store";
 import { FretboardNameType, LabelTypes, ReactMouseEvent } from "../../types";
-import { FLAT_NAMES, SAFETY_AREA_MARGIN, SHARP_NAMES } from "../../utils";
+import { FLAT_NAMES, SHARP_NAMES } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div, FlexRow } from "../Common";
 
@@ -90,12 +90,7 @@ export const InversionSelector: React.FC<InversionSelectorProps> = ({
         };
 
     return (
-        <FlexRow
-            justifyContent="space-evenly"
-            width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
-            padding={`0 ${2 * SAFETY_AREA_MARGIN}px`}
-            height="100%"
-        >
+        <FlexRow justifyContent="space-evenly" width="100%" height="100%">
             {names.map((name, i) => {
                 const onClick = getClickHandler(name);
                 return (

@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { COLORS, lightGrey, mediumGrey } from "../../utils";
+import { COLORS, lighterGrey, mediumGrey, white } from "../../utils";
 import { generateAnimationWrapper } from "../Animation";
 
 // should extend from some CSSProp default object so you dont have to add these manually
@@ -29,7 +29,7 @@ export const CheckboxContainer = styled.div.attrs((props: CSSProps) => ({
         height: ${checkboxHeight}px;
         border-radius: ${checkboxHeight}px;
         padding: 4px;
-        background-color: #eee;
+        background-color: ${lighterGrey};
         box-shadow: inset 0 0 2px 0 #777;
 
         div {
@@ -38,8 +38,8 @@ export const CheckboxContainer = styled.div.attrs((props: CSSProps) => ({
             height: ${checkboxHeight}px;
             width: ${checkboxHeight}px;
             border-radius: ${checkboxHeight}px;
-            background-color: white;
-            box-shadow: 0 0 2px 0 #777;
+            background-color: ${white};
+            box-shadow: 0 0 2px 0 #444;
         }
     }
 `;
@@ -61,7 +61,6 @@ const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     .checkbox-slide-enter {
         .checkbox {
-            // background-color: ${lightGrey};
             div {
                 left: 0px;
             }
@@ -69,9 +68,6 @@ const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
     .checkbox-slide-enter-active {
         .checkbox {
-            // background-color: ${primaryColor};
-            // transition: background-color ${ENTER}ms ease-in-out;
-
             div {
                 left: ${checkboxWidth - checkboxHeight}px;
                 transition: left ${ENTER}ms ease-in-out;
@@ -80,7 +76,6 @@ const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
     .checkbox-slide-enter-done {
         .checkbox {
-            // background-color: ${primaryColor};
             div {
                 left: ${checkboxWidth - checkboxHeight}px;
             }
@@ -88,7 +83,6 @@ const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
     .checkbox-slide-exit {
         .checkbox {
-            // background-color: ${primaryColor};
             div {
                 left: ${checkboxWidth - checkboxHeight}px;
             }
@@ -96,9 +90,6 @@ const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
     .checkbox-slide-exit-active {
         .checkbox {
-            // background-color: ${lightGrey};
-            // transition: background-color ${EXIT}ms ease-in-out;
-
             div {
                 left: 0px;
                 transition: left ${EXIT}ms ease-in-out;
@@ -107,7 +98,6 @@ const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({
     }
     .checkbox-slide-exit-done {
         .checkbox {
-            // background-color: ${lightGrey};
             div {
                 left: 0px;
             }

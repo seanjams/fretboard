@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { sandy, SAFETY_AREA_MARGIN, SP, mediumGrey } from "../../utils";
+import { sandy, SP, mediumGrey, lighterGrey } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
@@ -17,9 +17,7 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
     .label-container,
     .chord-scale-container {
         display: flex;
-        width: calc(100% - ${2 * SAFETY_AREA_MARGIN}px);
-        padding-left: ${SAFETY_AREA_MARGIN}px;
-        padding-right: ${SAFETY_AREA_MARGIN}px;
+        width: 100%;
     }
 
     .label-container {
@@ -30,13 +28,11 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
         div:first-child {
             width: calc(40% - ${SP[1]}px);
             padding-left: ${SP[1]}px;
-            transform: translateY(-${SP[0]}px);
         }
 
         div:last-child {
             width: calc(60% - ${SP[6]}px);
             padding-left: ${SP[6]}px;
-            transform: translateY(-${SP[0]}px);
         }
     }
 
@@ -59,7 +55,7 @@ export const RootContainer = styled.div.attrs((props: CSSProps) => ({
 export const RootTag = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
-        backgroundColor: props.highlighted ? sandy : "white",
+        backgroundColor: props.highlighted ? sandy : lighterGrey,
     },
 }))<CSSProps>`
     height: calc(100% - ${3 * SP[0]}px);
@@ -84,6 +80,6 @@ export const ChordScaleContainer = styled.div.attrs((props: CSSProps) => ({
     },
 }))<CSSProps>`
     height: 100%;
-    width: calc(60% - ${SP[6]}px);
-    margin-left: ${SP[6]}px;
+    width: calc(60% - ${SP[7]}px);
+    margin-left: ${SP[7]}px;
 `;

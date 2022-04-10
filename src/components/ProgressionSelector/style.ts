@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { mediumGrey, SAFETY_AREA_MARGIN, SP, sandy } from "../../utils";
+import { mediumGrey, SP, sandy } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     selected?: boolean;
@@ -13,8 +13,7 @@ export const ProgressionSelectorContainer = styled.div.attrs(
         },
     })
 )<CSSProps>`
-    width: calc(100% - ${2 * SAFETY_AREA_MARGIN}px);
-    padding: 0 ${SAFETY_AREA_MARGIN}px;
+    width: 100%;
     height: 100%;
 `;
 

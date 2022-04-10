@@ -1,9 +1,10 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { darkGrey, SP } from "../../utils";
+import { mediumGrey, SP, white } from "../../utils";
 
 export interface CSSProps extends CSS.Properties {
     activeColor?: string;
+    pressedColor?: string;
     active?: boolean;
     pressed?: boolean;
     diameter?: number;
@@ -16,10 +17,15 @@ export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
         boxShadow: props.active
-            ? `inset 0 0 4px 0 #aaa`
+            ? `inset 0 0 4px 0 #666`
             : props.pressed
-            ? `inset 0 0 4px 0 #aaa`
-            : `0 0 4px 0 #aaa`,
+            ? `inset 0 0 4px 0 #666`
+            : `0 0 4px 0 #999`,
+        backgroundColor: props.active
+            ? props.activeColor
+            : props.pressed
+            ? props.pressedColor
+            : props.backgroundColor,
     },
 }))<CSSProps>`
     width: ${(props) => props.diameter || 0}px;
@@ -45,11 +51,14 @@ export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
     -khtml-user-select: none; /* webkit (konqueror) browsers */
     -ms-user-select: none; /* IE10+ */
 
-    img {
+    svg {
         height: ${(props) => props.iconHeight || 16}px;
         width: ${(props) => props.iconWidth || 16}px;
-        // use this codepen to generate filter colors https://codepen.io/sosuke/pen/Pjoqqp
-        filter: brightness(0) saturate(100%) invert(51%) sepia(4%) saturate(8%)
-            hue-rotate(358deg) brightness(97%) contrast(92%);
+
+        path {
+            fill: ${(props) =>
+                props.pressed || props.active ? white : mediumGrey};
+            transition: fill 50ms ease-in-out;
+        }
     }
 `;

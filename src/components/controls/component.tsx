@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import { icons } from "../../assets/icons/icons";
 import {
     useStateRef,
     AppStore,
@@ -17,31 +18,16 @@ import {
     SELECTED,
     STRUM_LOW_TO_HIGH,
     ARPEGGIATE_LOW_TO_HIGH,
-    SAFETY_AREA_MARGIN,
-    lightGrey,
 } from "../../utils";
+import { Checkbox } from "../Checkbox";
+import { Div, FlexRow } from "../Common";
+import { IconButton } from "../IconButton";
 import {
     PillControlsContainer,
     HighlightCheckboxAnimation,
     HighlightCheckboxContainer,
     Label,
 } from "./style";
-import { Checkbox } from "../Checkbox";
-import { Div, FlexRow } from "../Common";
-import { IconButton } from "../IconButton";
-import PlusIcon from "../../assets/icons/plus.svg";
-import MinusIcon from "../../assets/icons/minus.svg";
-
-import PlayIcon from "../../assets/icons/play.svg";
-import SaveIcon from "../../assets/icons/database.svg";
-import ChordIcon from "../../assets/icons/music.svg";
-import TrashIcon from "../../assets/icons/bin.svg";
-import CogIcon from "../../assets/icons/cog.svg";
-
-import LeftArrowIcon from "../../assets/icons/arrow-left.svg";
-import RightArrowIcon from "../../assets/icons/arrow-right.svg";
-import UpArrowIcon from "../../assets/icons/arrow-up.svg";
-import DownArrowIcon from "../../assets/icons/arrow-down.svg";
 
 interface ControlsProps {
     appStore: AppStore;
@@ -64,34 +50,38 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
             <Div className="pill-button-container">
                 <IconButton
                     onClick={onArrowPress("ArrowLeft")}
-                    imageSrc={LeftArrowIcon}
                     iconHeight={18}
                     iconWidth={18}
-                />
+                >
+                    {icons.arrowLeft}
+                </IconButton>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
                     onClick={onArrowPress("ArrowDown")}
-                    imageSrc={DownArrowIcon}
                     iconHeight={18}
                     iconWidth={18}
-                />
+                >
+                    {icons.arrowDown}
+                </IconButton>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
                     onClick={onArrowPress("ArrowUp")}
-                    imageSrc={UpArrowIcon}
                     iconHeight={18}
                     iconWidth={18}
-                />
+                >
+                    {icons.arrowUp}
+                </IconButton>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
                     onClick={onArrowPress("ArrowRight")}
-                    imageSrc={RightArrowIcon}
                     iconHeight={18}
                     iconWidth={18}
-                />
+                >
+                    {icons.arrowRight}
+                </IconButton>
             </Div>
         </PillControlsContainer>
     );
@@ -145,11 +135,12 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
                     <Div className="pill-button-container clear-button">
                         <IconButton
                             onClick={onClear}
-                            imageSrc={TrashIcon}
                             iconHeight={18}
                             iconWidth={18}
                             isCircular={true}
-                        />
+                        >
+                            {icons.bin}
+                        </IconButton>
                     </Div>
                 </HighlightCheckboxContainer>
             </HighlightCheckboxAnimation>
@@ -161,16 +152,14 @@ export const SliderControls: React.FC<ControlsProps> = ({ appStore }) => {
     return (
         <PillControlsContainer>
             <Div className="pill-button-container">
-                <IconButton
-                    onClick={appStore.dispatch.addFretboard}
-                    imageSrc={PlusIcon}
-                />
+                <IconButton onClick={appStore.dispatch.addFretboard}>
+                    {icons.plus}
+                </IconButton>
             </Div>
             <Div className="pill-button-container">
-                <IconButton
-                    onClick={appStore.dispatch.removeFretboard}
-                    imageSrc={MinusIcon}
-                />
+                <IconButton onClick={appStore.dispatch.removeFretboard}>
+                    {icons.minus}
+                </IconButton>
             </Div>
         </PillControlsContainer>
     );
@@ -201,23 +190,26 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
             <Div className="pill-button-container">
                 <IconButton
                     onClick={onShowDisplay("settings")}
-                    imageSrc={CogIcon}
                     selected={display === "settings"}
-                />
+                >
+                    {icons.cog}
+                </IconButton>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
                     onClick={onShowDisplay("change-chord")}
-                    imageSrc={ChordIcon}
                     selected={display === "change-chord"}
-                />
+                >
+                    {icons.music}
+                </IconButton>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
                     onClick={onShowDisplay("change-progression")}
-                    imageSrc={SaveIcon}
                     selected={display === "change-progression"}
-                />
+                >
+                    {icons.database}
+                </IconButton>
             </Div>
         </PillControlsContainer>
     );
@@ -240,11 +232,12 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         <FlexRow justifyContent="start">
             <IconButton
                 onClick={onPlayNotes}
-                imageSrc={PlayIcon}
                 iconHeight={22}
                 iconWidth={22}
                 isCircular={true}
-            />
+            >
+                {icons.play}
+            </IconButton>
         </FlexRow>
     );
 };
@@ -305,16 +298,8 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
     };
 
     return (
-        <Div
-            padding={`0 ${SAFETY_AREA_MARGIN}px`}
-            height="100%"
-            width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px)`}
-        >
-            <FlexRow
-                height="100%"
-                padding={`0 ${SAFETY_AREA_MARGIN}px`}
-                justifyContent="space-between"
-            >
+        <Div height="100%" width="100%">
+            <FlexRow height="100%" width="100%" justifyContent="space-between">
                 <Div>
                     <Label>Label</Label>
                     <Checkbox
@@ -327,9 +312,9 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
                 <Div>
                     <Label>Hand</Label>
                     <Checkbox
-                        checked={!!leftHand}
-                        leftLabel="Right"
-                        rightLabel="Left"
+                        checked={!leftHand}
+                        leftLabel="Left"
+                        rightLabel="Right"
                         onClick={appStore.dispatch.toggleLeftHand}
                     />
                 </Div>
@@ -379,10 +364,10 @@ export const ProgressionControls: React.FC<ProgressionControlsProps> = ({
     return (
         <PillControlsContainer>
             <Div className="pill-button-container">
-                <IconButton onClick={onAddClick} imageSrc={PlusIcon} />
+                <IconButton onClick={onAddClick}>{icons.plus}</IconButton>
             </Div>
             <Div className="pill-button-container">
-                <IconButton onClick={onRemoveClick} imageSrc={MinusIcon} />
+                <IconButton onClick={onRemoveClick}>{icons.minus}</IconButton>
             </Div>
         </PillControlsContainer>
     );

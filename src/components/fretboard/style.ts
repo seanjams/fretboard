@@ -1,6 +1,11 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { FRETBOARD_MARGIN, FRETBOARD_WIDTH } from "../../utils";
+import {
+    FRETBOARD_MARGIN,
+    FRETBOARD_WIDTH,
+    mediumGrey,
+    white,
+} from "../../utils";
 import { generateAnimationWrapper } from "../Animation";
 
 interface CSSProps extends CSS.Properties {
@@ -20,18 +25,6 @@ const getOverFlowScale = (
     return [width, scale];
 };
 
-export const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    display: flex;
-    align-items: stretch;
-    height: ${(props) =>
-        (props.maxFretboardHeight || 0) - 2 * FRETBOARD_MARGIN}px;
-    width: ${FRETBOARD_WIDTH}px;
-    padding-top: ${FRETBOARD_MARGIN}px;
-    padding-bottom: ${FRETBOARD_MARGIN}px;
-`;
-
 export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
@@ -39,8 +32,24 @@ export const OverflowContainerDiv = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     height: ${(props) => props.maxFretboardHeight}px;
     max-height: ${(props) => props.maxFretboardHeight}px;
+`;
+
+export const FretboardContainer = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    background-color: ${white};
+    display: flex;
+    align-items: stretch;
+    height: ${(props) =>
+        (props.maxFretboardHeight || 0) - 2 * FRETBOARD_MARGIN}px;
+    width: ${FRETBOARD_WIDTH}px;
+    padding-top: ${FRETBOARD_MARGIN}px;
+    padding-bottom: ${FRETBOARD_MARGIN}px;
+    box-shadow: inset 0 6px 10px -8px ${mediumGrey},
+        inset 0 -6px 10px -8px ${mediumGrey};
 `;
 
 export const FretboardDiv = styled.div.attrs((props: CSSProps) => ({

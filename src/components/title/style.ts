@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { lighterGrey, SP } from "../../utils";
+import { mediumGrey, SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     markerColor?: string;
@@ -17,13 +17,13 @@ export const TitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 100%;
+    height: 44px;
 `;
 
 export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    border: 3px dashed ${lighterGrey};
+    border: 3px dashed ${mediumGrey};
     border-radius: 10px;
     box-sizing: border-box;
     width: 80px;
@@ -32,18 +32,19 @@ export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     align-items: center;
     justify-content: center;
-    color: ${lighterGrey};
+    color: ${mediumGrey};
     font-size: ${titleFontSize}px;
 `;
 
 export const CurrentFretboardMarker = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
+    position: relative;
+    top: -${SP[4]}px;
     background-color: ${(props) => props.markerColor};
     border-radius: 100%;
-    width: 12px;
-    height: 12px;
-    position: relative;
-    top: -${SP[3]}px;
+    width: ${SP[2]}px;
+    height: ${SP[2]}px;
+    margin-bottom: -${SP[2]}px;
     transition: background-color 150ms ease-in-out;
 `;

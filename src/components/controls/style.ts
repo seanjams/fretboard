@@ -1,6 +1,13 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { COLORS, lighterGrey, lightGrey, mediumGrey, SP } from "../../utils";
+import {
+    COLORS,
+    lighterGrey,
+    lightGrey,
+    mediumGrey,
+    SP,
+    white,
+} from "../../utils";
 import { generateAnimationWrapper } from "../Animation";
 
 // should extend from some CSSProp default object so you dont have to add these manually
@@ -33,7 +40,7 @@ export const PillControlsContainer = styled.div.attrs((props: CSSProps) => ({
             border-bottom-right-radius: ${SP[1]}px;
             margin-left: 0;
 
-            img {
+            svg {
                 padding-left: ${SP[0]}px;
             }
         }
@@ -47,7 +54,7 @@ export const PillControlsContainer = styled.div.attrs((props: CSSProps) => ({
             border-bottom-right-radius: 100%;
             margin-right: 0;
 
-            img {
+            svg {
                 padding-right: ${SP[0]}px;
             }
         }
@@ -71,11 +78,6 @@ const ENTER = 250;
 const EXIT = 250;
 const highlightCheckboxHeight = 32;
 const highlightCheckboxWidth = 80;
-
-const whiteFilter =
-    "invert(93%) sepia(100%) saturate(29%) hue-rotate(36deg) brightness(105%) contrast(108%)";
-const greyFilter =
-    "brightness(0) saturate(100%) invert(51%) sepia(4%) saturate(8%) hue-rotate(358deg) brightness(97%) contrast(92%)";
 
 export const HighlightCheckboxContainer = styled.div.attrs(
     (props: CSSProps) => ({
@@ -110,8 +112,8 @@ export const HighlightCheckboxContainer = styled.div.attrs(
         background-color: transparent !important;
         border-radius: 100%;
 
-        img {
-            filter: ${greyFilter};
+        svg path {
+            fill: ${mediumGrey};
         }
     }
 `;
@@ -132,8 +134,8 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .clear-button .button-div {
             background-color: transparent !important;
 
-            img {
-                filter: ${greyFilter} !important;
+            svg path {
+                fill: ${mediumGrey};
             }
         }
     }
@@ -152,9 +154,9 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             background-color: ${primaryColor} !important;
             transition: background-color ${ENTER}ms ease-in-out;
 
-            img {
-                filter: ${whiteFilter} !important;
-                transition: filter ${ENTER}ms ease-in-out;
+            svg path {
+                fill: ${white};
+                transition: fill ${ENTER}ms ease-in-out;
             }
         }
     }
@@ -169,8 +171,8 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .clear-button .button-div {
             background-color: ${primaryColor} !important;
 
-            img {
-                filter: ${whiteFilter} !important;
+            svg path {
+                fill: ${white};
             }
         }
     }
@@ -185,8 +187,8 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .clear-button .button-div {
             background-color: ${primaryColor} !important;
 
-            img {
-                filter: ${whiteFilter} !important;
+            svg path {
+                fill: ${white};
             }
         }
     }
@@ -205,9 +207,9 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
             background-color: transparent !important;
             transition: background-color ${EXIT}ms ease-in-out;
 
-            img {
-                filter: ${greyFilter} !important;
-                transition: filter ${EXIT}ms ease-in-out;
+            svg path {
+                fill: ${mediumGrey};
+                transition: fill ${EXIT}ms ease-in-out;
             }
         }
     }
@@ -222,8 +224,8 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         .clear-button .button-div {
             background-color: transparent !important;
 
-            img {
-                filter: ${greyFilter} !important;
+            svg path {
+                fill: ${mediumGrey};
             }
         }
     }

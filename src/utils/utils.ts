@@ -592,9 +592,9 @@ export const getFretboardDimensions = () => {
     // Safety Area
     // -------------------------------
 
-    const GUTTER_PERCENTAGE = 0.22;
+    const GUTTER_PERCENTAGE = 0.23;
     const MAIN_PERCENTAGE = 1 - 2 * GUTTER_PERCENTAGE;
-    const INPUT_PERCENTAGE = 0.18;
+    const INPUT_PERCENTAGE = 0.2;
     const FRETBOARD_PERCENTAGE = MAIN_PERCENTAGE - INPUT_PERCENTAGE;
 
     const height = getScreenDimensions()[1];

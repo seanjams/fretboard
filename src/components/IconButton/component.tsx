@@ -1,11 +1,10 @@
 import React from "react";
 import { useStateRef, useTouchHandlers } from "../../store";
 import { ReactMouseEvent, WindowMouseEvent } from "../../types";
-import { darkGrey } from "../../utils";
+import { lightBlue, lighterGrey } from "../../utils";
 import { ButtonDiv } from "./style";
 
 export interface IconButtonProps {
-    imageSrc?: string;
     onClick?: (event: WindowMouseEvent) => void;
     selected?: boolean;
     iconHeight?: number;
@@ -14,12 +13,12 @@ export interface IconButtonProps {
 }
 
 export const IconButton: React.FC<IconButtonProps> = ({
-    imageSrc,
     onClick,
     selected,
     iconHeight,
     iconWidth,
     isCircular,
+    children,
 }) => {
     const [getState, setState] = useStateRef(() => ({
         active: selected || false,
@@ -41,17 +40,18 @@ export const IconButton: React.FC<IconButtonProps> = ({
     return (
         <ButtonDiv
             {...touchHandlers}
-            backgroundColor="transparent"
+            backgroundColor={lighterGrey}
             active={active}
+            activeColor={lightBlue}
             pressed={selected}
-            activeColor={darkGrey}
+            pressedColor={lightBlue}
             diameter={44}
             className="button-div"
             iconWidth={iconWidth}
             iconHeight={iconHeight}
             isCircular={isCircular}
         >
-            {imageSrc && <img src={imageSrc} width="20px" height="20px" />}
+            {children}
         </ButtonDiv>
     );
 };

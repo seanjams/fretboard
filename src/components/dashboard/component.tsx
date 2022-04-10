@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useStateRef, AppStore, AudioStore } from "../../store";
-import { SAFETY_AREA_MARGIN, getFretboardDimensions, SP } from "../../utils";
+import { getFretboardDimensions, SP } from "../../utils";
 import { Fretboard } from "../Fretboard";
 import { Div, FlexRow } from "../Common";
 import {
@@ -14,7 +14,7 @@ import { ChordInput } from "../ChordInput";
 import { InversionSelector } from "../InversionSelector";
 import { ProgressionSelector } from "../ProgressionSelector";
 import { Slider } from "../Slider";
-import { ContainerDiv } from "./style";
+import { ContainerDiv, DrawerContainer, GutterDiv } from "./style";
 import { BottomDrawer, TopDrawer } from "../Drawer";
 
 interface DashboardProps {
@@ -32,7 +32,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }));
 
     const { display } = getState();
-    const { gutterHeight, maxFretboardHeight } = getFretboardDimensions();
+    const fretboardDimensions = getFretboardDimensions();
+    const { maxFretboardHeight } = fretboardDimensions;
 
     useEffect(
         () =>
@@ -45,56 +46,44 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
     return (
         <ContainerDiv>
-            <Div
-                height={`${gutterHeight}px`}
-                marginTop={`${SAFETY_AREA_MARGIN}px`}
-                marginBottom={0}
-                paddingLeft={`${SP[7]}px`}
-                paddingRight={`${SP[7]}px`}
-                verticalAlign="top"
-            >
+            <GutterDiv {...fretboardDimensions} isTop={true}>
                 <Slider appStore={appStore} audioStore={audioStore} />
-            </Div>
+            </GutterDiv>
             <Div height={`${maxFretboardHeight}px`}>
                 <TopDrawer appStore={appStore}>
-                    {display === "change-inversion" ? (
-                        <InversionSelector
-                            appStore={appStore}
-                            audioStore={audioStore}
-                        />
-                    ) : null}
+                    <DrawerContainer isTop={true}>
+                        {display === "change-inversion" ? (
+                            <InversionSelector
+                                appStore={appStore}
+                                audioStore={audioStore}
+                            />
+                        ) : null}
+                    </DrawerContainer>
                 </TopDrawer>
                 <Fretboard appStore={appStore} audioStore={audioStore} />
                 <BottomDrawer appStore={appStore}>
-                    {display === "change-chord" ? (
-                        <ChordInput
-                            appStore={appStore}
-                            audioStore={audioStore}
-                        />
-                    ) : display === "settings" ? (
-                        <SettingsControls
-                            appStore={appStore}
-                            audioStore={audioStore}
-                        />
-                    ) : display === "change-progression" ? (
-                        <ProgressionSelector
-                            appStore={appStore}
-                            audioStore={audioStore}
-                        />
-                    ) : null}
+                    <DrawerContainer isTop={false}>
+                        {display === "change-chord" ? (
+                            <ChordInput
+                                appStore={appStore}
+                                audioStore={audioStore}
+                            />
+                        ) : display === "settings" ? (
+                            <SettingsControls
+                                appStore={appStore}
+                                audioStore={audioStore}
+                            />
+                        ) : display === "change-progression" ? (
+                            <ProgressionSelector
+                                appStore={appStore}
+                                audioStore={audioStore}
+                            />
+                        ) : null}
+                    </DrawerContainer>
                 </BottomDrawer>
             </Div>
-            <FlexRow
-                height={`${gutterHeight}px`}
-                marginTop="0px"
-                marginBottom={`${SAFETY_AREA_MARGIN}px`}
-                flexDirection="column"
-                justifyContent="flex-end"
-            >
-                <FlexRow
-                    width={`calc(100% - ${2 * SAFETY_AREA_MARGIN}px`}
-                    padding={`0 ${SAFETY_AREA_MARGIN}px`}
-                >
+            <GutterDiv {...fretboardDimensions} isTop={false}>
+                <FlexRow width="100%">
                     <Div flexShrink={1}>
                         <DrawerControls appStore={appStore} />
                     </Div>
@@ -124,7 +113,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         />
                     </Div>
                 </FlexRow>
-            </FlexRow>
+            </GutterDiv>
         </ContainerDiv>
     );
 };

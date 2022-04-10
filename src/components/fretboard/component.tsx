@@ -199,14 +199,10 @@ export const Fretboard: React.FC<FretboardProps> = ({
         >
             <OverflowContainerDiv
                 ref={fretboardContainerRef}
-                className="overflow-container"
                 {...fretboardDimensions}
                 {...touchHandlers}
             >
-                <FretboardContainer
-                    className="fretboard-container"
-                    {...fretboardDimensions}
-                >
+                <FretboardContainer {...fretboardDimensions}>
                     <FretboardDiv>
                         {highEBottom ? strings : strings.reverse()}
                     </FretboardDiv>

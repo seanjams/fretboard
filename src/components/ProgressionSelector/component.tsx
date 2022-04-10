@@ -186,21 +186,25 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
                 Load/Save Progression
             </Div>
             <FlexRow width="100%" height="90%">
-                <FlexRow width="20%" height="100%" flexGrow="1">
+                <FlexRow
+                    height="100%"
+                    flexShrink="1"
+                    paddingRight={`${SP[2]}px`}
+                >
                     <ProgressionControls
                         appStore={appStore}
                         onAddClick={onAddProgression}
                         onRemoveClick={onRemoveProgression}
                     />
                 </FlexRow>
-                <Div width="80%" height="100%">
+                <FlexRow height="100%" flexGrow="1">
                     <ScrollSelect
                         onChange={getClickHandler}
                         value={`progression-option-${currentProgressionIndex}`}
                     >
                         {options}
                     </ScrollSelect>
-                </Div>
+                </FlexRow>
             </FlexRow>
         </ProgressionSelectorContainer>
     );

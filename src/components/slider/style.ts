@@ -12,7 +12,7 @@ export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-content: center;
     touch-action: none;
     width: 100%;
