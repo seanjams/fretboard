@@ -21,6 +21,7 @@ export const FretDiv = styled.div.attrs((props: CSSProps) => ({
     justify-content: space-between;
     align-items: center;
     position: relative;
+    height: 100%;
 
     user-select: none; /* standard syntax */
     -webkit-user-select: none; /* webkit (safari, chrome) browsers */
@@ -111,4 +112,15 @@ export const OctaveDot = styled.div.attrs((props: CSSProps) => ({
     position: absolute;
     background-color: ${lightGrey};
     margin-top: -${SP[0] / 2}px;
+`;
+
+export const FretNumber = styled.div<CSSProps>`
+    position: relative;
+    left: 0px;
+    top: ${-SP[1] - 2}px;
+    height: ${SP[1]}px;
+    text-align: center;
+    margin-bottom: ${-SP[1]}px;
+    font-size: ${SP[1]}px;
+    color: ${lightGrey};
 `;

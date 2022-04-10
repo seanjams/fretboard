@@ -38,7 +38,15 @@ import {
     getFretboardDimensions,
 } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
-import { CircleDiv, FretDiv, LegendDot, OctaveDot, ShadowDiv } from "./style";
+import { Div } from "../Common";
+import {
+    CircleDiv,
+    FretDiv,
+    FretNumber,
+    LegendDot,
+    OctaveDot,
+    ShadowDiv,
+} from "./style";
 
 const [secondaryColor, primaryColor] = COLORS[0];
 const playingColor = gold;
@@ -123,14 +131,22 @@ export const Fret: React.FC<FretProps> = ({
     const fretAudioKey = `${stringIndex}_${fretIndex}`;
     const isOpenString = fretIndex === 0;
 
-    const { display, fretboard, progression, progress, status } =
-        appStore.getComputedState();
+    const {
+        display,
+        fretboard,
+        invert,
+        leftHand,
+        progression,
+        progress,
+        status,
+    } = appStore.getComputedState();
     const { label } = progression;
 
     const [getState, setState] = useStateRef(() => ({
         fretName: getFretName(fretValue, label),
+        highEBottom: invert !== leftHand,
     }));
-    const { fretName } = getState();
+    const { fretName, highEBottom } = getState();
 
     // init refs
     const progressRef = useRef(progress);
@@ -179,8 +195,15 @@ export const Fret: React.FC<FretProps> = ({
     useEffect(
         () =>
             appStore.addListener((newState) => {
-                const { display, fretboard, progress, progression, status } =
-                    getComputedAppState(newState);
+                const {
+                    display,
+                    fretboard,
+                    invert,
+                    leftHand,
+                    progress,
+                    progression,
+                    status,
+                } = getComputedAppState(newState);
                 const { label } = progression;
 
                 const isHighlighted = getIsHighlighted(
@@ -195,6 +218,7 @@ export const Fret: React.FC<FretProps> = ({
                 );
                 const isDisabled = display !== "normal";
                 const fretName = getFretName(fretValue, label);
+                const highEBottom = invert !== leftHand;
 
                 // set refs based on changes
                 if (
@@ -213,7 +237,11 @@ export const Fret: React.FC<FretProps> = ({
                 }
 
                 // set state based on changes
-                if (getState().fretName !== fretName) setState({ fretName });
+                if (
+                    getState().fretName !== fretName ||
+                    getState().highEBottom !== highEBottom
+                )
+                    setState({ fretName, highEBottom });
             }),
         []
     );
@@ -695,38 +723,45 @@ export const Fret: React.FC<FretProps> = ({
         />
     );
 
+    const addFretNumber =
+        (highEBottom && stringIndex === 0) ||
+        (!highEBottom && stringIndex === 5);
+
     return (
-        <FretDiv
-            width={`${fretWidth}px`}
-            onContextMenu={onContextMenu}
-            isOpenString={isOpenString}
-        >
-            {stringSegment}
-            <CircleDiv
-                {...touchHandlers}
-                ref={circleRef}
-                color={textColor}
-                circleSize={circleSize}
-            >
-                <ChordSymbol rootName={fretName} chordName="" fontSize={16} />
-            </CircleDiv>
-            <ShadowDiv
-                ref={shadowRef}
-                backgroundColor={backgroundColor}
-                top={top}
-                circleSize={circleSize}
-            />
-            {stringSegment}
-            {fretIndex !== 0 &&
-                (stringIndex === 0 || stringIndex === 5) &&
-                [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
-                    <LegendDot legendTop={stringIndex !== 0} />
-                )}
-            {fretIndex !== 0 &&
-                (stringIndex === 0 || stringIndex === 5) &&
-                mod(fretIndex, 12) === 0 && (
-                    <OctaveDot legendTop={stringIndex !== 0} />
-                )}
-        </FretDiv>
+        <Div width={`${fretWidth}px`} height="100%">
+            {addFretNumber && <FretNumber>{fretIndex}</FretNumber>}
+            <FretDiv onContextMenu={onContextMenu} isOpenString={isOpenString}>
+                {stringSegment}
+                <CircleDiv
+                    {...touchHandlers}
+                    ref={circleRef}
+                    color={textColor}
+                    circleSize={circleSize}
+                >
+                    <ChordSymbol
+                        rootName={fretName}
+                        chordName=""
+                        fontSize={16}
+                    />
+                </CircleDiv>
+                <ShadowDiv
+                    ref={shadowRef}
+                    backgroundColor={backgroundColor}
+                    top={top}
+                    circleSize={circleSize}
+                />
+                {stringSegment}
+                {fretIndex !== 0 &&
+                    (stringIndex === 0 || stringIndex === 5) &&
+                    [0, 3, 5, 7, 9].includes(mod(fretIndex, 12)) && (
+                        <LegendDot legendTop={stringIndex !== 0} />
+                    )}
+                {fretIndex !== 0 &&
+                    (stringIndex === 0 || stringIndex === 5) &&
+                    mod(fretIndex, 12) === 0 && (
+                        <OctaveDot legendTop={stringIndex !== 0} />
+                    )}
+            </FretDiv>
+        </Div>
     );
 };
