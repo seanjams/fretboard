@@ -1,10 +1,19 @@
-function hexToRgb(hex: string) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
+function normalizeRgb(hexOrRgb: string) {
+    let result;
+    let base;
+    if (hexOrRgb.startsWith("rgb")) {
+        result = /^rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)$/i.exec(hexOrRgb);
+        base = 10;
+    } else {
+        result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexOrRgb);
+        base = 16;
+    }
+
+    return result && base
         ? {
-              r: parseInt(result[1], 16),
-              g: parseInt(result[2], 16),
-              b: parseInt(result[3], 16),
+              r: parseInt(result[1], base),
+              g: parseInt(result[2], base),
+              b: parseInt(result[3], base),
           }
         : null;
 }
@@ -18,8 +27,8 @@ export function colorFade(
     endHex: string,
     percentage: number
 ) {
-    const start = hexToRgb(startHex);
-    const end = hexToRgb(endHex);
+    const start = normalizeRgb(startHex);
+    const end = normalizeRgb(endHex);
     if (!start || !end) return null;
 
     const r = Math.floor(lerp(start.r, end.r, percentage));

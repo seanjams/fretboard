@@ -21,3 +21,18 @@ export const COLORS = [
     // ["#D7BEA8", "#744253"],
     // ["#CAD2C5", "#52489C"],
 ];
+
+// button, background, highlight
+export const backgroundColors = [
+    ["#BBDDBB", "#DDF5DD", "#88ee88"], //green
+    ["#BBBBDD", "#DDDDF5", "#8888EE"], //blue
+    ["#DDBBBB", "#F5DDDD", "#EE8888"], //red
+    ["#DDDDBB", "#F5F5DD", "#EEEE88"], //yellow
+];
+
+// export const backgroundColors = [
+//     ["#BBDDBB", "#afd2a7", "#afd2a7"], //green
+//     ["#BBBBDD", "#8888EE", "#8888EE"], //blue
+//     ["#DDBBBB", "#EE8888", "#EE8888"], //red
+//     ["#DDDDBB", "#EEEE88", "#EEEE88"], //yellow
+// ];

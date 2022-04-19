@@ -8,6 +8,7 @@ import {
     StatusTypes,
     FretboardType,
     WindowMouseEvent,
+    FretboardDiffType,
 } from "../types";
 import { kCombinations } from "./combinations";
 import { isMobile } from "react-device-detect";
@@ -100,6 +101,37 @@ function _getMinDiff(
     return [minSum, minDiff];
 }
 
+export function diffToFretboardDiff(
+    diff: DiffType,
+    fretboardA: FretboardType,
+    fretboardB: FretboardType
+): FretboardDiffType {
+    // converts normalized diff to fretboard diff
+    const fretboardDiff: FretboardDiffType = [{}, {}, {}, {}, {}, {}];
+    for (let stringIndex in fretboardA.strings) {
+        const fretString = fretboardA.strings[+stringIndex];
+        for (let fretIndex in fretString) {
+            const currentStatus = fretboardA.strings[+stringIndex][+fretIndex];
+            const destinationStatus =
+                fretboardB.strings[+stringIndex][+fretIndex];
+            const fretValue = getFretValue(+stringIndex, +fretIndex, true);
+
+            if (diff[fretValue] !== undefined) {
+                if (
+                    diff[fretValue] === 9999 &&
+                    destinationStatus === HIGHLIGHTED
+                )
+                    fretboardDiff[+stringIndex][+fretIndex] = 10000;
+                if (diff[fretValue] === -9999 && currentStatus === HIGHLIGHTED)
+                    fretboardDiff[+stringIndex][+fretIndex] = -10000;
+                fretboardDiff[+stringIndex][+fretIndex] = diff[fretValue];
+            }
+        }
+    }
+
+    return fretboardDiff;
+}
+
 export function compare(fretboardA: FretboardType, fretboardB: FretboardType) {
     // for generating diffs between stringsA and stringsB in both directions
     let listA = list(fretboardA);
@@ -147,8 +179,8 @@ export function compare(fretboardA: FretboardType, fretboardB: FretboardType) {
 }
 
 export const rebuildDiffs = (fretboards: FretboardType[]) => {
-    const leftDiffs: DiffType[] = [];
-    const rightDiffs: DiffType[] = [];
+    const leftDiffs: FretboardDiffType[] = [];
+    const rightDiffs: FretboardDiffType[] = [];
 
     for (let i = 0; i < fretboards.length; i++) {
         const fretboard = fretboards[i];
@@ -156,12 +188,25 @@ export const rebuildDiffs = (fretboards: FretboardType[]) => {
 
         let leftDiff: DiffType | null = null;
         let rightDiff: DiffType | null = null;
+        let leftFretboardDiff: FretboardDiffType | null = null;
+        let rightFretboardDiff: FretboardDiffType | null = null;
         if (compareFretboard) {
             [leftDiff, rightDiff] = compare(fretboard, compareFretboard);
+            leftFretboardDiff = diffToFretboardDiff(
+                leftDiff,
+                compareFretboard,
+                fretboard
+            );
+            rightFretboardDiff = diffToFretboardDiff(
+                rightDiff,
+                fretboard,
+                compareFretboard
+            );
         }
 
-        if (rightDiff) rightDiffs[i] = rightDiff;
-        if (leftDiff && i + 1 < fretboards.length) leftDiffs[i + 1] = leftDiff;
+        if (rightFretboardDiff) rightDiffs[i] = rightFretboardDiff;
+        if (leftFretboardDiff && i + 1 < fretboards.length)
+            leftDiffs[i + 1] = leftFretboardDiff;
     }
 
     return {
@@ -204,14 +249,16 @@ export function cascadeDiffs(
 export function cascadeHighlight(
     fretboardA: FretboardType,
     fretboardB: FretboardType,
-    diff: DiffType
+    diff: FretboardDiffType
 ) {
     // reset fretboardB's highlighted notes
     clearHighlight(fretboardB);
     for (let stringIndex in fretboardA.strings) {
         const fretString = fretboardA.strings[stringIndex];
         for (let fretIndex in fretString) {
-            const diffValue = diff[getFretValue(+stringIndex, +fretIndex)];
+            // TODO: cascadehighlight mode needs this
+            // const diffValue = diff[getFretValue(+stringIndex, +fretIndex)];
+            const diffValue = diff[+stringIndex][+fretIndex];
             const status = fretString[fretIndex];
             const slidesInDiff =
                 diffValue !== undefined && Math.abs(diffValue) < 9999;
@@ -656,7 +703,8 @@ export function setFretboardSelectedName(
 export function buildFretboardByChordName(
     rootIdx: number,
     chordName: ChordTypes,
-    label: LabelTypes
+    label: LabelTypes,
+    colorIndex: number
 ) {
     // create new fretboard from notes, set all on E string arbitrarily
     const notes = getNotesByChordName(rootIdx, chordName);
@@ -669,6 +717,6 @@ export function buildFretboardByChordName(
     }
     newFretboard.names = getFretboardNames(newFretboard, label);
     setFretboardSelectedName(newFretboard, rootIdx, chordName);
-
+    newFretboard.colorIndex = colorIndex;
     return newFretboard;
 }

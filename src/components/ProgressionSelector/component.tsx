@@ -4,7 +4,6 @@ import {
     AppStore,
     AudioStore,
     getComputedAppState,
-    ProgressionStateType,
     useStateRef,
 } from "../../store";
 import { WindowMouseEvent } from "../../types";
@@ -19,16 +18,6 @@ import {
 } from "./style";
 import { ScrollSelect, ScrollSelectOption } from "../ScrollSelect";
 
-const getProgressionString = (
-    progression: ProgressionStateType,
-    index: number
-) => {
-    return (
-        progression.fretboards.map((fretboard) => list(fretboard)).join("") +
-        index
-    );
-};
-
 interface ProgressionSelectorProps {
     appStore: AppStore;
     audioStore: AudioStore;
@@ -40,20 +29,9 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
 }) => {
     const appState = appStore.getComputedState();
 
-    const progressionActive: { [key in string]: boolean } = {};
-    for (let progressionIndex in appState.progressions) {
-        const progression = appState.progressions[progressionIndex];
-        progressionActive[
-            getProgressionString(progression, +progressionIndex)
-        ] = false;
-    }
-
     const [getState, setState] = useStateRef(() => ({
         currentProgressionIndex: appState.currentProgressionIndex,
         progressions: appState.progressions,
-        progressionActive,
-        isDeleting: false,
-        isUpdating: false,
     }));
 
     const { currentProgressionIndex, progressions } = getState();
@@ -63,14 +41,6 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
             const { currentProgressionIndex, progressions } =
                 getComputedAppState(newState);
 
-            const progressionActive: { [key in string]: boolean } = {};
-            for (let progressionIndex in progressions) {
-                const progression = progressions[progressionIndex];
-                progressionActive[
-                    getProgressionString(progression, +progressionIndex)
-                ] = false;
-            }
-
             if (
                 getState().currentProgressionIndex !==
                     currentProgressionIndex ||
@@ -79,7 +49,6 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
                 setState({
                     currentProgressionIndex,
                     progressions,
-                    progressionActive,
                 });
             }
         });
@@ -93,36 +62,12 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
 
     const onAddProgression = () => {
         appStore.dispatch.addProgression();
-        setState({ isDeleting: false, isUpdating: true });
     };
 
     const onRemoveProgression = () => {
-        const { progressions, currentProgressionIndex, progressionActive } =
-            getState();
         if (getState().progressions.length <= 1) return;
-        progressionActive[
-            getProgressionString(
-                progressions[currentProgressionIndex],
-                currentProgressionIndex
-            )
-        ] = true;
-        setState({ progressionActive, isDeleting: true, isUpdating: true });
+        appStore.dispatch.removeProgression();
     };
-
-    // const onComplete = () => {
-    //     if (!getState().isUpdating) return;
-    //     setState({ isUpdating: false });
-    //     if (getState().isDeleting) {
-    //         // setState({
-    //         //     progressionActive: Array(
-    //         //         getState().progressions.length - 1
-    //         //     ).fill(false),
-    //         // });
-    //         appStore.dispatch.removeProgression();
-    //     } else {
-    //         // appStore.dispatch.addProgression();
-    //     }
-    // };
 
     const options = progressions.map((progression, i) => {
         const progressionNames = progression.fretboards

@@ -77,13 +77,14 @@ export function DEFAULT_FRETBOARD_NAME(): FretboardNameType {
     };
 }
 
-export function DEFAULT_FRETBOARD(): FretboardType {
+export function DEFAULT_FRETBOARD(colorIndex: number = -1): FretboardType {
     const strings = DEFAULT_STRINGSWITCH();
     const names = [DEFAULT_FRETBOARD_NAME()];
     return {
         strings,
         names,
         currentRootIndex: names[0].rootIdx,
+        colorIndex,
     };
 }
 

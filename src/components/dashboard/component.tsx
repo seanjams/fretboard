@@ -1,6 +1,11 @@
 import React, { useEffect } from "react";
-import { useStateRef, AppStore, AudioStore } from "../../store";
-import { getFretboardDimensions, SP } from "../../utils";
+import {
+    useStateRef,
+    AppStore,
+    AudioStore,
+    getComputedAppState,
+} from "../../store";
+import { backgroundColors, getFretboardDimensions, SP } from "../../utils";
 import { Fretboard } from "../Fretboard";
 import { Div, FlexRow } from "../Common";
 import {
@@ -26,26 +31,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
     appStore,
     audioStore,
 }) => {
+    const { currentVisibleFretboardIndex } = appStore.getComputedState();
     const [getState, setState] = useStateRef(() => ({
         orientation: "portrait-primary",
         display: appStore.state.display,
+        backgroundColor: backgroundColors[currentVisibleFretboardIndex][1],
     }));
 
-    const { display } = getState();
+    const { display, backgroundColor } = getState();
     const fretboardDimensions = getFretboardDimensions();
     const { maxFretboardHeight } = fretboardDimensions;
 
     useEffect(
         () =>
-            appStore.addListener(({ display }) => {
-                if (getState().display !== display) setState({ display });
+            appStore.addListener((appState) => {
+                const { display, currentVisibleFretboardIndex } =
+                    getComputedAppState(appState);
+                const backgroundColor =
+                    backgroundColors[currentVisibleFretboardIndex][1];
+                if (
+                    getState().display !== display ||
+                    getState().backgroundColor !== backgroundColor
+                )
+                    setState({ display, backgroundColor });
             }),
 
         []
     );
 
     return (
-        <ContainerDiv>
+        <ContainerDiv backgroundColor={backgroundColor}>
             <GutterDiv {...fretboardDimensions} isTop={true}>
                 <Slider appStore={appStore} audioStore={audioStore} />
             </GutterDiv>

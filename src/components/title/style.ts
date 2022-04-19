@@ -4,9 +4,10 @@ import { mediumGrey, SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     markerColor?: string;
+    isPressed?: boolean;
 }
 
-export const titleFontSize = 24;
+export const titleFontSize = 20;
 
 export const TitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
@@ -23,10 +24,6 @@ export const TitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
 export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
-    border: 3px dashed ${mediumGrey};
-    border-radius: 10px;
-    box-sizing: border-box;
-    width: 80px;
     height: 100%;
     margin: 0 auto;
     display: flex;
@@ -47,4 +44,15 @@ export const CurrentFretboardMarker = styled.div.attrs((props: CSSProps) => ({
     height: ${SP[2]}px;
     margin-bottom: -${SP[2]}px;
     transition: background-color 150ms ease-in-out;
+`;
+
+export const TitleButton = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        ...props,
+        boxShadow: props.isPressed ? "0 0 3px 0 #333 inset" : "0 0 4px 0 #666",
+    },
+}))<CSSProps>`
+    width: 80%;
+    height: 100%;
+    border-radius: ${SP[1]}px;
 `;

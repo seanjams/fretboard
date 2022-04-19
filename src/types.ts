@@ -44,11 +44,21 @@ export interface FretboardType {
     strings: StringSwitchType;
     names: FretboardNameType[];
     currentRootIndex: number;
+    colorIndex: number;
 }
 
 export type ArrowTypes = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
 
 export type DiffType = { [key in number]: number };
+
+export type FretboardDiffType = [
+    DiffType,
+    DiffType,
+    DiffType,
+    DiffType,
+    DiffType,
+    DiffType
+];
 
 export type StatusTypes = 0 | 1 | 2;
 export type HighlightTypes = "erase" | "select" | "highlight";

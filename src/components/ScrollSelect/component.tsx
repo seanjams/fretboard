@@ -78,7 +78,7 @@ export const ScrollSelect: React.FC<Props> = ({
         setState({ options, selectedIndex });
         // let setState process its rerender before scrolling, hence setTimeout
         setTimeout(() => scrollToOption(selectedIndex), 0);
-    }, [value]);
+    }, [value, children]);
 
     const onClickOption = (i: number) => (event: WindowMouseEvent) => {
         event.preventDefault();

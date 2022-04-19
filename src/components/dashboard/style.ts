@@ -21,7 +21,7 @@ export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
     width: ${isMobile ? "100vw" : "875px"};
     font-family: Arial;
     overflow: hidden;
-    background-color: ${backgroundThemeColor};
+    transition: background-color 350ms ease-in-out;
 `;
 
 export const GutterDiv = styled.div.attrs((props: CSSProps) => ({
