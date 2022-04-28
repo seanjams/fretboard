@@ -19,7 +19,6 @@ import {
 import {
     getFretWidth,
     mod,
-    COLORS,
     SLIDER_LEFT_WINDOW,
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
@@ -37,7 +36,7 @@ import {
     gold,
     getFretboardDimensions,
     white,
-    backgroundColors,
+    COLORS,
 } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div } from "../Common";
@@ -49,9 +48,6 @@ import {
     OctaveDot,
     ShadowDiv,
 } from "./style";
-
-const [secondaryColor, primaryColor] = COLORS[0];
-const playingColor = gold;
 
 const getTopMargin = (diameter: number) => {
     // As circles resize, this top margin keeps them centered
@@ -80,18 +76,20 @@ const isWithinBoundary = (
 const getBackgroundColor = (
     fretStatus: number,
     playProgress: number,
-    primary: string | undefined
+    primaryColor: string | undefined,
+    playingColor: string | undefined
 ) => {
     const progress = Math.min(Math.max(0, playProgress), 1);
     // const primary = status === HIGHLIGHTED ? primaryColor : "#FABF26";
-    primary = primary || "#FABF26";
+    primaryColor = primaryColor || "#FABF26";
+    playingColor = playingColor || gold;
     const isSelected = fretStatus !== NOT_SELECTED;
     const isHighlighted = fretStatus === HIGHLIGHTED;
 
     return isHighlighted
-        ? colorFade(playingColor, primary, progress) || primary
+        ? colorFade(playingColor, primaryColor, progress) || primaryColor
         : isSelected
-        ? secondaryColor
+        ? lightGrey
         : "transparent";
 };
 
@@ -199,7 +197,8 @@ export const Fret: React.FC<FretProps> = ({
     const backgroundColor = getBackgroundColor(
         currentFretStatusRef.current,
         fretIsPlayingProgressRef.current,
-        backgroundColors[fretboard.colorIndex][2]
+        COLORS[fretboard.colorIndex][2],
+        COLORS[fretboard.colorIndex][3]
         // status
     );
     const textColor =
@@ -284,13 +283,15 @@ export const Fret: React.FC<FretProps> = ({
                 fillOpacityPercentage,
                 backgroundColor,
                 textColor,
+                highlightShadowColor,
             } = styles;
             setFretStyles(
                 left,
                 fillPercentage,
                 fillOpacityPercentage,
                 backgroundColor,
-                textColor
+                textColor,
+                highlightShadowColor
             );
         }
     }
@@ -383,14 +384,13 @@ export const Fret: React.FC<FretProps> = ({
         let backgroundColor = getBackgroundColor(
             currentFretStatus,
             fretIsPlayingProgressRef.current,
-            backgroundColors[currentFretboard.colorIndex][2]
+            COLORS[currentFretboard.colorIndex][2],
+            COLORS[currentFretboard.colorIndex][3]
         );
         // text color for circle div
         let textColor = !currentFretStatus ? lightGrey : darkGrey;
+        const highlightShadowColor = COLORS[currentFretboard.colorIndex][2];
 
-        let x: number; // percentage of journey between slider windows, 0-1
-        let xPercent: number; // percentage of journey between slider windows, 0-100
-        let diffSteps: number; // how many frets to move
         let newLeft; // new left position for sliding shadowDiv
         let fillPercentage = 100; // new diameter for growing/shrinking shadowDiv
         let fillOpacityPercentage = 100; // new opacity for growing/shrinking shadowDiv
@@ -421,12 +421,14 @@ export const Fret: React.FC<FretProps> = ({
             let toEmptyFillColor = getBackgroundColor(
                 nextCurrentFretStatus || NOT_SELECTED,
                 fretIsPlayingProgressRef.current,
-                nextFretboard && backgroundColors[nextFretboard.colorIndex][2]
+                nextFretboard && COLORS[nextFretboard.colorIndex][2],
+                nextFretboard && COLORS[nextFretboard.colorIndex][3]
             );
             let toDiffSlideColor = getBackgroundColor(
                 nextDiffFretStatus || NOT_SELECTED,
                 fretIsPlayingProgressRef.current,
-                nextFretboard && backgroundColors[nextFretboard.colorIndex][2]
+                nextFretboard && COLORS[nextFretboard.colorIndex][2],
+                nextFretboard && COLORS[nextFretboard.colorIndex][3]
             );
             toEmptyFillColor =
                 toEmptyFillColor === "transparent" ? white : toEmptyFillColor;
@@ -461,7 +463,7 @@ export const Fret: React.FC<FretProps> = ({
                         "transparent";
                 }
 
-                diffSteps = diff[stringIndex][fretIndex];
+                let diffSteps = diff[stringIndex][fretIndex]; // how many frets to move
                 if (diffSteps !== undefined)
                     newLeft = direction * diffSteps * xPercent + 50;
             }
@@ -485,6 +487,7 @@ export const Fret: React.FC<FretProps> = ({
             fillOpacityPercentage,
             backgroundColor,
             textColor,
+            highlightShadowColor,
         };
     }
 
@@ -493,7 +496,8 @@ export const Fret: React.FC<FretProps> = ({
         fillPercentage: number,
         fillOpacityPercentage: number,
         backgroundColor: string,
-        textColor: string
+        textColor: string,
+        highlightShadowColor: string
     ) {
         if (!shadowRef.current || !circleRef.current) return;
         const statusMode = statusModeRef.current;
@@ -537,7 +541,7 @@ export const Fret: React.FC<FretProps> = ({
         // set shadow box-shadow
         const boxShadow =
             statusMode === HIGHLIGHTED && fretStatus === HIGHLIGHTED
-                ? `0 0 20px 1px ${playingColor}`
+                ? `0 0 20px 1px ${highlightShadowColor}`
                 : "none";
         if (shadowRef.current.style.boxShadow !== boxShadow)
             shadowRef.current.style.boxShadow = boxShadow;
@@ -690,6 +694,11 @@ export const Fret: React.FC<FretProps> = ({
                 // the drag sequence, and therefore doesn't need to be processed
                 startMouseOver();
                 if (fretDragStatus) appStore.dispatch.setFretDragStatus(null);
+
+                // enable scroll
+                if (circleRef.current)
+                    circleRef.current.style.touchAction = "auto";
+
                 temporaryHighlightMode.current = false;
                 temporaryEraseMode.current = false;
             },
@@ -701,6 +710,11 @@ export const Fret: React.FC<FretProps> = ({
                 if (temporaryHighlightMode.current) {
                     appStore.dispatch.setStatus(SELECTED);
                 }
+
+                // enable scroll
+                if (circleRef.current)
+                    circleRef.current.style.touchAction = "auto";
+
                 temporaryHighlightMode.current = false;
                 temporaryEraseMode.current = false;
             },
@@ -713,6 +727,10 @@ export const Fret: React.FC<FretProps> = ({
                     temporaryHighlightMode.current = true;
                     temporaryEraseMode.current = false;
                 }
+
+                // disable scroll
+                if (circleRef.current)
+                    circleRef.current.style.touchAction = "none";
                 // start highlighting notes regardless of temporaryHighlightMode
                 setHighlightNote(true);
             },
@@ -763,7 +781,7 @@ export const Fret: React.FC<FretProps> = ({
                 } else {
                     // remove isMouseOver when leaving the circle boundaries,
                     // with small delay to prevent flickering
-                    clearMouseOver(50);
+                    clearMouseOver(30);
                 }
             },
         },
@@ -778,7 +796,7 @@ export const Fret: React.FC<FretProps> = ({
         (!highEBottom && stringIndex === 5);
 
     return (
-        <Div width={`${fretWidth}px`} height="100%">
+        <Div width={`${fretWidth}px`} height="100%" {...touchHandlers}>
             {addFretNumber && <FretNumber>{fretIndex}</FretNumber>}
             <FretDiv onContextMenu={onContextMenu} isOpenString={isOpenString}>
                 <Div
@@ -788,7 +806,6 @@ export const Fret: React.FC<FretProps> = ({
                     margin={"auto 0"}
                 />
                 <CircleDiv
-                    {...touchHandlers}
                     ref={circleRef}
                     color={textColor}
                     circleSize={circleSize}

@@ -25,20 +25,22 @@ interface SliderProps {
 
 export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     // state
-    const computedState = appStore.getComputedState();
+    let { visibleFretboards, isAnimating } = appStore.getComputedState();
+    let left = -1000000;
+    let dragging = false;
     const [getState, setState] = useStateRef(() => ({
-        visibleFretboards: computedState.visibleFretboards,
-        left: -1000000,
-        dragging: false,
+        visibleFretboards,
+        left,
+        dragging,
     }));
-    const { left, visibleFretboards, dragging } = getState();
+    ({ left, visibleFretboards, dragging } = getState());
 
     // refs
     const deltaRef = useRef(0);
     const progressBarRef = useRef<HTMLDivElement>(null);
     const sliderBarRef = useRef<HTMLDivElement>(null);
     const animationRef = useRef<ReturnType<typeof requestAnimationFrame>>();
-    const isAnimatingRef = useRef(computedState.isAnimating);
+    const isAnimatingRef = useRef(isAnimating);
     const isPressedRef = useRef(false);
 
     useEffect(() => {
@@ -226,9 +228,9 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                         () => {
                             // set delay for strumming chord (helps render)
                             setTimeout(() => {
-                                const { fretboard } =
-                                    appStore.getComputedState();
-                                audioStore.strumChord(fretboard);
+                                // const { fretboard } =
+                                //     appStore.getComputedState();
+                                // audioStore.strumChord(fretboard);
                             }, 100);
                         }
                     );

@@ -399,6 +399,20 @@ export const appReducers = {
         return { ...state, progressions };
     },
 
+    setProgressionTimestamps(state: AppStateType): AppStateType {
+        const progressions = [...state.progressions];
+        const currentTime = moment();
+        progressions.forEach((progression) => {
+            if (!progression.lastUpdated)
+                progression.lastUpdated = currentTime.toISOString();
+        });
+        progressions.sort((a, b) => moment(b.lastUpdated).diff(a.lastUpdated));
+        return {
+            ...state,
+            progressions,
+        };
+    },
+
     setCurrentProgressionIndex(
         state: AppStateType,
         currentProgressionIndex: number
@@ -481,11 +495,16 @@ export const appReducers = {
             // remove old fretboard, update diffs, reset progress and currentFretboardIndex
             fretboards = [...fretboards];
             fretboards.splice(hiddenFretboardIndex, 1);
+            const scrollToFret = getScrollToFret(
+                fretboards[hiddenFretboardIndex]
+            );
             return this.setCurrentProgression(
                 {
                     ...state,
                     progress: hiddenFretboardIndex + 0.5,
                     hiddenFretboardIndex: -1,
+                    scrollToFret,
+                    scrollToFretUpdated: true,
                 },
                 {
                     ...progression,

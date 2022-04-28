@@ -32,10 +32,11 @@ export const App: React.FC<AppProps> = ({ oldState }) => {
         []
     );
 
-    w.reset = () => {
+    w.reset = (resetAudio = true) => {
         localStorage.clear();
         appStore.setState(DEFAULT_MAIN_STATE());
-        audioStore.setState(DEFAULT_AUDIO_STATE(onAudioLoad, onAudioError));
+        if (resetAudio)
+            audioStore.setState(DEFAULT_AUDIO_STATE(onAudioLoad, onAudioError));
     };
 
     useEffect(() => {
@@ -57,27 +58,31 @@ export const App: React.FC<AppProps> = ({ oldState }) => {
 
     const rehydrateState = () => {
         // rehydrate main state
-        let newState: AppStateType;
-        if (oldState) {
-            newState = {
-                ...DEFAULT_MAIN_STATE(),
-                ...oldState,
-            };
-        } else {
-            let parsedState = {};
-            if (localStorage.getItem("state")) {
-                parsedState =
-                    JSON.parse(localStorage.getItem("state") || "") || {};
+        try {
+            let newState: AppStateType;
+            if (oldState) {
+                newState = {
+                    ...DEFAULT_MAIN_STATE(),
+                    ...oldState,
+                };
+            } else {
+                let parsedState = {};
+                if (localStorage.getItem("state")) {
+                    parsedState =
+                        JSON.parse(localStorage.getItem("state") || "") || {};
+                }
+                newState = {
+                    ...DEFAULT_MAIN_STATE(),
+                    ...parsedState,
+                };
             }
-            newState = {
-                ...DEFAULT_MAIN_STATE(),
-                ...parsedState,
-            };
-        }
 
-        newState.progress = 0.5;
-        newState.rehydrateSuccess = true;
-        appStore.setState(newState);
+            newState.progress = 0.5;
+            newState.rehydrateSuccess = true;
+            appStore.setState(newState);
+        } catch (e) {
+            w.reset(false);
+        }
     };
 
     return <Dashboard appStore={appStore} audioStore={audioStore} />;

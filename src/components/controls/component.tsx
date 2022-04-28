@@ -18,6 +18,7 @@ import {
     SELECTED,
     STRUM_LOW_TO_HIGH,
     ARPEGGIATE_LOW_TO_HIGH,
+    COLORS,
 } from "../../utils";
 import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
@@ -88,15 +89,23 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
 };
 
 export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
+    let { status, currentVisibleFretboardIndex } = appStore.getComputedState();
     const [getState, setState] = useStateRef(() => ({
-        status: appStore.state.status,
+        status,
+        currentVisibleFretboardIndex,
     }));
-    const { status } = getState();
+    ({ status, currentVisibleFretboardIndex } = getState());
 
     useEffect(() => {
-        return appStore.addListener(({ status, strumMode }) => {
-            if (getState().status !== status) {
-                setState({ status });
+        return appStore.addListener((newState) => {
+            const { status, currentVisibleFretboardIndex } =
+                getComputedAppState(newState);
+            if (
+                getState().status !== status ||
+                getState().currentVisibleFretboardIndex !==
+                    currentVisibleFretboardIndex
+            ) {
+                setState({ status, currentVisibleFretboardIndex });
             }
         });
     }, []);
@@ -124,7 +133,10 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
 
     return (
         <FlexRow>
-            <HighlightCheckboxAnimation trigger={status === HIGHLIGHTED}>
+            <HighlightCheckboxAnimation
+                trigger={status === HIGHLIGHTED}
+                highlightColor={COLORS[currentVisibleFretboardIndex][2]}
+            >
                 <HighlightCheckboxContainer>
                     <Div>
                         <Div className="highlight-checkbox" {...touchHandlers}>
@@ -246,15 +258,18 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
     appStore,
     audioStore,
 }) => {
-    const { progression } = appStore.getComputedState();
+    let { isMuted } = audioStore.state;
+    let { progression, strumMode, leftHand, invert } =
+        appStore.getComputedState();
+    let { label } = progression;
     const [getState, setState] = useStateRef(() => ({
-        strumMode: appStore.state.strumMode,
-        isMuted: audioStore.state.isMuted,
-        label: progression.label,
-        leftHand: appStore.state.leftHand,
-        invert: appStore.state.invert,
+        strumMode,
+        isMuted,
+        label,
+        leftHand,
+        invert,
     }));
-    const { strumMode, isMuted, label, leftHand, invert } = getState();
+    ({ strumMode, isMuted, label, leftHand, invert } = getState());
 
     useEffect(
         () =>

@@ -1,14 +1,12 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { COLORS, lighterGrey, mediumGrey, white } from "../../utils";
+import { lighterGrey, mediumGrey, white } from "../../utils";
 import { generateAnimationWrapper } from "../Animation";
 
 // should extend from some CSSProp default object so you dont have to add these manually
 interface CSSProps extends CSS.Properties {
     isLeft?: boolean;
 }
-
-const [secondaryColor, primaryColor] = COLORS[0];
 
 const ENTER = 250;
 const EXIT = 250;

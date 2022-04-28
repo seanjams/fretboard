@@ -52,7 +52,6 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     align-items: center;
     background-color: transparent;
     z-index: 9999;
-    touch-action: none;
     box-shadow: 0 0 4px 0 #aaa;
 
     // &:hover {

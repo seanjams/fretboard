@@ -14,10 +14,11 @@ interface DrawerProps {
 
 export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     // state
+    let { showTopDrawer } = appStore.state;
     const [getState, setState] = useStateRef(() => ({
-        showTopDrawer: appStore.state.showTopDrawer,
+        showTopDrawer,
     }));
-    const { showTopDrawer } = getState();
+    ({ showTopDrawer } = getState());
 
     useEffect(
         () =>
@@ -40,11 +41,12 @@ export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
 };
 
 export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
+    let { showBottomDrawer } = appStore.state;
     const [getState, setState] = useStateRef(() => ({
         // custom state for component
-        showBottomDrawer: appStore.state.showBottomDrawer,
+        showBottomDrawer,
     }));
-    const { showBottomDrawer } = getState();
+    ({ showBottomDrawer } = getState());
 
     useEffect(
         () =>

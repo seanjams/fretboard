@@ -110,29 +110,41 @@ export const Fretboard: React.FC<FretboardProps> = ({
         }
 
         const containerWidth = fretboardContainerRef.current.offsetWidth;
-        const halfContainerWidth = containerWidth / 2;
+        const containerLeftBound =
+            fretboardContainerRef.current.scrollLeft - 0.4 * containerWidth;
+        const containerRightBound =
+            fretboardContainerRef.current.scrollLeft + 0.4 * containerWidth;
+        const oldScrollLeft = oldFretXPosition - containerWidth / 2;
+        const newScrollLeft = newFretXPosition - containerWidth / 2;
         const oldScrollCenter = invert
-            ? FRETBOARD_WIDTH - oldFretXPosition - halfContainerWidth
-            : oldFretXPosition - halfContainerWidth;
+            ? FRETBOARD_WIDTH - oldScrollLeft
+            : oldScrollLeft;
         const newScrollCenter = invert
-            ? FRETBOARD_WIDTH - newFretXPosition - halfContainerWidth
-            : newFretXPosition - halfContainerWidth;
+            ? FRETBOARD_WIDTH - newScrollLeft
+            : newScrollLeft;
 
-        // should not delayStrum if we don't scroll.
-        // Otherwise delay by SCROLL_TIME
-        let delayStrum =
-            (oldScrollCenter > 0 &&
-                oldScrollCenter < FRETBOARD_WIDTH - containerWidth) ||
-            (newScrollCenter > 0 &&
-                newScrollCenter < FRETBOARD_WIDTH - containerWidth)
-                ? 468
-                : 150;
+        const newScrollCenterInView =
+            containerLeftBound <= newScrollCenter &&
+            newScrollCenter <= containerRightBound;
 
-        fretboardContainerRef.current.scrollTo({
-            top: 0,
-            left: newScrollCenter,
-            behavior: "smooth",
-        });
+        let delayStrum = 150;
+        if (!newScrollCenterInView) {
+            // should not delayStrum if we don't scroll.
+            // Otherwise delay by SCROLL_TIME
+            delayStrum =
+                (oldScrollCenter > 0 &&
+                    oldScrollCenter < FRETBOARD_WIDTH - containerWidth) ||
+                (newScrollCenter > 0 &&
+                    newScrollCenter < FRETBOARD_WIDTH - containerWidth)
+                    ? 468
+                    : 150;
+
+            fretboardContainerRef.current.scrollTo({
+                top: 0,
+                left: newScrollCenter,
+                behavior: "smooth",
+            });
+        }
 
         setTimeout(() => {
             // const { fretboard, strumMode } =

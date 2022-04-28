@@ -27,32 +27,40 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
     audioStore,
     appStore,
 }) => {
-    const appState = appStore.getComputedState();
-
+    let { currentProgressionIndex, progressions, display } =
+        appStore.getComputedState();
     const [getState, setState] = useStateRef(() => ({
-        currentProgressionIndex: appState.currentProgressionIndex,
-        progressions: appState.progressions,
+        currentProgressionIndex,
+        progressions,
+        display,
     }));
-
-    const { currentProgressionIndex, progressions } = getState();
+    ({ currentProgressionIndex, progressions, display } = getState());
 
     useEffect(() => {
         return appStore.addListener((newState) => {
-            const { currentProgressionIndex, progressions } =
+            const { currentProgressionIndex, progressions, display } =
                 getComputedAppState(newState);
 
             if (
                 getState().currentProgressionIndex !==
                     currentProgressionIndex ||
-                getState().progressions.length !== progressions.length
+                getState().progressions.length !== progressions.length ||
+                getState().display !== display
             ) {
                 setState({
                     currentProgressionIndex,
                     progressions,
+                    display,
                 });
             }
         });
     }, []);
+
+    // make sure items timestamped and sorted on load and unload
+    useEffect(() => {
+        appStore.dispatch.setProgressionTimestamps();
+        return appStore.dispatch.setProgressionTimestamps;
+    }, [display]);
 
     const getClickHandler = (event: WindowMouseEvent, i: number) => {
         event.preventDefault();

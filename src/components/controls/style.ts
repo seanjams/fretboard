@@ -1,19 +1,12 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import {
-    COLORS,
-    lighterGrey,
-    lightGrey,
-    mediumGrey,
-    SP,
-    white,
-} from "../../utils";
+import { lighterGrey, lightGrey, mediumGrey, SP, white } from "../../utils";
 import { generateAnimationWrapper } from "../Animation";
 
 // should extend from some CSSProp default object so you dont have to add these manually
-interface CSSProps extends CSS.Properties {}
-
-const [secondaryColor, primaryColor] = COLORS[0];
+interface CSSProps extends CSS.Properties {
+    highlightColor?: string;
+}
 
 export const PillControlsContainer = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
@@ -94,6 +87,7 @@ export const HighlightCheckboxContainer = styled.div.attrs(
         border-radius: ${highlightCheckboxHeight}px;
         padding: 6px;
         background-color: ${lighterGrey};
+        transition: background-color 150ms ease-in-out;
         box-shadow: inset 0 0 4px 0 #777;
         margin-right: ${SP[2]}px;
 
@@ -141,7 +135,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     }
     .highlight-slide-enter-active {
         .highlight-checkbox {
-            background-color: ${primaryColor};
+            background-color: ${(props) => props.highlightColor};
             transition: background-color ${ENTER}ms ease-in-out;
 
             div {
@@ -151,7 +145,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         }
 
         .clear-button .button-div {
-            background-color: ${primaryColor} !important;
+            background-color: ${(props) => props.highlightColor} !important;
             transition: background-color ${ENTER}ms ease-in-out;
 
             svg path {
@@ -162,14 +156,14 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     }
     .highlight-slide-enter-done {
         .highlight-checkbox {
-            background-color: ${primaryColor};
+            background-color: ${(props) => props.highlightColor};
             div {
                 left: ${highlightCheckboxWidth - highlightCheckboxHeight}px;
             }
         }
 
         .clear-button .button-div {
-            background-color: ${primaryColor} !important;
+            background-color: ${(props) => props.highlightColor} !important;
 
             svg path {
                 fill: ${white};
@@ -178,14 +172,14 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     }
     .highlight-slide-exit {
         .highlight-checkbox {
-            background-color: ${primaryColor};
+            background-color: ${(props) => props.highlightColor};
             div {
                 left: ${highlightCheckboxWidth - highlightCheckboxHeight}px;
             }
         }
 
         .clear-button .button-div {
-            background-color: ${primaryColor} !important;
+            background-color: ${(props) => props.highlightColor} !important;
 
             svg path {
                 fill: ${white};

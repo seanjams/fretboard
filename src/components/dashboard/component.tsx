@@ -5,7 +5,7 @@ import {
     AudioStore,
     getComputedAppState,
 } from "../../store";
-import { backgroundColors, getFretboardDimensions, SP } from "../../utils";
+import { COLORS, getFretboardDimensions, SP } from "../../utils";
 import { Fretboard } from "../Fretboard";
 import { Div, FlexRow } from "../Common";
 import {
@@ -31,24 +31,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
     appStore,
     audioStore,
 }) => {
-    const { currentVisibleFretboardIndex } = appStore.getComputedState();
+    let { currentVisibleFretboardIndex, display } = appStore.getComputedState();
+    let orientation = "portrait-primary";
+    let backgroundColor = COLORS[currentVisibleFretboardIndex][1];
     const [getState, setState] = useStateRef(() => ({
-        orientation: "portrait-primary",
-        display: appStore.state.display,
-        backgroundColor: backgroundColors[currentVisibleFretboardIndex][1],
+        orientation,
+        display,
+        backgroundColor,
     }));
-
-    const { display, backgroundColor } = getState();
+    ({ display, backgroundColor } = getState());
     const fretboardDimensions = getFretboardDimensions();
     const { maxFretboardHeight } = fretboardDimensions;
 
     useEffect(
         () =>
-            appStore.addListener((appState) => {
+            appStore.addListener((newState) => {
                 const { display, currentVisibleFretboardIndex } =
-                    getComputedAppState(appState);
-                const backgroundColor =
-                    backgroundColors[currentVisibleFretboardIndex][1];
+                    getComputedAppState(newState);
+                const backgroundColor = COLORS[currentVisibleFretboardIndex][1];
                 if (
                     getState().display !== display ||
                     getState().backgroundColor !== backgroundColor

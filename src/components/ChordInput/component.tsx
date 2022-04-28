@@ -134,8 +134,8 @@ export const ChordInput: React.FC<ChordInputProps> = ({
             foundChordName || majorChord,
             () => {
                 // strum fretboard
-                const { fretboard } = appStore.getComputedState();
-                audioStore.strumChord(fretboard);
+                // const { fretboard } = appStore.getComputedState();
+                // audioStore.strumChord(fretboard);
             }
         );
     };
@@ -149,8 +149,8 @@ export const ChordInput: React.FC<ChordInputProps> = ({
         // default rootIdx to "C" if not set
         appStore.chordInputAnimation(Math.max(rootIdx, 0), newChordName, () => {
             // strum fretboard
-            const { fretboard } = appStore.getComputedState();
-            audioStore.strumChord(fretboard);
+            // const { fretboard } = appStore.getComputedState();
+            // audioStore.strumChord(fretboard);
         });
     };
 

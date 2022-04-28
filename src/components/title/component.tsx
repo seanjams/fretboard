@@ -6,11 +6,7 @@ import {
     useStateRef,
 } from "../../store";
 import { FretboardNameType } from "../../types";
-import {
-    DEFAULT_FRETBOARD_NAME,
-    darkGrey,
-    backgroundColors,
-} from "../../utils";
+import { DEFAULT_FRETBOARD_NAME, darkGrey, COLORS } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { FlexRow } from "../Common";
 import {
@@ -108,7 +104,7 @@ export const Title: React.FC<TitleProps> = ({
             />
             <TitleButton
                 isPressed={isCurrentFretboard}
-                backgroundColor={backgroundColors[fretboardIndex][0]}
+                backgroundColor={COLORS[fretboardIndex][0]}
             >
                 {chordName ? (
                     <FlexRow height="100%">
