@@ -1,32 +1,32 @@
 import moment from "moment";
 import {
-    StatusTypes,
-    FretboardDiffType,
-    LabelTypes,
-    StrumTypes,
     ArrowTypes,
-    DisplayTypes,
     ChordTypes,
-    FretboardType,
+    DisplayTypes,
     DragStatusTypes,
+    FretboardDiffType,
+    FretboardType,
+    LabelTypes,
+    StatusTypes,
+    StrumTypes,
 } from "../types";
 import {
-    rebuildDiffs,
-    getScrollToFret,
+    buildFretboardByChordName,
     cascadeDiffs,
-    moveHighight,
-    setFret,
     clearHighlight,
-    SELECTED,
-    HIGHLIGHTED,
-    STRUM_LOW_TO_HIGH,
+    DEFAULT_FRETBOARD,
+    DEFAULT_PROGRESSION,
+    getFretboardNames,
     getFretboardNotes,
+    getScrollToFret,
+    moveHighight,
+    rebuildDiffs,
+    SELECTED,
+    setFret,
+    setFretboardSelectedName,
     SLIDER_RIGHT_WINDOW,
     SLIDER_WINDOW_LENGTH,
-    buildFretboardByChordName,
-    getFretboardNames,
-    setFretboardSelectedName,
-    DEFAULT_FRETBOARD,
+    STRUM_LOW_TO_HIGH,
 } from "../utils";
 import { Store } from "./store";
 
@@ -58,6 +58,26 @@ export interface AppStateType {
     // where the fretboard should scroll to on load/change
     scrollToFret: number;
     scrollToFretUpdated: boolean;
+}
+
+export function DEFAULT_MAIN_STATE(): AppStateType {
+    return {
+        progressions: [DEFAULT_PROGRESSION()],
+        invert: false,
+        leftHand: false,
+        status: 1,
+        showTopDrawer: false,
+        showBottomDrawer: false,
+        currentProgressionIndex: 0,
+        strumMode: STRUM_LOW_TO_HIGH,
+        display: "normal",
+        progress: 0.5,
+        rehydrateSuccess: false,
+        hiddenFretboardIndex: -1,
+        fretDragStatus: null,
+        scrollToFret: 0,
+        scrollToFretUpdated: false,
+    };
 }
 
 // Helper functions
@@ -399,6 +419,7 @@ export const appReducers = {
         return { ...state, progressions };
     },
 
+    // this isn't working
     setProgressionTimestamps(state: AppStateType): AppStateType {
         const progressions = [...state.progressions];
         const currentTime = moment();
@@ -632,70 +653,4 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
         this.dispatch.prepareAnimation(fretboards, toIndex);
         this._fretboardAnimation(toIndex, onComplete);
     }
-}
-
-const label = "flat";
-
-// Default State
-const fretboards1: FretboardType[] = [
-    buildFretboardByChordName(9, "min__7", label, 0),
-    buildFretboardByChordName(2, "min__7", label, 1),
-    buildFretboardByChordName(7, "7", label, 2),
-    buildFretboardByChordName(0, "maj__7", label, 3),
-];
-
-setFret(fretboards1[0], 1, 7, HIGHLIGHTED);
-setFret(fretboards1[0], 2, 7, HIGHLIGHTED);
-setFret(fretboards1[0], 3, 5, HIGHLIGHTED);
-setFret(fretboards1[0], 4, 8, HIGHLIGHTED);
-
-const progression1: ProgressionStateType = {
-    ...cascadeDiffs(fretboards1, 0),
-    label,
-};
-const progression2: ProgressionStateType = {
-    ...cascadeDiffs(fretboards1, 0),
-    label,
-};
-const progression3: ProgressionStateType = {
-    ...cascadeDiffs(fretboards1, 0),
-    label,
-};
-const progression4: ProgressionStateType = {
-    ...cascadeDiffs(fretboards1, 0),
-    label,
-};
-
-export function DEFAULT_PROGRESSION(): ProgressionStateType {
-    const fretboards = [
-        DEFAULT_FRETBOARD(0),
-        DEFAULT_FRETBOARD(1),
-        DEFAULT_FRETBOARD(2),
-        DEFAULT_FRETBOARD(3),
-    ];
-    return {
-        ...rebuildDiffs(fretboards),
-        label: "flat",
-    };
-}
-
-export function DEFAULT_MAIN_STATE(): AppStateType {
-    return {
-        // progressions: [progression1, progression2, progression3, progression4],
-        progressions: [DEFAULT_PROGRESSION()],
-        invert: false,
-        leftHand: false,
-        status: 1,
-        showTopDrawer: false,
-        showBottomDrawer: false,
-        currentProgressionIndex: 0,
-        strumMode: STRUM_LOW_TO_HIGH,
-        display: "normal",
-        progress: 0.5,
-        rehydrateSuccess: false,
-        hiddenFretboardIndex: -1,
-        fretDragStatus: null,
-        scrollToFret: 0,
-        scrollToFretUpdated: false,
-    };
 }

@@ -32,6 +32,72 @@ export interface AudioStateType {
     isMuted: boolean;
 }
 
+export function DEFAULT_AUDIO_STATE(
+    onLoad?: () => void,
+    onError?: (error: Error) => void
+): AudioStateType {
+    Tone.start();
+    const players = new Tone.Players({
+        // should contain <poolSize> sets
+        urls: {
+            // set of players
+            0: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            1: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            2: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            3: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            4: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            5: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            6: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            7: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            8: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            9: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            10: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            11: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            12: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            13: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            14: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            15: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            16: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            17: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            18: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            19: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            20: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            21: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            22: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            23: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            // 24: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            // 25: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            // 26: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            // 27: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            // 28: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            // 29: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // // set of players
+            // 30: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            // 31: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            // 32: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            // 33: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            // 34: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            // 35: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+        },
+        onload: onLoad,
+        onerror: onError,
+        // fadeOut: 1,
+    }).toDestination();
+    players.volume.value = -12;
+
+    return {
+        poolSize: 4,
+        players,
+        isLoaded: false,
+        isPlaying: new Set(),
+        isMuted: false,
+    };
+}
+
 // Reducers
 export const audioReducers = {
     setIsPlaying(
@@ -195,71 +261,4 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         const arpeggiateDelay = 350;
         this.playNotes(arpeggiateSounds, arpeggiateDelay);
     }
-}
-
-// Default State
-export function DEFAULT_AUDIO_STATE(
-    onLoad?: () => void,
-    onError?: (error: Error) => void
-): AudioStateType {
-    Tone.start();
-    const players = new Tone.Players({
-        // should contain <poolSize> sets
-        urls: {
-            // set of players
-            0: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
-            1: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
-            2: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
-            3: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
-            4: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
-            5: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
-            // set of players
-            6: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
-            7: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
-            8: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
-            9: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
-            10: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
-            11: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
-            // set of players
-            12: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
-            13: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
-            14: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
-            15: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
-            16: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
-            17: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
-            // set of players
-            18: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
-            19: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
-            20: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
-            21: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
-            22: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
-            23: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
-            // set of players
-            // 24: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
-            // 25: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
-            // 26: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
-            // 27: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
-            // 28: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
-            // 29: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
-            // // set of players
-            // 30: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
-            // 31: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
-            // 32: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
-            // 33: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
-            // 34: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
-            // 35: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
-        },
-        onload: onLoad,
-        onerror: onError,
-        // fadeOut: 1,
-    }).toDestination();
-    players.volume.value = -12;
-
-    return {
-        poolSize: 4,
-        players,
-        isLoaded: false,
-        isPlaying: new Set(),
-        isMuted: false,
-    };
 }

@@ -14,19 +14,20 @@ import { kCombinations } from "./combinations";
 import { isMobile } from "react-device-detect";
 
 import {
-    SHAPES,
-    STRING_SIZE,
-    SHARP_NAMES,
-    FLAT_NAMES,
+    DEFAULT_FRETBOARD,
+    DEFAULT_FRETBOARD_NAME,
     DEFAULT_NOTESWITCH,
-    STANDARD_TUNING,
+    FLAT_NAMES,
     HIGHLIGHTED,
-    SELECTED,
     NOT_SELECTED,
     SAFETY_AREA_MARGIN,
+    SELECTED,
+    SHAPES,
+    SHARP_NAMES,
+    STANDARD_TUNING,
+    STRING_SIZE,
 } from "../utils";
 import { isEqual } from "lodash";
-import { DEFAULT_FRETBOARD, DEFAULT_FRETBOARD_NAME } from "./consts";
 
 export function stopClick() {
     // can be placed within a mouseup event to prevent

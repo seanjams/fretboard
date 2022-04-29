@@ -1,16 +1,12 @@
 import {
-    SharpTypes,
-    FlatTypes,
-    NoteTypes,
-    NoteSwitchType,
-    StringSwitchType,
-    NaturalTypes,
     ChordTypes,
-    StatusTypes,
+    FlatTypes,
     HighlightTypes,
     LabelTypes,
-    FretboardNameType,
-    FretboardType,
+    NaturalTypes,
+    NoteTypes,
+    SharpTypes,
+    StatusTypes,
 } from "../types";
 
 export const C = "C";
@@ -36,57 +32,6 @@ export const SELECTED = 1;
 export const HIGHLIGHTED = 2;
 
 export const STATUSES: StatusTypes[] = [NOT_SELECTED, SELECTED, HIGHLIGHTED];
-
-export function DEFAULT_NOTESWITCH(): NoteSwitchType {
-    return [
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-        NOT_SELECTED,
-    ];
-}
-
-export function DEFAULT_STRINGSWITCH(): StringSwitchType {
-    const fretboard: StringSwitchType = [[], [], [], [], [], []];
-    for (let i = 0; i < STRING_SIZE; i++) {
-        fretboard[0][i] = NOT_SELECTED;
-        fretboard[1][i] = NOT_SELECTED;
-        fretboard[2][i] = NOT_SELECTED;
-        fretboard[3][i] = NOT_SELECTED;
-        fretboard[4][i] = NOT_SELECTED;
-        fretboard[5][i] = NOT_SELECTED;
-    }
-    return fretboard;
-}
-
-export function DEFAULT_FRETBOARD_NAME(): FretboardNameType {
-    return {
-        rootIdx: -1,
-        rootName: "",
-        chordName: "",
-        foundChordName: "",
-        isSelected: true,
-    };
-}
-
-export function DEFAULT_FRETBOARD(colorIndex: number = -1): FretboardType {
-    const strings = DEFAULT_STRINGSWITCH();
-    const names = [DEFAULT_FRETBOARD_NAME()];
-    return {
-        strings,
-        names,
-        currentRootIndex: names[0].rootIdx,
-        colorIndex,
-    };
-}
 
 export const NOTE_NAMES: Array<[SharpTypes, FlatTypes]> = [
     [C, C],
