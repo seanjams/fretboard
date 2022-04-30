@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="co.seanoreilly.coolfrets" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>CoolFrets</name>
+<widget id="co.seanoreilly.fretfinder" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>FretFinder</name>
     <description>
         A cool tool for analyzing the fretboard.
     </description>
