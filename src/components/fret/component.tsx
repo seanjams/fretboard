@@ -76,13 +76,11 @@ const isWithinBoundary = (
 const getBackgroundColor = (
     fretStatus: number,
     playProgress: number,
-    primaryColor: string | undefined,
-    playingColor: string | undefined
+    colors: string[]
 ) => {
     const progress = Math.min(Math.max(0, playProgress), 1);
-    // const primary = status === HIGHLIGHTED ? primaryColor : "#FABF26";
-    primaryColor = primaryColor || "#FABF26";
-    playingColor = playingColor || gold;
+    const primaryColor = colors[1] || "#FABF26";
+    const playingColor = colors[0] || gold;
     const isSelected = fretStatus !== NOT_SELECTED;
     const isHighlighted = fretStatus === HIGHLIGHTED;
 
@@ -196,9 +194,7 @@ export const Fret: React.FC<FretProps> = ({
     const backgroundColor = getBackgroundColor(
         currentFretStatusRef.current,
         fretIsPlayingProgressRef.current,
-        COLORS[fretboard.colorIndex][2],
-        COLORS[fretboard.colorIndex][3]
-        // status
+        COLORS[fretboard.colorIndex]
     );
     const textColor =
         status === HIGHLIGHTED && !currentFretStatusRef.current
@@ -366,8 +362,7 @@ export const Fret: React.FC<FretProps> = ({
         let backgroundColor = getBackgroundColor(
             currentFretStatus,
             fretIsPlayingProgressRef.current,
-            COLORS[currentFretboard.colorIndex][2],
-            COLORS[currentFretboard.colorIndex][3]
+            COLORS[currentFretboard.colorIndex]
         );
         // text color for circle div
         let textColor = !currentFretStatus ? lightGrey : darkGrey;
@@ -403,14 +398,12 @@ export const Fret: React.FC<FretProps> = ({
             let toEmptyFillColor = getBackgroundColor(
                 nextCurrentFretStatus || NOT_SELECTED,
                 fretIsPlayingProgressRef.current,
-                nextFretboard && COLORS[nextFretboard.colorIndex][2],
-                nextFretboard && COLORS[nextFretboard.colorIndex][3]
+                nextFretboard ? COLORS[nextFretboard.colorIndex] : []
             );
             let toDiffSlideColor = getBackgroundColor(
                 nextDiffFretStatus || NOT_SELECTED,
                 fretIsPlayingProgressRef.current,
-                nextFretboard && COLORS[nextFretboard.colorIndex][2],
-                nextFretboard && COLORS[nextFretboard.colorIndex][3]
+                nextFretboard ? COLORS[nextFretboard.colorIndex] : []
             );
             toEmptyFillColor =
                 toEmptyFillColor === "transparent" ? white : toEmptyFillColor;

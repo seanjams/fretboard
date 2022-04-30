@@ -84,7 +84,7 @@ export const Title: React.FC<TitleProps> = ({
             />
             <TitleButton
                 isPressed={isCurrentFretboard}
-                backgroundColor={COLORS[fretboardIndex][0]}
+                backgroundColor={COLORS[fretboardIndex][1]}
             >
                 {chordName ? (
                     <FlexRow height="100%">

@@ -44,7 +44,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             getComputedAppState(appState);
         return {
             display,
-            backgroundColor: COLORS[currentVisibleFretboardIndex][1],
+            backgroundColor: COLORS[currentVisibleFretboardIndex][0],
         };
     }
 
