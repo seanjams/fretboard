@@ -1,5 +1,5 @@
-import React, { useEffect, useLayoutEffect, useRef } from "react";
-import { AppStore, useStateRef, useTouchHandlers } from "../../store";
+import React, { useEffect, useRef, useState } from "react";
+import { AppStore, useTouchHandlers } from "../../store";
 import { ReactMouseEvent, WindowMouseEvent } from "../../types";
 import { FlexRow } from "../Common";
 import {
@@ -50,11 +50,11 @@ export const ScrollSelect: React.FC<Props> = ({
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
     const defaultOptions: JSX.Element[] = [];
-    const [getState, setState] = useStateRef(() => ({
+    const [state, setState] = useState({
         options: defaultOptions,
         selectedIndex: 0,
-    }));
-    const { options } = getState();
+    });
+    const { options } = state;
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {

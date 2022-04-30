@@ -1,13 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
     AppStore,
     AudioStore,
     getComputedAppState,
-    useStateRef,
+    useDerivedState,
     useTouchHandlers,
 } from "../../store";
 import { FretboardNameType, LabelTypes, ReactMouseEvent } from "../../types";
-import { FLAT_NAMES, SHARP_NAMES, shouldUpdate } from "../../utils";
+import { FLAT_NAMES, SHARP_NAMES } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div, FlexRow } from "../Common";
 
@@ -49,8 +49,10 @@ export const InversionSelector: React.FC<InversionSelectorProps> = ({
     appStore,
     audioStore,
 }) => {
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { label, names } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
@@ -64,15 +66,6 @@ export const InversionSelector: React.FC<InversionSelectorProps> = ({
             names,
         };
     }
-
-    useEffect(() => {
-        return appStore.addListener((appState) => {
-            const derivedState = deriveStateFromAppState(appState);
-            if (shouldUpdate(getState(), derivedState)) {
-                setState(derivedState);
-            }
-        });
-    }, []);
 
     const getClickHandler =
         (name: FretboardNameType) => (event: ReactMouseEvent) => {

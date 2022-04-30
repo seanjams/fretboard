@@ -1,17 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
     AppStore,
     AudioStore,
     getComputedAppState,
-    useStateRef,
+    useDerivedState,
 } from "../../store";
-import { FretboardNameType } from "../../types";
-import {
-    DEFAULT_FRETBOARD_NAME,
-    darkGrey,
-    COLORS,
-    shouldUpdate,
-} from "../../utils";
+import { DEFAULT_FRETBOARD_NAME, darkGrey, COLORS } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { FlexRow } from "../Common";
 import {
@@ -29,18 +23,15 @@ interface TitleProps {
     fretboardIndex: number;
 }
 
-interface TitleState {
-    name: FretboardNameType;
-    isCurrentFretboard: boolean;
-}
-
 export const Title: React.FC<TitleProps> = ({
     appStore,
     audioStore,
     fretboardIndex,
 }) => {
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef<TitleState>(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { name, isCurrentFretboard } = getState();
     const { rootName, chordName } = name;
 
@@ -58,16 +49,6 @@ export const Title: React.FC<TitleProps> = ({
             isCurrentFretboard,
         };
     }
-
-    useEffect(
-        () =>
-            appStore.addListener((newState) => {
-                const derivedState = deriveStateFromAppState(newState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
-            }),
-        []
-    );
 
     // fix these parameters, used to make font size dynamic for longer names
 

@@ -1,11 +1,11 @@
 import CSS from "csstype";
 import React, { useEffect, useRef } from "react";
 import {
-    useStateRef,
     AppStore,
     AudioStore,
     useKeyPressHandlers,
     useTouchHandlers,
+    useDerivedState,
 } from "../../store";
 import { FretboardString } from "../FretboardString";
 import {
@@ -17,7 +17,6 @@ import {
     NATURAL_NOTE_KEYMAP,
     SELECTED,
     STRUM_LOW_TO_HIGH,
-    shouldUpdate,
 } from "../../utils";
 import {
     FretboardAnimation,
@@ -46,8 +45,10 @@ export const Fretboard: React.FC<FretboardProps> = ({
 }) => {
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { highEBottom, showTopDrawer, showBottomDrawer, transformOrigin } =
         getState();
 
@@ -77,14 +78,6 @@ export const Fretboard: React.FC<FretboardProps> = ({
     useEffect(
         () =>
             appStore.addListener((appState) => {
-                const currentState = getState();
-                const derivedState = deriveStateFromAppState(
-                    appState,
-                    currentState
-                );
-                if (shouldUpdate(currentState, derivedState))
-                    setState(derivedState);
-
                 if (
                     fretboardContainerRef.current &&
                     appState.scrollToFretUpdated

@@ -3,9 +3,9 @@ import {
     AppStore,
     getComputedAppState,
     AudioStore,
-    useStateRef,
     useTouchHandlers,
     TouchStateType,
+    useDerivedState,
 } from "../../store";
 import {
     LabelTypes,
@@ -37,7 +37,6 @@ import {
     getFretboardDimensions,
     white,
     COLORS,
-    shouldUpdate,
 } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div } from "../Common";
@@ -154,10 +153,20 @@ export const Fret: React.FC<FretProps> = ({
     const isOpenString = fretIndex === 0;
 
     const appState = appStore.getComputedState();
-    const derivedState = deriveStateFromAppState(appState);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { fretName, highEBottom } = getState();
     const { display, fretboard, progress, status } = appState;
+
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { invert, leftHand, progression } = getComputedAppState(appState);
+        const { label } = progression;
+        const fretName = getFretName(fretValue, label);
+        const highEBottom = invert !== leftHand;
+        return { fretName, highEBottom };
+    }
 
     // init refs
     const progressRef = useRef(progress);
@@ -203,22 +212,11 @@ export const Fret: React.FC<FretProps> = ({
     const { circleSize } = getFretboardDimensions();
     const top = getTopMargin(circleSize);
 
-    function deriveStateFromAppState(
-        appState: ReturnType<typeof getComputedAppState>
-    ) {
-        const { invert, leftHand, progression } = appState;
-        const { label } = progression;
-        const fretName = getFretName(fretValue, label);
-        const highEBottom = invert !== leftHand;
-        return { fretName, highEBottom };
-    }
-
     useEffect(
         () =>
             appStore.addListener((appState) => {
-                const computedAppState = getComputedAppState(appState);
                 const { display, progress, status, fretboard } =
-                    computedAppState;
+                    getComputedAppState(appState);
                 const isDisabled = display !== "normal";
                 const currentFretStatus =
                     fretboard.strings[stringIndex][fretIndex];
@@ -236,11 +234,6 @@ export const Fret: React.FC<FretProps> = ({
                     isDisabledRef.current = isDisabled;
                     moveFret();
                 }
-
-                // set state based on changes
-                const derivedState = deriveStateFromAppState(computedAppState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
             }),
         []
     );

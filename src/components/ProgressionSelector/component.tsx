@@ -4,16 +4,10 @@ import {
     AppStore,
     AudioStore,
     getComputedAppState,
-    useStateRef,
+    useDerivedState,
 } from "../../store";
 import { WindowMouseEvent } from "../../types";
-import {
-    FLAT_NAMES,
-    mediumGrey,
-    SHARP_NAMES,
-    shouldUpdate,
-    SP,
-} from "../../utils";
+import { FLAT_NAMES, mediumGrey, SHARP_NAMES, SP } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { ProgressionControls } from "../Controls";
 import { Div, FlexRow } from "../Common";
@@ -33,8 +27,10 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
     audioStore,
     appStore,
 }) => {
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { currentProgressionIndex, progressions, display } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
@@ -46,15 +42,6 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
             display,
         };
     }
-
-    useEffect(() => {
-        return appStore.addListener((newState) => {
-            const derivedState = deriveStateFromAppState(newState);
-            if (shouldUpdate(getState(), derivedState)) {
-                setState(derivedState);
-            }
-        });
-    }, []);
 
     // make sure items timestamped and sorted on load and unload
     useEffect(() => {

@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
-import { useStateRef, AppStore } from "../../store";
-import { getFretboardDimensions, shouldUpdate } from "../../utils";
+import React from "react";
+import { AppStore, useDerivedState } from "../../store";
+import { getFretboardDimensions } from "../../utils";
 import {
     BottomDrawerAnimation,
     BottomDrawerContainer,
@@ -14,23 +14,15 @@ interface DrawerProps {
 
 export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     // state
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { showTopDrawer } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
         return { showTopDrawer: appState.showTopDrawer };
     }
-
-    useEffect(
-        () =>
-            appStore.addListener((appState) => {
-                const derivedState = deriveStateFromAppState(appState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
-            }),
-        []
-    );
 
     const fretboardDimensions = getFretboardDimensions();
 
@@ -44,23 +36,15 @@ export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
 };
 
 export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { showBottomDrawer } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
         return { showBottomDrawer: appState.showBottomDrawer };
     }
-
-    useEffect(
-        () =>
-            appStore.addListener((appState) => {
-                const derivedState = deriveStateFromAppState(appState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
-            }),
-        []
-    );
 
     const fretboardDimensions = getFretboardDimensions();
 

@@ -1,12 +1,12 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div, FlexRow } from "../Common";
 import {
-    useStateRef,
     AppStore,
     getComputedAppState,
     AudioStore,
     useTouchHandlers,
+    useDerivedState,
 } from "../../store";
 import {
     ChordTypes,
@@ -20,7 +20,6 @@ import {
     CHORD_NAMES,
     majorChord,
     DEFAULT_FRETBOARD_NAME,
-    shouldUpdate,
 } from "../../utils";
 import {
     ChordInputContainer,
@@ -71,8 +70,10 @@ export const ChordInput: React.FC<ChordInputProps> = ({
     audioStore,
 }) => {
     // state
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { label, name } = getState();
     const { rootIdx, chordName } = name;
     const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
@@ -90,16 +91,6 @@ export const ChordInput: React.FC<ChordInputProps> = ({
             name,
         };
     }
-
-    useEffect(
-        () =>
-            appStore.addListener((appState) => {
-                const derivedState = deriveStateFromAppState(appState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
-            }),
-        []
-    );
 
     const onRootChange = (newRootIdx: number) => (event: ReactMouseEvent) => {
         const { name } = getState();

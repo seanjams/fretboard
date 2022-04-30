@@ -1,34 +1,81 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { ReactMouseEvent, WindowMouseEvent } from "../types";
+import { shouldUpdate } from "../utils";
+import { AppStateType, AppStore } from "./AppState";
 
-// export function useStore<T>(store: Store<T>, listener?: (state: T) => void) {
+// export function useStore<T>(
+//     store: Store<T>,
+//     listener?: (state: T) => void
+// ): [T, React.Dispatch<React.SetStateAction<Partial<T>>>] {
 //     const [state, setState] = useState<T>(store.state);
 //     const stateRef = useRef<T>(state); // to track updates
 //     stateRef.current = state;
 
 //     useEffect(() => {
-//         return store.addListener((newState) => {
+//         return store.addListener((newState: T) => {
 //             setState(newState);
 //             if (listener) listener(newState);
 //         });
 //     }, [store]);
 
-//     return [state, store.setState] as const;
+//     // return [state, store.setState] as const;
+//     return [
+//         state,
+//         (newState) => {
+//             const currentState = stateRef.current;
+//             store.setState({
+//                 ...currentState,
+//                 newState,
+//             });
+//         },
+//     ];
 // }
 
 // pass function instead of value and useMemo on the object it returns
-export function useStateRef<T>(
-    defaultState: () => T
+// export function useStateRef<T>(
+//     defaultState: () => T
+// ): [() => T, React.Dispatch<React.SetStateAction<Partial<T>>>] {
+//     const [state, setState] = useState(useMemo(defaultState, []));
+//     const stateRef = useRef(state);
+//     stateRef.current = state;
+//     return [
+//         () => stateRef.current,
+//         (newState) => {
+//             setState((prevState) => ({ ...prevState, ...newState }));
+//         },
+//     ];
+// }
+
+export function useDerivedState<T>(
+    appStore: AppStore,
+    deriveStateFromAppState: (
+        appState: AppStateType,
+        componentState?: Partial<T>
+    ) => T
 ): [() => T, React.Dispatch<React.SetStateAction<Partial<T>>>] {
-    const [state, setState] = useState(useMemo(defaultState, []));
+    const defaultState = deriveStateFromAppState(appStore.state, {});
+    const [state, _setState] = useState(defaultState);
     const stateRef = useRef(state);
     stateRef.current = state;
-    return [
-        () => stateRef.current,
-        (newState) => {
-            setState((prevState) => ({ ...prevState, ...newState }));
-        },
-    ];
+    const getState = () => stateRef.current;
+    const setState = (newState: Partial<T>) => {
+        _setState((prevState) => ({ ...prevState, ...newState }));
+    };
+
+    useEffect(
+        () =>
+            appStore.addListener((appState: AppStateType) => {
+                const derivedState = deriveStateFromAppState(
+                    appState,
+                    stateRef.current
+                );
+                if (shouldUpdate(stateRef.current, derivedState))
+                    setState(derivedState);
+            }),
+        []
+    );
+
+    return [getState, setState];
 }
 
 export function useWindowListener<K extends keyof WindowEventMap>(

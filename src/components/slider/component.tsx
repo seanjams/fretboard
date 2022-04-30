@@ -1,17 +1,16 @@
 import React, { useEffect, useRef } from "react";
 import {
-    useStateRef,
     AppStore,
     getComputedAppState,
     AudioStore,
     useTouchHandlers,
+    useDerivedState,
 } from "../../store";
 import {
     SLIDER_RIGHT_WINDOW,
     SLIDER_LEFT_WINDOW,
     getFretboardNotes,
     SELECTED,
-    shouldUpdate,
 } from "../../utils";
 import { FlexRow } from "../Common";
 import { Title } from "../Title";
@@ -33,8 +32,10 @@ interface SliderState {
 export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     // state
     const appState = appStore.getComputedState();
-    const derivedState = deriveStateFromAppState(appState);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { left, visibleFretboards } = getState();
 
     // refs
@@ -46,21 +47,20 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     const isPressedRef = useRef(false);
 
     function deriveStateFromAppState(
-        appState: ReturnType<typeof getComputedAppState>,
+        appState: typeof appStore.state,
         componentState: Partial<SliderState> = {}
-    ) {
-        const { visibleFretboards } = appState;
-        const visibleFretboardsChanged = !isEqual(
-            componentState.visibleFretboards,
-            visibleFretboards
-        );
+    ): SliderState {
+        let { visibleFretboards } = getComputedAppState(appState);
+        if (!isEqual(componentState.visibleFretboards, visibleFretboards)) {
+            visibleFretboards = JSON.parse(
+                JSON.stringify(visibleFretboards)
+            ) as FretboardType[];
+        } else {
+            visibleFretboards = componentState.visibleFretboards || [];
+        }
 
         return {
-            visibleFretboards: visibleFretboardsChanged
-                ? (JSON.parse(
-                      JSON.stringify(visibleFretboards)
-                  ) as FretboardType[])
-                : componentState.visibleFretboards,
+            visibleFretboards,
             left:
                 componentState.left !== undefined
                     ? componentState.left
@@ -72,19 +72,8 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
     useEffect(() => {
         // set initial slider position
         setLeftFromProgress();
-
         return appStore.addListener((appState) => {
-            const computedAppState = getComputedAppState(appState);
-            const componentState = getState();
-            const derivedState = deriveStateFromAppState(
-                computedAppState,
-                componentState
-            );
-            if (shouldUpdate(componentState, derivedState)) {
-                setState(derivedState);
-            }
-
-            const { isAnimating } = computedAppState;
+            const { isAnimating } = getComputedAppState(appState);
             if (isAnimatingRef.current !== isAnimating) {
                 isAnimatingRef.current = isAnimating;
                 if (isAnimating) setLeftFromProgress();

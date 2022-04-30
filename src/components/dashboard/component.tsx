@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
-    useStateRef,
     AppStore,
     AudioStore,
     getComputedAppState,
+    useDerivedState,
 } from "../../store";
-import { COLORS, getFretboardDimensions, shouldUpdate, SP } from "../../utils";
+import { COLORS, getFretboardDimensions, SP } from "../../utils";
 import { Fretboard } from "../Fretboard";
 import { Div, FlexRow } from "../Common";
 import {
@@ -31,8 +31,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     appStore,
     audioStore,
 }) => {
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { display, backgroundColor } = getState();
     const fretboardDimensions = getFretboardDimensions();
     const { maxFretboardHeight } = fretboardDimensions;
@@ -45,16 +47,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             backgroundColor: COLORS[currentVisibleFretboardIndex][1],
         };
     }
-
-    useEffect(
-        () =>
-            appStore.addListener((appState) => {
-                const derivedState = deriveStateFromAppState(appState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
-            }),
-        []
-    );
 
     return (
         <ContainerDiv backgroundColor={backgroundColor}>

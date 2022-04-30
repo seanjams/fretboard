@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { icons } from "../../assets/icons/icons";
 import {
     AppStore,
     AudioStore,
-    useStateRef,
     useTouchHandlers,
     getComputedAppState,
+    useDerivedState,
 } from "../../store";
 import {
     ArrowTypes,
@@ -19,7 +19,6 @@ import {
     STRUM_LOW_TO_HIGH,
     ARPEGGIATE_LOW_TO_HIGH,
     COLORS,
-    shouldUpdate,
 } from "../../utils";
 import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
@@ -90,8 +89,10 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
 };
 
 export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { status, currentVisibleFretboardIndex } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
@@ -99,16 +100,6 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
             getComputedAppState(appState);
         return { status, currentVisibleFretboardIndex };
     }
-
-    useEffect(
-        () =>
-            appStore.addListener((appState) => {
-                const derivedState = deriveStateFromAppState(appState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
-            }),
-        []
-    );
 
     const onClear = () => {
         const { status } = appStore.state;
@@ -178,23 +169,15 @@ export const SliderControls: React.FC<ControlsProps> = ({ appStore }) => {
 };
 
 export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => derivedState);
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
     const { display } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
         return { display: appState.display };
     }
-
-    useEffect(
-        () =>
-            appStore.addListener((appState) => {
-                const derivedState = deriveStateFromAppState(appState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
-            }),
-        []
-    );
 
     const onShowDisplay = (newDisplay: DisplayTypes) => () => {
         const { display, status } = appStore.state;
@@ -265,12 +248,16 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
     appStore,
     audioStore,
 }) => {
-    const derivedState = deriveStateFromAppState(appStore.state);
-    const [getState, setState] = useStateRef(() => ({
-        ...derivedState,
-        isMuted: audioStore.state.isMuted,
-    }));
-    const { strumMode, isMuted, label, leftHand, invert } = getState();
+    // handle app state
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
+    const { strumMode, label, leftHand, invert } = getState();
+    // handle audio state manually
+    const [isMuted, setIsMuted] = useState(audioStore.state.isMuted);
+    const isMutedRef = useRef(isMuted);
+    isMutedRef.current = isMuted;
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
         const { progression, strumMode, leftHand, invert } =
@@ -281,18 +268,8 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
 
     useEffect(
         () =>
-            appStore.addListener((appState) => {
-                const derivedState = deriveStateFromAppState(appState);
-                if (shouldUpdate(getState(), derivedState))
-                    setState(derivedState);
-            }),
-        []
-    );
-
-    useEffect(
-        () =>
             audioStore.addListener(({ isMuted }) => {
-                if (getState().isMuted !== isMuted) setState({ isMuted });
+                if (isMutedRef.current !== isMuted) setIsMuted(isMuted);
             }),
         []
     );

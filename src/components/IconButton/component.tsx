@@ -1,5 +1,5 @@
-import React from "react";
-import { useStateRef, useTouchHandlers } from "../../store";
+import React, { useRef, useState } from "react";
+import { useTouchHandlers } from "../../store";
 import { ReactMouseEvent, WindowMouseEvent } from "../../types";
 import { lightBlue, lighterGrey } from "../../utils";
 import { ButtonDiv } from "./style";
@@ -20,20 +20,19 @@ export const IconButton: React.FC<IconButtonProps> = ({
     isCircular,
     children,
 }) => {
-    const [getState, setState] = useStateRef(() => ({
-        active: selected || false,
-    }));
-    const { active } = getState();
+    const [active, setActive] = useState(selected || false);
+    const activeRef = useRef(active);
+    activeRef.current = active;
 
     const touchHandlers = useTouchHandlers({
         onStart: (event: ReactMouseEvent) => {
-            if (!getState().active) setState({ active: true });
+            if (!activeRef.current) setActive(true);
         },
         onClick: (event: WindowMouseEvent) => {
             if (onClick) onClick(event);
         },
         onEnd: (event: WindowMouseEvent) => {
-            if (getState().active) setState({ active: false });
+            if (activeRef.current) setActive(false);
         },
     });
 
