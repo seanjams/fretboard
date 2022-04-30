@@ -10,8 +10,6 @@ import {
 } from "../../store";
 import {
     ChordTypes,
-    FretboardNameType,
-    LabelTypes,
     NoteTypes,
     ReactMouseEvent,
     WindowMouseEvent,
@@ -21,8 +19,8 @@ import {
     SHARP_NAMES,
     CHORD_NAMES,
     majorChord,
-    SP,
     DEFAULT_FRETBOARD_NAME,
+    shouldUpdate,
 } from "../../utils";
 import {
     ChordInputContainer,
@@ -68,61 +66,40 @@ interface ChordInputProps {
     audioStore: AudioStore;
 }
 
-interface ChordInputState {
-    label: LabelTypes;
-    name: FretboardNameType;
-}
-
 export const ChordInput: React.FC<ChordInputProps> = ({
     appStore,
     audioStore,
 }) => {
     // state
-    const { visibleFretboards, currentVisibleFretboardIndex, progression } =
-        appStore.getComputedState();
-    const fretboard = visibleFretboards[currentVisibleFretboardIndex];
-    const [getState, setState] = useStateRef<ChordInputState>(() => ({
-        label: progression.label,
-        name: fretboard
-            ? fretboard.names.filter((name) => name.isSelected)[0]
-            : DEFAULT_FRETBOARD_NAME(),
-    }));
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
     const { label, name } = getState();
     const { rootIdx, chordName } = name;
     const noteNames: NoteTypes[] = label === "sharp" ? SHARP_NAMES : FLAT_NAMES;
 
-    useEffect(() => {
-        // if (getState().name.foundChordName) {
-        //     const chordTag = document.getElementById(
-        //         `chordName-${getState().name.foundChordName}`
-        //     );
-        //     if (chordTag)
-        //         chordTag.scrollIntoView({
-        //             inline: "center",
-        //             behavior: "smooth",
-        //         });
-        // }
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { progression, visibleFretboards, currentVisibleFretboardIndex } =
+            getComputedAppState(appState);
+        const fretboard = visibleFretboards[currentVisibleFretboardIndex];
+        const { label } = progression;
+        const name = fretboard
+            ? fretboard.names.filter((name) => name.isSelected)[0]
+            : DEFAULT_FRETBOARD_NAME();
+        return {
+            label,
+            name,
+        };
+    }
 
-        return appStore.addListener((newState) => {
-            const {
-                progression,
-                visibleFretboards,
-                currentVisibleFretboardIndex,
-            } = getComputedAppState(newState);
-            const fretboard = visibleFretboards[currentVisibleFretboardIndex];
-            const { label } = progression;
-            const name = fretboard
-                ? fretboard.names.filter((name) => name.isSelected)[0]
-                : DEFAULT_FRETBOARD_NAME();
-
-            if (getState().label !== label || getState().name !== name) {
-                setState({
-                    label,
-                    name,
-                });
-            }
-        });
-    }, []);
+    useEffect(
+        () =>
+            appStore.addListener((appState) => {
+                const derivedState = deriveStateFromAppState(appState);
+                if (shouldUpdate(getState(), derivedState))
+                    setState(derivedState);
+            }),
+        []
+    );
 
     const onRootChange = (newRootIdx: number) => (event: ReactMouseEvent) => {
         const { name } = getState();

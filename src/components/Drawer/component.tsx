@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useStateRef, AppStore } from "../../store";
-import { getFretboardDimensions } from "../../utils";
+import { getFretboardDimensions, shouldUpdate } from "../../utils";
 import {
     BottomDrawerAnimation,
     BottomDrawerContainer,
@@ -14,17 +14,20 @@ interface DrawerProps {
 
 export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
     // state
-    let { showTopDrawer } = appStore.state;
-    const [getState, setState] = useStateRef(() => ({
-        showTopDrawer,
-    }));
-    ({ showTopDrawer } = getState());
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
+    const { showTopDrawer } = getState();
+
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        return { showTopDrawer: appState.showTopDrawer };
+    }
 
     useEffect(
         () =>
-            appStore.addListener(({ showTopDrawer }) => {
-                if (getState().showTopDrawer !== showTopDrawer)
-                    setState({ showTopDrawer });
+            appStore.addListener((appState) => {
+                const derivedState = deriveStateFromAppState(appState);
+                if (shouldUpdate(getState(), derivedState))
+                    setState(derivedState);
             }),
         []
     );
@@ -41,18 +44,20 @@ export const TopDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
 };
 
 export const BottomDrawer: React.FC<DrawerProps> = ({ appStore, children }) => {
-    let { showBottomDrawer } = appStore.state;
-    const [getState, setState] = useStateRef(() => ({
-        // custom state for component
-        showBottomDrawer,
-    }));
-    ({ showBottomDrawer } = getState());
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
+    const { showBottomDrawer } = getState();
+
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        return { showBottomDrawer: appState.showBottomDrawer };
+    }
 
     useEffect(
         () =>
-            appStore.addListener(({ showBottomDrawer }) => {
-                if (getState().showBottomDrawer !== showBottomDrawer)
-                    setState({ showBottomDrawer });
+            appStore.addListener((appState) => {
+                const derivedState = deriveStateFromAppState(appState);
+                if (shouldUpdate(getState(), derivedState))
+                    setState(derivedState);
             }),
         []
     );

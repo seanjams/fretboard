@@ -7,7 +7,7 @@ import {
     useTouchHandlers,
 } from "../../store";
 import { FretboardNameType, LabelTypes, ReactMouseEvent } from "../../types";
-import { FLAT_NAMES, SHARP_NAMES } from "../../utils";
+import { FLAT_NAMES, SHARP_NAMES, shouldUpdate } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div, FlexRow } from "../Common";
 
@@ -46,36 +46,30 @@ interface InversionSelectorProps {
 }
 
 export const InversionSelector: React.FC<InversionSelectorProps> = ({
-    audioStore,
     appStore,
+    audioStore,
 }) => {
-    const { fretboard, progression, currentFretboardIndex } =
-        appStore.getComputedState();
-    const { label } = progression;
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
+    const { label, names } = getState();
 
-    const [getState, setState] = useStateRef(() => ({
-        currentFretboardIndex,
-        label,
-        names: fretboard.names,
-    }));
-    const { names } = getState();
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { currentFretboardIndex, progression, fretboard } =
+            getComputedAppState(appState);
+        const { label } = progression;
+        const { names } = fretboard;
+        return {
+            currentFretboardIndex,
+            label,
+            names,
+        };
+    }
 
     useEffect(() => {
-        return appStore.addListener((newState) => {
-            const { currentFretboardIndex, progression, fretboard } =
-                getComputedAppState(newState);
-            const { label } = progression;
-            const { names } = fretboard;
-            if (
-                getState().currentFretboardIndex !== currentFretboardIndex ||
-                getState().label !== label ||
-                getState().names !== names
-            ) {
-                setState({
-                    currentFretboardIndex,
-                    label,
-                    names,
-                });
+        return appStore.addListener((appState) => {
+            const derivedState = deriveStateFromAppState(appState);
+            if (shouldUpdate(getState(), derivedState)) {
+                setState(derivedState);
             }
         });
     }, []);

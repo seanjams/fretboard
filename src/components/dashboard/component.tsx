@@ -5,7 +5,7 @@ import {
     AudioStore,
     getComputedAppState,
 } from "../../store";
-import { COLORS, getFretboardDimensions, SP } from "../../utils";
+import { COLORS, getFretboardDimensions, shouldUpdate, SP } from "../../utils";
 import { Fretboard } from "../Fretboard";
 import { Div, FlexRow } from "../Common";
 import {
@@ -31,31 +31,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
     appStore,
     audioStore,
 }) => {
-    let { currentVisibleFretboardIndex, display } = appStore.getComputedState();
-    let orientation = "portrait-primary";
-    let backgroundColor = COLORS[currentVisibleFretboardIndex][1];
-    const [getState, setState] = useStateRef(() => ({
-        orientation,
-        display,
-        backgroundColor,
-    }));
-    ({ display, backgroundColor } = getState());
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
+    const { display, backgroundColor } = getState();
     const fretboardDimensions = getFretboardDimensions();
     const { maxFretboardHeight } = fretboardDimensions;
 
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { display, currentVisibleFretboardIndex } =
+            getComputedAppState(appState);
+        return {
+            display,
+            backgroundColor: COLORS[currentVisibleFretboardIndex][1],
+        };
+    }
+
     useEffect(
         () =>
-            appStore.addListener((newState) => {
-                const { display, currentVisibleFretboardIndex } =
-                    getComputedAppState(newState);
-                const backgroundColor = COLORS[currentVisibleFretboardIndex][1];
-                if (
-                    getState().display !== display ||
-                    getState().backgroundColor !== backgroundColor
-                )
-                    setState({ display, backgroundColor });
+            appStore.addListener((appState) => {
+                const derivedState = deriveStateFromAppState(appState);
+                if (shouldUpdate(getState(), derivedState))
+                    setState(derivedState);
             }),
-
         []
     );
 

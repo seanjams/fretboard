@@ -6,7 +6,12 @@ import {
     useStateRef,
 } from "../../store";
 import { FretboardNameType } from "../../types";
-import { DEFAULT_FRETBOARD_NAME, darkGrey, COLORS } from "../../utils";
+import {
+    DEFAULT_FRETBOARD_NAME,
+    darkGrey,
+    COLORS,
+    shouldUpdate,
+} from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { FlexRow } from "../Common";
 import {
@@ -34,38 +39,32 @@ export const Title: React.FC<TitleProps> = ({
     audioStore,
     fretboardIndex,
 }) => {
-    const { currentVisibleFretboardIndex, visibleFretboards } =
-        appStore.getComputedState();
-    const fretboard = visibleFretboards[fretboardIndex];
-    const [getState, setState] = useStateRef<TitleState>(() => ({
-        name: fretboard
-            ? fretboard.names.filter((name) => name.isSelected)[0]
-            : DEFAULT_FRETBOARD_NAME(),
-        isCurrentFretboard: fretboardIndex === currentVisibleFretboardIndex,
-    }));
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef<TitleState>(() => derivedState);
     const { name, isCurrentFretboard } = getState();
     const { rootName, chordName } = name;
+
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { currentVisibleFretboardIndex, visibleFretboards } =
+            getComputedAppState(appState);
+        const fretboard = visibleFretboards[fretboardIndex];
+        const name = fretboard
+            ? fretboard.names.filter((name) => name.isSelected)[0]
+            : DEFAULT_FRETBOARD_NAME();
+        const isCurrentFretboard =
+            fretboardIndex === currentVisibleFretboardIndex;
+        return {
+            name,
+            isCurrentFretboard,
+        };
+    }
 
     useEffect(
         () =>
             appStore.addListener((newState) => {
-                const { currentVisibleFretboardIndex, visibleFretboards } =
-                    getComputedAppState(newState);
-
-                const fretboard = visibleFretboards[fretboardIndex];
-                const name = fretboard
-                    ? fretboard.names.filter((name) => {
-                          return name.isSelected;
-                      })[0]
-                    : DEFAULT_FRETBOARD_NAME();
-                const isCurrentFretboard =
-                    fretboardIndex === currentVisibleFretboardIndex;
-
-                if (
-                    getState().name !== name ||
-                    getState().isCurrentFretboard !== isCurrentFretboard
-                )
-                    setState({ name, isCurrentFretboard });
+                const derivedState = deriveStateFromAppState(newState);
+                if (shouldUpdate(getState(), derivedState))
+                    setState(derivedState);
             }),
         []
     );

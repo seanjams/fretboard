@@ -666,22 +666,29 @@ export const getFretboardDimensions = () => {
     };
 };
 
-export function updateIfChanged(
-    oldState: { [key in string]: any },
-    newState: { [key in string]: any },
-    fields: string[],
-    cb: () => any
-) {
-    for (let field of fields) {
-        if (
-            oldState.hasOwnProperty(field) &&
-            newState.hasOwnProperty(field) &&
-            oldState[field] !== newState[field]
-        ) {
-            cb();
-            return;
-        }
-    }
+// export function updateIfChanged(
+//     oldState: { [key in string]: any },
+//     newState: { [key in string]: any },
+//     fields: string[],
+//     cb: () => any
+// ) {
+//     for (let field of fields) {
+//         if (
+//             oldState.hasOwnProperty(field) &&
+//             newState.hasOwnProperty(field) &&
+//             oldState[field] !== newState[field]
+//         ) {
+//             cb();
+//             return;
+//         }
+//     }
+// }
+
+export function shouldUpdate<S>(currentState: S, newState: Partial<S>) {
+    return Object.keys(newState).some((key) => {
+        const prop = key as keyof typeof newState;
+        return currentState[prop] !== newState[prop];
+    });
 }
 
 export function setFretboardSelectedName(

@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { icons } from "../../assets/icons/icons";
 import {
-    useStateRef,
     AppStore,
     AudioStore,
+    useStateRef,
     useTouchHandlers,
     getComputedAppState,
 } from "../../store";
@@ -19,6 +19,7 @@ import {
     STRUM_LOW_TO_HIGH,
     ARPEGGIATE_LOW_TO_HIGH,
     COLORS,
+    shouldUpdate,
 } from "../../utils";
 import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
@@ -89,26 +90,25 @@ export const PositionControls: React.FC<AudioControlsProps> = ({
 };
 
 export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
-    let { status, currentVisibleFretboardIndex } = appStore.getComputedState();
-    const [getState, setState] = useStateRef(() => ({
-        status,
-        currentVisibleFretboardIndex,
-    }));
-    ({ status, currentVisibleFretboardIndex } = getState());
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
+    const { status, currentVisibleFretboardIndex } = getState();
 
-    useEffect(() => {
-        return appStore.addListener((newState) => {
-            const { status, currentVisibleFretboardIndex } =
-                getComputedAppState(newState);
-            if (
-                getState().status !== status ||
-                getState().currentVisibleFretboardIndex !==
-                    currentVisibleFretboardIndex
-            ) {
-                setState({ status, currentVisibleFretboardIndex });
-            }
-        });
-    }, []);
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { status, currentVisibleFretboardIndex } =
+            getComputedAppState(appState);
+        return { status, currentVisibleFretboardIndex };
+    }
+
+    useEffect(
+        () =>
+            appStore.addListener((appState) => {
+                const derivedState = deriveStateFromAppState(appState);
+                if (shouldUpdate(getState(), derivedState))
+                    setState(derivedState);
+            }),
+        []
+    );
 
     const onClear = () => {
         const { status } = appStore.state;
@@ -178,16 +178,23 @@ export const SliderControls: React.FC<ControlsProps> = ({ appStore }) => {
 };
 
 export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
-    const [getState, setState] = useStateRef(() => ({
-        display: appStore.state.display,
-    }));
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
     const { display } = getState();
 
-    useEffect(() => {
-        return appStore.addListener(({ display }) => {
-            if (getState().display !== display) setState({ display });
-        });
-    }, []);
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        return { display: appState.display };
+    }
+
+    useEffect(
+        () =>
+            appStore.addListener((appState) => {
+                const derivedState = deriveStateFromAppState(appState);
+                if (shouldUpdate(getState(), derivedState))
+                    setState(derivedState);
+            }),
+        []
+    );
 
     const onShowDisplay = (newDisplay: DisplayTypes) => () => {
         const { display, status } = appStore.state;
@@ -258,32 +265,26 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
     appStore,
     audioStore,
 }) => {
-    let { isMuted } = audioStore.state;
-    let { progression, strumMode, leftHand, invert } =
-        appStore.getComputedState();
-    let { label } = progression;
+    const derivedState = deriveStateFromAppState(appStore.state);
     const [getState, setState] = useStateRef(() => ({
-        strumMode,
-        isMuted,
-        label,
-        leftHand,
-        invert,
+        ...derivedState,
+        isMuted: audioStore.state.isMuted,
     }));
-    ({ strumMode, isMuted, label, leftHand, invert } = getState());
+    const { strumMode, isMuted, label, leftHand, invert } = getState();
+
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { progression, strumMode, leftHand, invert } =
+            getComputedAppState(appState);
+        const { label } = progression;
+        return { strumMode, label, leftHand, invert };
+    }
 
     useEffect(
         () =>
-            appStore.addListener((newState) => {
-                const { progression, strumMode, leftHand, invert } =
-                    getComputedAppState(newState);
-                const { label } = progression;
-                if (
-                    getState().strumMode !== strumMode ||
-                    getState().label !== label ||
-                    getState().leftHand !== leftHand ||
-                    getState().invert !== invert
-                )
-                    setState({ strumMode, label, leftHand, invert });
+            appStore.addListener((appState) => {
+                const derivedState = deriveStateFromAppState(appState);
+                if (shouldUpdate(getState(), derivedState))
+                    setState(derivedState);
             }),
         []
     );

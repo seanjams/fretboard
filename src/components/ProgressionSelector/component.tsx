@@ -7,7 +7,13 @@ import {
     useStateRef,
 } from "../../store";
 import { WindowMouseEvent } from "../../types";
-import { FLAT_NAMES, list, mediumGrey, SHARP_NAMES, SP } from "../../utils";
+import {
+    FLAT_NAMES,
+    mediumGrey,
+    SHARP_NAMES,
+    shouldUpdate,
+    SP,
+} from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { ProgressionControls } from "../Controls";
 import { Div, FlexRow } from "../Common";
@@ -27,31 +33,25 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
     audioStore,
     appStore,
 }) => {
-    let { currentProgressionIndex, progressions, display } =
-        appStore.getComputedState();
-    const [getState, setState] = useStateRef(() => ({
-        currentProgressionIndex,
-        progressions,
-        display,
-    }));
-    ({ currentProgressionIndex, progressions, display } = getState());
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
+    const { currentProgressionIndex, progressions, display } = getState();
+
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { currentProgressionIndex, progressions, display } =
+            getComputedAppState(appState);
+        return {
+            currentProgressionIndex,
+            progressions,
+            display,
+        };
+    }
 
     useEffect(() => {
         return appStore.addListener((newState) => {
-            const { currentProgressionIndex, progressions, display } =
-                getComputedAppState(newState);
-
-            if (
-                getState().currentProgressionIndex !==
-                    currentProgressionIndex ||
-                getState().progressions.length !== progressions.length ||
-                getState().display !== display
-            ) {
-                setState({
-                    currentProgressionIndex,
-                    progressions,
-                    display,
-                });
+            const derivedState = deriveStateFromAppState(newState);
+            if (shouldUpdate(getState(), derivedState)) {
+                setState(derivedState);
             }
         });
     }, []);

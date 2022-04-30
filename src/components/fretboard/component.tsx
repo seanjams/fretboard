@@ -1,3 +1,4 @@
+import CSS from "csstype";
 import React, { useEffect, useRef } from "react";
 import {
     useStateRef,
@@ -16,6 +17,7 @@ import {
     NATURAL_NOTE_KEYMAP,
     SELECTED,
     STRUM_LOW_TO_HIGH,
+    shouldUpdate,
 } from "../../utils";
 import {
     FretboardAnimation,
@@ -31,56 +33,62 @@ interface FretboardProps {
     audioStore: AudioStore;
 }
 
+interface FretboardState {
+    highEBottom: boolean;
+    showTopDrawer: boolean;
+    showBottomDrawer: boolean;
+    transformOrigin: CSS.Property.TransformOrigin;
+}
+
 export const Fretboard: React.FC<FretboardProps> = ({
     appStore,
     audioStore,
 }) => {
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
-    const [getState, setState] = useStateRef(() => ({
-        highEBottom: appStore.state.invert !== appStore.state.leftHand,
-        showTopDrawer: appStore.state.showTopDrawer,
-        showBottomDrawer: appStore.state.showBottomDrawer,
-        transformOrigin: "bottom",
-    }));
+    const derivedState = deriveStateFromAppState(appStore.state);
+    const [getState, setState] = useStateRef(() => derivedState);
     const { highEBottom, showTopDrawer, showBottomDrawer, transformOrigin } =
         getState();
 
     const fretboardContainerRef = useRef<HTMLDivElement>(null);
     const scrollToFretRef = useRef(0);
 
+    function deriveStateFromAppState(
+        appState: typeof appStore.state,
+        componentState: Partial<FretboardState> = {}
+    ) {
+        const { showTopDrawer, invert, leftHand, showBottomDrawer } = appState;
+        const highEBottom = invert !== leftHand;
+        let transformOrigin =
+            showTopDrawer && !componentState.showTopDrawer
+                ? "bottom"
+                : showBottomDrawer && !componentState.showBottomDrawer
+                ? "top"
+                : componentState.transformOrigin;
+        return {
+            highEBottom,
+            showTopDrawer,
+            showBottomDrawer,
+            transformOrigin,
+        };
+    }
+
     useEffect(
         () =>
-            appStore.addListener((newState) => {
-                const {
-                    showTopDrawer,
-                    invert,
-                    leftHand,
-                    showBottomDrawer,
-                    scrollToFretUpdated,
-                } = newState;
-                const highEBottom = invert !== leftHand;
+            appStore.addListener((appState) => {
+                const currentState = getState();
+                const derivedState = deriveStateFromAppState(
+                    appState,
+                    currentState
+                );
+                if (shouldUpdate(currentState, derivedState))
+                    setState(derivedState);
 
                 if (
-                    getState().highEBottom !== highEBottom ||
-                    getState().showTopDrawer !== showTopDrawer ||
-                    getState().showBottomDrawer !== showBottomDrawer
+                    fretboardContainerRef.current &&
+                    appState.scrollToFretUpdated
                 ) {
-                    let transformOrigin =
-                        showTopDrawer && !getState().showTopDrawer
-                            ? "bottom"
-                            : showBottomDrawer && !getState().showBottomDrawer
-                            ? "top"
-                            : getState().transformOrigin;
-                    setState({
-                        highEBottom,
-                        showTopDrawer,
-                        showBottomDrawer,
-                        transformOrigin,
-                    });
-                }
-
-                if (fretboardContainerRef.current && scrollToFretUpdated) {
                     scrollFretboard();
                 }
             }),
@@ -109,6 +117,7 @@ export const Fretboard: React.FC<FretboardProps> = ({
                 newFretXPosition = fretXPosition;
         }
 
+        // refactor, get rid of oldFretCenter
         const containerWidth = fretboardContainerRef.current.offsetWidth;
         const containerLeftBound =
             fretboardContainerRef.current.scrollLeft - 0.4 * containerWidth;
