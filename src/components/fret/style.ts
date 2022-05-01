@@ -53,10 +53,6 @@ export const CircleDiv = styled.div.attrs((props: CSSProps) => ({
     background-color: transparent;
     z-index: 9999;
     box-shadow: 0 0 4px 0 #aaa;
-
-    // &:hover {
-    //     background: linear-gradient(#e9e9e9, #f9f9f9);
-    // }
 `;
 
 export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
@@ -72,11 +68,6 @@ export const ShadowDiv = styled.div.attrs((props: CSSProps) => ({
     z-index: 9998;
     position: absolute;
     left: 50%;
-    // box-shadow: 0 0 4px 0 #aaa;
-
-    // box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0);
-    // text-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0);
-    // background: linear-gradient(rgba(255, 255, 255, 0), rgba(220, 220, 220, 1));
 `;
 
 export const LegendDot = styled.div.attrs((props: CSSProps) => ({

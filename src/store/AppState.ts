@@ -17,8 +17,8 @@ import {
     DEFAULT_FRETBOARD,
     DEFAULT_PROGRESSION,
     getFretboardNames,
-    getFretboardNotes,
     getScrollToFret,
+    HIGHLIGHTED,
     moveHighight,
     rebuildDiffs,
     SELECTED,
@@ -65,7 +65,7 @@ export function DEFAULT_MAIN_STATE(): AppStateType {
         progressions: [DEFAULT_PROGRESSION()],
         invert: false,
         leftHand: false,
-        status: 1,
+        status: HIGHLIGHTED,
         showTopDrawer: false,
         showBottomDrawer: false,
         currentProgressionIndex: 0,
@@ -275,13 +275,9 @@ export const appReducers = {
         //     }
         // }
 
-        const notes = getFretboardNotes(fretboards[currentFretboardIndex]);
-        let isEmpty = !notes.some((note) => note === SELECTED);
-
         return this.setCurrentProgression(
             {
                 ...state,
-                status: isEmpty ? SELECTED : state.status, // Don't allow highlight mode when fretboard is empty
             },
             {
                 ...progression,
@@ -641,6 +637,8 @@ export class AppStore extends Store<AppStateType, typeof appReducers> {
 
         // don't run animation if already animating
         if (isAnimating) return;
+        // don't run animation if not switching
+        if (fromIndex === toIndex) return;
 
         // create new fretboard from fromIndex
         let newFretboard = JSON.parse(JSON.stringify(fretboards[fromIndex]));

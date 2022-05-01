@@ -126,57 +126,51 @@ export const ChordInput: React.FC<ChordInputProps> = ({
 
     return (
         <ChordInputContainer>
-            <Div className="label-container">
-                <Div>Root</Div>
-                <Div>Chord/Scale</Div>
-            </Div>
-            <Div className="chord-scale-container">
-                {/* This is the staggered root selector in the ChordInput component */}
-                <RootContainer>
-                    <FlexRow alignItems="start" width="100%" height="50%">
-                        {noteNames.slice(0, 6).map((name, j) => (
-                            <ChordRoot
-                                key={`${name}-key-${j}`}
-                                highlighted={rootIdx === j}
-                                rootName={name}
-                                onClick={onRootChange(j)}
+            {/* This is the staggered root selector in the ChordInput component */}
+            <RootContainer>
+                <FlexRow alignItems="start" width="100%" height="50%">
+                    {noteNames.slice(0, 6).map((name, j) => (
+                        <ChordRoot
+                            key={`${name}-key-${j}`}
+                            highlighted={rootIdx === j}
+                            rootName={name}
+                            onClick={onRootChange(j)}
+                        />
+                    ))}
+                </FlexRow>
+                <FlexRow
+                    marginLeft={`calc(100% / 12)`}
+                    width="100%"
+                    height="50%"
+                    alignItems="start"
+                >
+                    {noteNames.slice(6).map((name, j) => (
+                        <ChordRoot
+                            key={`${name}-key-${j + 6}`}
+                            highlighted={rootIdx === j + 6}
+                            rootName={name}
+                            onClick={onRootChange(j + 6)}
+                        />
+                    ))}
+                </FlexRow>
+            </RootContainer>
+            {/* This is the scrollable chord selector in the ChordInput component */}
+            <ChordScaleContainer>
+                <ScrollSelect onChange={onChordChange} value={chordName}>
+                    {CHORD_NAMES.map((name, j) => (
+                        <ScrollSelectOption
+                            key={`${name}-key-${j}`}
+                            value={name}
+                        >
+                            <ChordSymbol
+                                rootName=""
+                                chordName={name || ""}
+                                fontSize={12}
                             />
-                        ))}
-                    </FlexRow>
-                    <FlexRow
-                        marginLeft={`calc(100% / 12)`}
-                        width="100%"
-                        height="50%"
-                        alignItems="start"
-                    >
-                        {noteNames.slice(6).map((name, j) => (
-                            <ChordRoot
-                                key={`${name}-key-${j + 6}`}
-                                highlighted={rootIdx === j + 6}
-                                rootName={name}
-                                onClick={onRootChange(j + 6)}
-                            />
-                        ))}
-                    </FlexRow>
-                </RootContainer>
-                {/* This is the scrollable chord selector in the ChordInput component */}
-                <ChordScaleContainer>
-                    <ScrollSelect onChange={onChordChange} value={chordName}>
-                        {CHORD_NAMES.map((name, j) => (
-                            <ScrollSelectOption
-                                key={`${name}-key-${j}`}
-                                value={name}
-                            >
-                                <ChordSymbol
-                                    rootName=""
-                                    chordName={name || ""}
-                                    fontSize={12}
-                                />
-                            </ScrollSelectOption>
-                        ))}
-                    </ScrollSelect>
-                </ChordScaleContainer>
-            </Div>
+                        </ScrollSelectOption>
+                    ))}
+                </ScrollSelect>
+            </ChordScaleContainer>
         </ChordInputContainer>
     );
 };

@@ -196,10 +196,11 @@ export const Fret: React.FC<FretProps> = ({
         fretIsPlayingProgressRef.current,
         COLORS[fretboard.colorIndex]
     );
-    const textColor =
-        status === HIGHLIGHTED && !currentFretStatusRef.current
-            ? lightGrey
-            : darkGrey;
+    // const textColor =
+    //     status === HIGHLIGHTED && !currentFretStatusRef.current
+    //         ? lightGrey
+    //         : darkGrey;
+    const textColor = darkGrey;
     // makes frets progressively smaller
     const fretWidth = getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, fretIndex);
     // makes strings progressively thinner
@@ -365,7 +366,8 @@ export const Fret: React.FC<FretProps> = ({
             COLORS[currentFretboard.colorIndex]
         );
         // text color for circle div
-        let textColor = !currentFretStatus ? lightGrey : darkGrey;
+        // let textColor = !currentFretStatus ? lightGrey : darkGrey;
+        let textColor = darkGrey;
         const highlightShadowColor = COLORS[currentFretboard.colorIndex][2];
 
         let newLeft; // new left position for sliding shadowDiv
@@ -414,22 +416,22 @@ export const Fret: React.FC<FretProps> = ({
                 // the next fretboard is empty at our location, we should disappear
                 fillPercentage = 100 - x * 50;
                 fillOpacityPercentage = 100 - xPercent;
-                textColor = colorFade(darkGrey, lightGrey, x) || textColor;
+                // textColor = colorFade(darkGrey, lightGrey, x) || textColor;
                 backgroundColor =
                     colorFade(fromColor, toEmptyFillColor, x) || "transparent";
             } else if (fill) {
                 // the next fretboard is filled at our location, we should appear
                 fillPercentage = 50 + x * 50;
                 fillOpacityPercentage = xPercent;
-                textColor = colorFade(lightGrey, darkGrey, x) || textColor;
+                // textColor = colorFade(lightGrey, darkGrey, x) || textColor;
                 backgroundColor =
                     colorFade(fromColor, toEmptyFillColor, x) || "transparent";
             } else if (diff) {
                 // text color
-                let fromTextColor = currentFretStatus ? darkGrey : lightGrey;
-                let toTextColor = nextCurrentFretStatus ? darkGrey : lightGrey;
-                textColor =
-                    colorFade(fromTextColor, toTextColor, x) || textColor;
+                // let fromTextColor = currentFretStatus ? darkGrey : lightGrey;
+                // let toTextColor = nextCurrentFretStatus ? darkGrey : lightGrey;
+                // textColor =
+                //     colorFade(fromTextColor, toTextColor, x) || textColor;
 
                 // background color
                 if (nextDiffFretStatus) {
@@ -514,12 +516,12 @@ export const Fret: React.FC<FretProps> = ({
             shadowRef.current.style.top = top;
 
         // set shadow box-shadow
-        const boxShadow =
-            statusMode === HIGHLIGHTED && fretStatus === HIGHLIGHTED
-                ? `0 0 20px 1px ${highlightShadowColor}`
-                : "none";
-        if (shadowRef.current.style.boxShadow !== boxShadow)
-            shadowRef.current.style.boxShadow = boxShadow;
+        // const boxShadow =
+        //     statusMode === HIGHLIGHTED && fretStatus === HIGHLIGHTED
+        //         ? `0 0 20px 1px ${highlightShadowColor}`
+        //         : "none";
+        // if (shadowRef.current.style.boxShadow !== boxShadow)
+        //     shadowRef.current.style.boxShadow = boxShadow;
 
         // set circle color
         const color = statusMode === HIGHLIGHTED ? textColor : darkGrey;
@@ -571,7 +573,7 @@ export const Fret: React.FC<FretProps> = ({
             isMouseOverTimeoutRef.current = undefined;
         }
 
-        if (delay) {
+        if (delay && isMouseOverRef.current) {
             isMouseOverTimeoutRef.current = setTimeout(() => {
                 isMouseOverRef.current = false;
                 isMouseOverTimeoutRef.current = undefined;
@@ -591,31 +593,30 @@ export const Fret: React.FC<FretProps> = ({
         let toStatus = fromStatus;
         let toDragStatus = fromDragStatus;
 
-        if (highlightMode === HIGHLIGHTED && fromStatus > NOT_SELECTED) {
+        // dont select/deselect notes when disabled
+        if (isDisabledRef.current) return [toStatus, toDragStatus];
+
+        if (highlightMode === HIGHLIGHTED) {
             // only handle events on selected notes, the rest are disabled
             if (isDragging) {
-                toStatus = fromDragStatus === "off" ? SELECTED : HIGHLIGHTED;
+                toStatus =
+                    fromDragStatus === "off" ? NOT_SELECTED : HIGHLIGHTED;
             } else {
-                toStatus = fromStatus === HIGHLIGHTED ? SELECTED : HIGHLIGHTED;
+                toStatus =
+                    fromStatus === HIGHLIGHTED ? NOT_SELECTED : HIGHLIGHTED;
                 toDragStatus = fromStatus === HIGHLIGHTED ? "off" : "on";
             }
         } else if (highlightMode === SELECTED) {
             // Demote the selection status, or select if not selected already
-            if (temporaryEraseMode.current) {
-                toStatus = NOT_SELECTED;
-                toDragStatus = "off";
-            } else if (isDragging) {
-                toStatus = fromDragStatus === "on" ? SELECTED : NOT_SELECTED;
+            // if (temporaryEraseMode.current) {
+            //     toStatus = NOT_SELECTED;
+            //     toDragStatus = "off";
+            // } else
+            if (isDragging) {
+                toStatus = fromDragStatus === "off" ? NOT_SELECTED : SELECTED;
             } else {
-                toStatus =
-                    fromStatus === HIGHLIGHTED
-                        ? NOT_SELECTED
-                        : fromStatus === SELECTED
-                        ? NOT_SELECTED
-                        : fromStatus === NOT_SELECTED
-                        ? SELECTED
-                        : NOT_SELECTED;
-                toDragStatus = fromStatus === NOT_SELECTED ? "on" : "off";
+                toStatus = fromStatus ? NOT_SELECTED : SELECTED;
+                toDragStatus = fromStatus ? "off" : "on";
             }
         }
 
@@ -674,34 +675,34 @@ export const Fret: React.FC<FretProps> = ({
                 if (circleRef.current)
                     circleRef.current.style.touchAction = "auto";
 
-                temporaryHighlightMode.current = false;
-                temporaryEraseMode.current = false;
+                // temporaryHighlightMode.current = false;
+                // temporaryEraseMode.current = false;
             },
             onClick: (event: WindowMouseEvent) => {
                 setHighlightNote();
             },
             onEnd: (event: WindowMouseEvent, touchStore: TouchStateType) => {
                 clearMouseOver();
-                if (temporaryHighlightMode.current) {
-                    appStore.dispatch.setStatus(SELECTED);
-                }
+                // if (temporaryHighlightMode.current) {
+                //     appStore.dispatch.setStatus(SELECTED);
+                // }
 
                 // enable scroll
                 if (circleRef.current)
                     circleRef.current.style.touchAction = "auto";
 
-                temporaryHighlightMode.current = false;
-                temporaryEraseMode.current = false;
+                // temporaryHighlightMode.current = false;
+                // temporaryEraseMode.current = false;
             },
             onLongPress: () => {
                 const { fretboard, status } = appStore.getComputedState();
                 const fromStatus = fretboard.strings[stringIndex][fretIndex];
 
-                if (fromStatus !== NOT_SELECTED && status !== HIGHLIGHTED) {
-                    appStore.dispatch.setStatus(HIGHLIGHTED);
-                    temporaryHighlightMode.current = true;
-                    temporaryEraseMode.current = false;
-                }
+                // if (fromStatus !== NOT_SELECTED && status !== HIGHLIGHTED) {
+                //     appStore.dispatch.setStatus(HIGHLIGHTED);
+                //     temporaryHighlightMode.current = true;
+                //     temporaryEraseMode.current = false;
+                // }
 
                 // disable scroll
                 if (circleRef.current)
@@ -710,13 +711,13 @@ export const Fret: React.FC<FretProps> = ({
                 setHighlightNote(true);
             },
             onExtraLongPress: () => {
-                if (temporaryHighlightMode.current) {
-                    appStore.dispatch.setStatus(SELECTED);
-                    temporaryHighlightMode.current = false;
-                    temporaryEraseMode.current = true;
-                    // only start erasing notes if in temporaryHighlightMode
-                    setHighlightNote(true);
-                }
+                // if (temporaryHighlightMode.current) {
+                //     appStore.dispatch.setStatus(SELECTED);
+                //     temporaryHighlightMode.current = false;
+                //     temporaryEraseMode.current = true;
+                //     // only start erasing notes if in temporaryHighlightMode
+                //     setHighlightNote(true);
+                // }
             },
             onMove: (event: WindowMouseEvent, touchStore: TouchStateType) => {
                 const { fretboard, status, fretDragStatus } =

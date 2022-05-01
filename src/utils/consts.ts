@@ -357,3 +357,6 @@ export const STRUM_LOW_TO_HIGH = "strumLowToHigh";
 export const STRUM_HIGH_TO_LOW = "strumHighToLow";
 export const ARPEGGIATE_LOW_TO_HIGH = "arpeggiateLowToHigh";
 export const ARPEGGIATE_HIGH_TO_LOW = "arpeggiateHighToLow";
+
+export const standardBoxShadow = (inset = false) =>
+    inset ? "inset 0 0 2px 0 #444" : "0 0 2px 0 #444";

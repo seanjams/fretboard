@@ -1,6 +1,11 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { lighterGrey, mediumGrey, white } from "../../utils";
+import {
+    darkGrey,
+    lighterGrey,
+    lightGrey,
+    standardBoxShadow,
+} from "../../utils";
 import { generateAnimationWrapper } from "../Animation";
 
 // should extend from some CSSProp default object so you dont have to add these manually
@@ -28,7 +33,7 @@ export const CheckboxContainer = styled.div.attrs((props: CSSProps) => ({
         border-radius: ${checkboxHeight}px;
         padding: 4px;
         background-color: ${lighterGrey};
-        box-shadow: inset 0 0 2px 0 #777;
+        box-shadow: ${standardBoxShadow(true)};
 
         div {
             position: relative;
@@ -36,8 +41,8 @@ export const CheckboxContainer = styled.div.attrs((props: CSSProps) => ({
             height: ${checkboxHeight}px;
             width: ${checkboxHeight}px;
             border-radius: ${checkboxHeight}px;
-            background-color: ${white};
-            box-shadow: 0 0 2px 0 #444;
+            background-color: ${lightGrey};
+            box-shadow: ${standardBoxShadow()};
         }
     }
 `;
@@ -51,7 +56,7 @@ export const CheckboxLabel = styled.div.attrs((props: CSSProps) => ({
     },
 }))<CSSProps>`
     font-size: 10px;
-    color: ${mediumGrey};
+    color: ${darkGrey};
 `;
 
 const CheckboxAnimationWrapper = styled.div.attrs((props: CSSProps) => ({

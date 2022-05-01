@@ -297,6 +297,22 @@ export function getFretValue(
     return normalize ? mod(fretValue, 12) : fretValue;
 }
 
+export function getFretIndicesFromValue(fretValue: number) {
+    const fretIndices: [number, number][] = [];
+    STANDARD_TUNING.forEach((openStringValue, stringIndex) => {
+        const leftBound = openStringValue;
+        const rightBound = openStringValue + STRING_SIZE;
+        const offset = mod(leftBound, 12);
+        let nextFretValue = leftBound + mod(fretValue - offset, 12);
+        while (nextFretValue < rightBound) {
+            const fretIndex = nextFretValue - openStringValue;
+            fretIndices.push([stringIndex, fretIndex]);
+            nextFretValue += 12;
+        }
+    });
+    return fretIndices;
+}
+
 export function setFret(
     fretboard: FretboardType,
     stringIndex: number,
@@ -305,30 +321,42 @@ export function setFret(
 ): void {
     // set a fret and all corresponding frets on a fretboard
     const fretValue = getFretValue(stringIndex, fretIndex);
-    for (let otherStringIndex in fretboard.strings) {
+    const fretIndices = getFretIndicesFromValue(fretValue);
+    let highlightedCount = fretIndices.filter(
+        ([otherStringIndex, otherFretIndex]) =>
+            fretboard.strings[otherStringIndex][otherFretIndex] === HIGHLIGHTED
+    ).length;
+    fretIndices.forEach(([otherStringIndex, otherFretIndex]) => {
         let otherString = fretboard.strings[otherStringIndex];
-        for (let otherFretIndex in otherString) {
-            let otherFretValue = getFretValue(
-                +otherStringIndex,
-                +otherFretIndex
-            );
-            // only setFret for frets with matching fretValue
-            if (otherFretValue !== fretValue) continue;
-            // if HIGHLIGHTED (2), only set to SELECTED (1), hence the max
-            if (status !== NOT_SELECTED) {
-                // if selecting/highlighting a note, go through other notes of matching fretValue,
-                // and set them to be at least SELECTED, if not already set higher
+        if (status !== NOT_SELECTED) {
+            // if selecting/highlighting a note, go through other notes of matching fretValue,
+            // and set them to be at least SELECTED, if not already set higher
+
+            if (
+                otherStringIndex === stringIndex &&
+                otherFretIndex === fretIndex
+            ) {
+                otherString[otherFretIndex] = status;
+            } else {
                 otherString[otherFretIndex] = Math.max(
                     otherString[otherFretIndex],
                     SELECTED
                 ) as StatusTypes;
-            } else {
+            }
+        } else {
+            // if turning off a note, go through other notes of matching fretValue,
+            // and set to NOT_SELECTED if there are no other highlighted notes. Otherwise do nothing
+            if (
+                otherStringIndex === stringIndex &&
+                otherFretIndex === fretIndex
+            ) {
+                otherString[otherFretIndex] =
+                    highlightedCount <= 1 ? NOT_SELECTED : SELECTED;
+            } else if (highlightedCount <= 1) {
                 otherString[otherFretIndex] = NOT_SELECTED;
             }
         }
-    }
-
-    fretboard.strings[stringIndex][fretIndex] = status;
+    });
 }
 
 export function clearHighlight(fretboard: FretboardType): void {

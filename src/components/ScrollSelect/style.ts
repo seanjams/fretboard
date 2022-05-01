@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { lighterGrey, sandy, SP } from "../../utils";
+import { lighterGrey, sandy, SP, standardBoxShadow } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     selected?: boolean;
@@ -41,7 +41,7 @@ export const ShadowOverlay = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     z-index: 9999;
-    box-shadow: inset 0 0 4px 0 #777;
+    box-shadow: ${standardBoxShadow(true)};
     pointer-events: none;
 `;
 

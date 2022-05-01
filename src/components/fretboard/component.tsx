@@ -151,9 +151,7 @@ export const Fretboard: React.FC<FretboardProps> = ({
         setTimeout(() => {
             // const { fretboard, strumMode } =
             //     appStore.getComputedState();
-            strumMode === STRUM_LOW_TO_HIGH
-                ? audioStore.strumChord(fretboard)
-                : audioStore.arpeggiateChord(fretboard);
+            audioStore.strumChord(fretboard, strumMode !== STRUM_LOW_TO_HIGH);
         }, delayStrum);
 
         // udpate ref

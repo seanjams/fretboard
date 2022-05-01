@@ -20,12 +20,13 @@ export function generateAnimationWrapper(
 ) {
     const AnimationWrapper: React.FC<
         AnimationWrapperProps & { [key in string]: any }
-    > = ({ trigger, children, ...props }) => {
+    > = ({ trigger, children, appear, ...props }) => {
         let wrapped = children as TransitionChildren;
         return (
             <Wrapper {...props}>
                 <CSSTransition
                     in={!!trigger}
+                    appear={appear || false}
                     timeout={timeout}
                     classNames={className}
                     // onEnter={() => setShowButton(false)}

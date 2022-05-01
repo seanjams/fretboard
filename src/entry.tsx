@@ -26,6 +26,13 @@ function init() {
     if (screen) screen.orientation.lock("landscape");
 
     console.log("LOVELY INIT");
+    // console.log("AV AUDIO SESSION", w.AVAudioSession);
+
+    // w.AVAudioSession &&
+    //     w.AVAudioSession.getCategory(function (category: string) {
+    //         // Do something with category value.
+    //         console.log("SEAN CATEGORY", category);
+    //     });
 
     const root = document.createElement("div");
     root.setAttribute("id", "root");

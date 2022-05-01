@@ -1,6 +1,12 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { sandy, SP, mediumGrey, lighterGrey } from "../../utils";
+import {
+    lighterGrey,
+    mediumGrey,
+    sandy,
+    SP,
+    standardBoxShadow,
+} from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     highlighted?: boolean;
@@ -13,32 +19,7 @@ export const ChordInputContainer = styled.div.attrs((props: CSSProps) => ({
 }))<CSSProps>`
     height: 100%;
     width: 100%;
-
-    .label-container,
-    .chord-scale-container {
-        display: flex;
-        width: 100%;
-    }
-
-    .label-container {
-        height: 10%;
-        font-size: 10px;
-        color: ${mediumGrey};
-
-        div:first-child {
-            width: calc(40% - ${SP[1]}px);
-            padding-left: ${SP[1]}px;
-        }
-
-        div:last-child {
-            width: calc(60% - ${SP[6]}px);
-            padding-left: ${SP[6]}px;
-        }
-    }
-
-    .chord-scale-container {
-        height: 90%;
-    }
+    display: flex;
 `;
 
 // This is the staggered root selector in the ChordInput component
@@ -69,7 +50,7 @@ export const RootTag = styled.div.attrs((props: CSSProps) => ({
     font-size: 11px;
     border-radius: 999999px;
     transition: border 150ms ease-in-out;
-    box-shadow: 0 0 4px 0 #aaa;
+    box-shadow: ${standardBoxShadow()};
     z-index: 0;
 `;
 

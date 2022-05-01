@@ -10,6 +10,7 @@ export interface IconButtonProps {
     iconHeight?: number;
     iconWidth?: number;
     isCircular?: boolean;
+    activeColor?: string;
 }
 
 export const IconButton: React.FC<IconButtonProps> = ({
@@ -18,6 +19,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
     iconHeight,
     iconWidth,
     isCircular,
+    activeColor,
     children,
 }) => {
     const [active, setActive] = useState(selected || false);
@@ -41,9 +43,9 @@ export const IconButton: React.FC<IconButtonProps> = ({
             {...touchHandlers}
             backgroundColor={lighterGrey}
             active={active}
-            activeColor={lightBlue}
+            activeColor={activeColor || lightBlue}
             pressed={selected}
-            pressedColor={lightBlue}
+            pressedColor={activeColor || lightBlue}
             diameter={44}
             className="button-div"
             iconWidth={iconWidth}

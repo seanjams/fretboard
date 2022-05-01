@@ -69,19 +69,19 @@ export function DEFAULT_AUDIO_STATE(
             22: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
             23: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
             // set of players
-            // 24: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
-            // 25: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
-            // 26: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
-            // 27: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
-            // 28: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
-            // 29: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
-            // // set of players
-            // 30: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
-            // 31: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
-            // 32: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
-            // 33: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
-            // 34: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
-            // 35: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            24: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            25: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            26: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            27: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            28: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            29: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
+            // set of players
+            30: `[${SOUND_STRING_0_E_OGG}|${SOUND_STRING_0_E_MP3}]`,
+            31: `[${SOUND_STRING_1_A_OGG}|${SOUND_STRING_1_A_MP3}]`,
+            32: `[${SOUND_STRING_2_D_OGG}|${SOUND_STRING_2_D_MP3}]`,
+            33: `[${SOUND_STRING_3_G_OGG}|${SOUND_STRING_3_G_MP3}]`,
+            34: `[${SOUND_STRING_4_B_OGG}|${SOUND_STRING_4_B_MP3}]`,
+            35: `[${SOUND_STRING_5_E_OGG}|${SOUND_STRING_5_E_MP3}]`,
         },
         onload: onLoad,
         onerror: onError,
@@ -90,7 +90,7 @@ export function DEFAULT_AUDIO_STATE(
     players.volume.value = -12;
 
     return {
-        poolSize: 4,
+        poolSize: 6,
         players,
         isLoaded: false,
         isPlaying: new Set(),
@@ -153,6 +153,14 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         return [this.state.players.player(stringIndex + ""), stringIndex];
     }
 
+    stopAll() {
+        Tone.Transport.cancel(0);
+        if (Tone.context.state !== "running") Tone.context.resume();
+        this.state.players.stopAll();
+        this.isPlaying = {};
+        this.dispatch.clearIsPlaying();
+    }
+
     playNote(stringIndex: number, fretIndex: number) {
         // play sound for note at stringIndex, fretIndex
         if (!this.state.players || !this.state.players.loaded) return;
@@ -193,12 +201,7 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         if (!this.state.players || !this.state.players.loaded) return;
         // play each note at [stringIndex, fretIndex] in "sounds",
         // every "interval" milliseconds
-        Tone.Transport.cancel(0);
-        if (Tone.context.state !== "running") Tone.context.resume();
-
-        this.state.players.stopAll();
-        this.isPlaying = {};
-        this.dispatch.clearIsPlaying();
+        this.stopAll();
 
         let i = 0;
         if (sounds.length) {
@@ -218,47 +221,31 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         }
     }
 
-    strumChord(fretboard: FretboardType) {
+    strumChord(fretboard: FretboardType, forceArpeggiate: boolean = false) {
         // figure out which notes are highlighted on each string
         // get the rightmost value
         // play chord with very small delay between notes
         let strumSounds: [number, number][] = [];
-
+        let shouldArpeggiate = forceArpeggiate;
+        let strumDelay = 70;
         for (let stringIndex in fretboard.strings) {
-            let foundFretIndex = -1;
             let fretString = fretboard.strings[stringIndex];
+            let stringCount = 0;
             for (let fretIndex in fretString) {
                 let fretValue = fretString[fretIndex];
-                if (fretValue === HIGHLIGHTED) foundFretIndex = +fretIndex;
+                if (fretValue === HIGHLIGHTED) {
+                    strumSounds.push([+stringIndex, +fretIndex]);
+                    stringCount++;
+                }
             }
-            if (foundFretIndex >= 0)
-                strumSounds.push([+stringIndex, foundFretIndex]);
+            if (stringCount > 1) shouldArpeggiate = true;
         }
-
-        const strumDelay = 70;
+        if (shouldArpeggiate) {
+            strumSounds = strumSounds.concat(
+                strumSounds.slice(0, -1).reverse()
+            );
+            strumDelay = 275;
+        }
         this.playNotes(strumSounds, strumDelay);
-    }
-
-    arpeggiateChord(fretboard: FretboardType) {
-        // figure out which notes are highlighted on each string
-        // construct notes to be played forward and backwards
-        // play chord with medium delay between notes
-        let arpeggiateSounds: [number, number][] = [];
-
-        for (let stringIndex in fretboard.strings) {
-            let fretString = fretboard.strings[stringIndex];
-            for (let fretIndex in fretString) {
-                let fretValue = fretString[fretIndex];
-                if (fretValue === HIGHLIGHTED)
-                    arpeggiateSounds.push([+stringIndex, +fretIndex]);
-            }
-        }
-
-        arpeggiateSounds = arpeggiateSounds.concat(
-            arpeggiateSounds.slice(0, -1).reverse()
-        );
-
-        const arpeggiateDelay = 350;
-        this.playNotes(arpeggiateSounds, arpeggiateDelay);
     }
 }

@@ -1,6 +1,14 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { lighterGrey, lightGrey, mediumGrey, SP, white } from "../../utils";
+import {
+    lighterGrey,
+    lightGrey,
+    mediumGrey,
+    SP,
+    white,
+    standardBoxShadow,
+    darkGrey,
+} from "../../utils";
 import { generateAnimationWrapper } from "../Animation";
 
 // should extend from some CSSProp default object so you dont have to add these manually
@@ -54,21 +62,35 @@ export const PillControlsContainer = styled.div.attrs((props: CSSProps) => ({
     }
 `;
 
+export const PillButtonLabel = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    position: relative;
+    top: ${SP[1]}px;
+    left: 0px;
+    height: ${SP[1]}px;
+    margin-bottom: -${SP[1]}px;
+    font-size: 8px;
+    text-align: center;
+    white-space: nowrap;
+    color: ${mediumGrey};
+`;
+
 export const Label = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
     height: 8px;
     margin: 0 ${SP[2]}px ${SP[3]}px ${SP[2]}px;
     padding-bottom: ${SP[0]}px;
-    border-bottom: 1px solid ${lightGrey};
+    border-bottom: 1px solid ${mediumGrey};
     font-size: 9px;
     text-align: left;
     white-space: nowrap;
-    color: ${mediumGrey};
+    color: ${darkGrey};
 `;
 
-const ENTER = 250;
-const EXIT = 250;
+const ENTER = 350;
+const EXIT = 350;
 const highlightCheckboxHeight = 32;
 const highlightCheckboxWidth = 80;
 
@@ -86,9 +108,9 @@ export const HighlightCheckboxContainer = styled.div.attrs(
         height: ${highlightCheckboxHeight}px;
         border-radius: ${highlightCheckboxHeight}px;
         padding: 6px;
-        background-color: ${lighterGrey};
-        transition: background-color 150ms ease-in-out;
-        box-shadow: inset 0 0 4px 0 #777;
+        background-color: ${lightGrey};
+        transition: background-color ${ENTER}ms ease-in-out;
+        box-shadow: ${standardBoxShadow(true)};
         margin-right: ${SP[2]}px;
 
         div {
@@ -97,17 +119,19 @@ export const HighlightCheckboxContainer = styled.div.attrs(
             height: ${highlightCheckboxHeight}px;
             width: ${highlightCheckboxHeight}px;
             border-radius: ${highlightCheckboxHeight}px;
-            background-color: white;
-            box-shadow: 0 0 4px 0 #777;
+            background-color: ${lighterGrey};
+            box-shadow: ${standardBoxShadow()};
         }
     }
 
     .clear-button .button-div {
-        background-color: transparent !important;
+        background-color: ${lighterGrey} !important;
+        transition: background-color ${ENTER}ms ease-in-out;
         border-radius: 100%;
 
         svg path {
             fill: ${mediumGrey};
+            transition: fill ${ENTER}ms ease-in-out;
         }
     }
 `;
@@ -119,14 +143,14 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
 )<CSSProps>`
     .highlight-slide-enter {
         .highlight-checkbox {
-            background-color: ${lighterGrey};
+            background-color: ${lightGrey};
             div {
                 left: 0px;
             }
         }
 
         .clear-button .button-div {
-            background-color: transparent !important;
+            background-color: ${lighterGrey} !important;
 
             svg path {
                 fill: ${mediumGrey};
@@ -188,7 +212,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     }
     .highlight-slide-exit-active {
         .highlight-checkbox {
-            background-color: ${lighterGrey};
+            background-color: ${lightGrey};
             transition: background-color ${EXIT}ms ease-in-out;
 
             div {
@@ -198,7 +222,7 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
         }
 
         .clear-button .button-div {
-            background-color: transparent !important;
+            background-color: ${lighterGrey} !important;
             transition: background-color ${EXIT}ms ease-in-out;
 
             svg path {
@@ -209,14 +233,14 @@ const HighlightCheckboxAnimationWrapper = styled.div.attrs(
     }
     .highlight-slide-exit-done {
         .highlight-checkbox {
-            background-color: ${lighterGrey};
+            background-color: ${lightGrey};
             div {
                 left: 0px;
             }
         }
 
         .clear-button .button-div {
-            background-color: transparent !important;
+            background-color: ${lighterGrey} !important;
 
             svg path {
                 fill: ${mediumGrey};

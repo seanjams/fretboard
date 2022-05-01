@@ -122,10 +122,7 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
 
     return (
         <ProgressionSelectorContainer>
-            <Div width="100%" height="10%" fontSize="10px" color={mediumGrey}>
-                Load/Save Progression
-            </Div>
-            <FlexRow width="100%" height="90%">
+            <FlexRow width="100%" height="100%">
                 <FlexRow
                     height="100%"
                     flexShrink="1"

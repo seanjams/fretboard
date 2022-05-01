@@ -25,7 +25,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 
     return (
         <FlexRow>
-            <CheckboxAnimation trigger={isChecked}>
+            <CheckboxAnimation appear trigger={isChecked}>
                 <CheckboxContainer>
                     <CheckboxLabel isLeft={true}>{leftLabel}</CheckboxLabel>
                     <Div className="checkbox" {...touchHandlers}>

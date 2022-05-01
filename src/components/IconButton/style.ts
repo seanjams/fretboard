@@ -44,6 +44,7 @@ export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: background-color 50ms ease-in-out, box-shadow 50ms ease-in-out;
 
     user-select: none; /* standard syntax */
     -webkit-user-select: none; /* webkit (safari, chrome) browsers */

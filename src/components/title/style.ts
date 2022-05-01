@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { mediumGrey, SP } from "../../utils";
+import { darkGrey, SP } from "../../utils";
 
 interface CSSProps extends CSS.Properties {
     markerColor?: string;
@@ -29,7 +29,7 @@ export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     align-items: center;
     justify-content: center;
-    color: ${mediumGrey};
+    color: ${darkGrey};
     font-size: ${titleFontSize}px;
 `;
 
