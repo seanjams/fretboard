@@ -171,23 +171,14 @@ export const appReducers = {
         let { fretboards } = progression;
 
         moveHighight(fretboards[currentFretboardIndex], inc, vertical);
-        scrollToFret = getScrollToFret(fretboards[currentFretboardIndex]);
-
-        // TODO: cascadehighlight mode needs this
-        // for (let i = 0; i < fretboards.length; i++) {
-        //     if (i === currentFretboardIndex) {
-        //         moveHighight(fretboards[i], inc, vertical);
-        //         scrollToFret = getScrollToFret(fretboards[i]);
-        //     } else {
-        //         clearHighlight(fretboards[i]);
-        //     }
-        // }
 
         return this.setCurrentProgression(
             {
                 ...state,
-                scrollToFret,
-                scrollToFretUpdated: true,
+                ...getScrollToFret(
+                    fretboards[currentFretboardIndex],
+                    scrollToFret
+                ),
             },
             {
                 ...progression,
@@ -258,23 +249,6 @@ export const appReducers = {
             );
         }
 
-        // TODO: cascadehighlight mode needs this
-        // for (let i = 0; i < fretboards.length; i++) {
-        //     if (i === currentFretboardIndex) {
-        //         const oldStatus = fretboards[i].strings[stringIndex][fretIndex];
-        //         setFret(fretboards[i], stringIndex, fretIndex, status);
-        //         // if fret turned on/off, change the name of the fretboard
-        //         if ((!oldStatus && status) || (oldStatus && !status)) {
-        //             fretboards[i].names = getFretboardNames(
-        //                 fretboards[i],
-        //                 label
-        //             );
-        //         }
-        //     } else {
-        //         clearHighlight(fretboards[i]);
-        //     }
-        // }
-
         return this.setCurrentProgression(
             {
                 ...state,
@@ -284,6 +258,16 @@ export const appReducers = {
                 ...rebuildDiffs(fretboards),
             }
         );
+    },
+
+    cascadeHighlightedPosition(state: AppStateType) {
+        let { progression, currentFretboardIndex } = getComputedAppState(state);
+        let { fretboards } = progression;
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...cascadeDiffs(fretboards, currentFretboardIndex),
+            currentFretboardIndex,
+        });
     },
 
     // not used
@@ -504,7 +488,7 @@ export const appReducers = {
         // fretboards: StringSwitchType[],
         // startIndex: number
     ): AppStateType {
-        const { progression, hiddenFretboardIndex } =
+        const { progression, hiddenFretboardIndex, scrollToFret } =
             getComputedAppState(state);
         let { fretboards } = progression;
 
@@ -512,16 +496,15 @@ export const appReducers = {
             // remove old fretboard, update diffs, reset progress and currentFretboardIndex
             fretboards = [...fretboards];
             fretboards.splice(hiddenFretboardIndex, 1);
-            const scrollToFret = getScrollToFret(
-                fretboards[hiddenFretboardIndex]
-            );
             return this.setCurrentProgression(
                 {
                     ...state,
                     progress: hiddenFretboardIndex + 0.5,
                     hiddenFretboardIndex: -1,
-                    scrollToFret,
-                    scrollToFretUpdated: true,
+                    ...getScrollToFret(
+                        fretboards[hiddenFretboardIndex],
+                        scrollToFret
+                    ),
                 },
                 {
                     ...progression,

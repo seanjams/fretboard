@@ -1,6 +1,5 @@
 import {
     ChordTypes,
-    DiffType,
     FretboardNameType,
     LabelTypes,
     NoteSwitchType,
@@ -8,9 +7,7 @@ import {
     StatusTypes,
     FretboardType,
     WindowMouseEvent,
-    FretboardDiffType,
 } from "../types";
-import { kCombinations } from "./combinations";
 import { isMobile } from "react-device-detect";
 
 import {
@@ -36,238 +33,6 @@ export function stopClick() {
     function captureClick(event: WindowMouseEvent) {
         event.stopPropagation();
         window.removeEventListener("click", captureClick, true);
-    }
-}
-
-function _rotatedDistance(a: number, b: number, m: number = 12) {
-    let min = a - b;
-    if (Math.abs(a - b + m) < Math.abs(min)) min = a - b + m;
-    if (Math.abs(a - b - m) < Math.abs(min)) min = a - b - m;
-    return min;
-}
-
-function _getMinDiff(
-    longerList: number[],
-    shorterList: number[]
-): [number, DiffType] {
-    let minSum = -1;
-    let minDiff = {};
-    let minDiffScore = -1;
-    if (longerList.length === shorterList.length) {
-        // return min sum and Diff for best rotation
-        const rotatedIndexes = longerList.map(
-            (_, i) => (j: number) => (j + i) % longerList.length
-        );
-
-        for (let rotation of rotatedIndexes) {
-            let diff: DiffType = {};
-            let diffScore = 0;
-            let absSum = 0;
-
-            for (let i = 0; i < longerList.length; i++) {
-                const j = rotation(i);
-                const distance = _rotatedDistance(
-                    shorterList[j],
-                    longerList[i]
-                );
-                diffScore += distance * distance;
-                absSum += Math.abs(distance);
-                diff[longerList[i]] = distance;
-            }
-
-            const overallMovementIsLess = minSum < 0 || absSum < minSum;
-            const lateralMovementIsLess =
-                minSum >= 0 && absSum === minSum && diffScore < minDiffScore;
-
-            if (overallMovementIsLess || lateralMovementIsLess) {
-                minSum = absSum;
-                minDiff = diff;
-                minDiffScore = diffScore;
-            }
-        }
-    } else {
-        // get all combinations of longer list with length of shorter list,
-        // and pass back to function to compare in base case above
-        const reducedLists = kCombinations(longerList, shorterList.length);
-        for (let i = 0; i < reducedLists.length; i++) {
-            const reducedList = reducedLists[i];
-            const [sum, diff] = _getMinDiff(reducedList, shorterList);
-            if (minSum < 0 || sum < minSum) {
-                minSum = sum;
-                minDiff = diff;
-            }
-        }
-    }
-
-    return [minSum, minDiff];
-}
-
-export function diffToFretboardDiff(
-    diff: DiffType,
-    fretboardA: FretboardType,
-    fretboardB: FretboardType
-): FretboardDiffType {
-    // converts normalized diff to fretboard diff
-    const fretboardDiff: FretboardDiffType = [{}, {}, {}, {}, {}, {}];
-    for (let stringIndex in fretboardA.strings) {
-        const fretString = fretboardA.strings[+stringIndex];
-        for (let fretIndex in fretString) {
-            const currentStatus = fretboardA.strings[+stringIndex][+fretIndex];
-            const destinationStatus =
-                fretboardB.strings[+stringIndex][+fretIndex];
-            const fretValue = getFretValue(+stringIndex, +fretIndex, true);
-
-            if (diff[fretValue] !== undefined) {
-                if (
-                    diff[fretValue] === 9999 &&
-                    destinationStatus === HIGHLIGHTED
-                )
-                    fretboardDiff[+stringIndex][+fretIndex] = 10000;
-                if (diff[fretValue] === -9999 && currentStatus === HIGHLIGHTED)
-                    fretboardDiff[+stringIndex][+fretIndex] = -10000;
-                fretboardDiff[+stringIndex][+fretIndex] = diff[fretValue];
-            }
-        }
-    }
-
-    return fretboardDiff;
-}
-
-export function compare(fretboardA: FretboardType, fretboardB: FretboardType) {
-    // for generating diffs between stringsA and stringsB in both directions
-    let listA = list(fretboardA);
-    let listB = list(fretboardB);
-
-    const listBLonger = listA.length < listB.length;
-    let longer = listBLonger ? listB : listA;
-    let shorter = listBLonger ? listA : listB;
-
-    const [_, diff] = _getMinDiff(longer, shorter);
-
-    // build both directions
-    const longToShort = diff;
-    const shortToLong: DiffType = {};
-    const toIndexes: Set<number> = new Set();
-
-    for (let fromIndex in longToShort) {
-        const distance = longToShort[+fromIndex];
-        const toIndex = mod(+fromIndex + distance, 12);
-        toIndexes.add(toIndex);
-        shortToLong[toIndex] = -distance;
-    }
-
-    // 9999 = fill
-    // -9999 = empty
-    for (let index of longer) {
-        if (longToShort[+index] === undefined) {
-            longToShort[+index] = -9999;
-            shortToLong[+index] = 9999;
-        }
-    }
-
-    for (let index of shorter) {
-        if (!toIndexes.has(+index)) {
-            longToShort[+index] = 9999;
-            shortToLong[+index] = -9999;
-        }
-    }
-
-    // leftDiff is for the "fretboard on the right" which needs a diff against its left neighor
-    // rightDiff is for the "fretboard on the left" which needs a diff against its right neighor
-    let leftDiff = listBLonger ? longToShort : shortToLong;
-    let rightDiff = listBLonger ? shortToLong : longToShort;
-    return [leftDiff, rightDiff];
-}
-
-export const rebuildDiffs = (fretboards: FretboardType[]) => {
-    const leftDiffs: FretboardDiffType[] = [];
-    const rightDiffs: FretboardDiffType[] = [];
-
-    for (let i = 0; i < fretboards.length; i++) {
-        const fretboard = fretboards[i];
-        const compareFretboard = fretboards[i + 1];
-
-        let leftDiff: DiffType | null = null;
-        let rightDiff: DiffType | null = null;
-        let leftFretboardDiff: FretboardDiffType | null = null;
-        let rightFretboardDiff: FretboardDiffType | null = null;
-        if (compareFretboard) {
-            [leftDiff, rightDiff] = compare(fretboard, compareFretboard);
-            leftFretboardDiff = diffToFretboardDiff(
-                leftDiff,
-                compareFretboard,
-                fretboard
-            );
-            rightFretboardDiff = diffToFretboardDiff(
-                rightDiff,
-                fretboard,
-                compareFretboard
-            );
-        }
-
-        if (rightFretboardDiff) rightDiffs[i] = rightFretboardDiff;
-        if (leftFretboardDiff && i + 1 < fretboards.length)
-            leftDiffs[i + 1] = leftFretboardDiff;
-    }
-
-    return {
-        fretboards,
-        leftDiffs,
-        rightDiffs,
-    };
-};
-
-export function cascadeDiffs(
-    fretboards: FretboardType[],
-    currentFretboardIndex: number
-) {
-    fretboards = JSON.parse(JSON.stringify(fretboards));
-    const diffs = rebuildDiffs(fretboards);
-
-    // left
-    for (let i = currentFretboardIndex; i >= 0; i--) {
-        let diff = diffs.leftDiffs[i];
-        let fretboardA = fretboards[i];
-        let fretboardB = fretboards[i - 1];
-        if (!fretboardB) break;
-        cascadeHighlight(fretboardA, fretboardB, diff);
-    }
-
-    // right
-    for (let i = currentFretboardIndex; i < fretboards.length; i++) {
-        let diff = diffs.rightDiffs[i];
-        let fretboardA = fretboards[i];
-        let fretboardB = fretboards[i + 1];
-        if (!fretboardB) break;
-        cascadeHighlight(fretboardA, fretboardB, diff);
-    }
-
-    return { ...diffs, fretboards };
-}
-
-// starting at fretboardA, check all strings for any highlighted notes,
-// and copy them to corresponding notes on fretboardB via diff
-export function cascadeHighlight(
-    fretboardA: FretboardType,
-    fretboardB: FretboardType,
-    diff: FretboardDiffType
-) {
-    // reset fretboardB's highlighted notes
-    clearHighlight(fretboardB);
-    for (let stringIndex in fretboardA.strings) {
-        const fretString = fretboardA.strings[stringIndex];
-        for (let fretIndex in fretString) {
-            // TODO: cascadehighlight mode needs this
-            // const diffValue = diff[getFretValue(+stringIndex, +fretIndex)];
-            const diffValue = diff[+stringIndex][+fretIndex];
-            const status = fretString[fretIndex];
-            const slidesInDiff =
-                diffValue !== undefined && Math.abs(diffValue) < 9999;
-            if (slidesInDiff) {
-                const fretDestinationIndex = +fretIndex + diffValue;
-                setFret(fretboardB, +stringIndex, fretDestinationIndex, status);
-            }
-        }
     }
 }
 
@@ -501,7 +266,10 @@ export function getFretboardNames(
     return [notFoundName];
 }
 
-export function getScrollToFret(fretboard: FretboardType) {
+export function getScrollToFret(
+    fretboard: FretboardType,
+    defaultScrollToFret: number
+) {
     // look at highlighted frets on fretboard and get median
 
     const highlightedFrets: number[] = [];
@@ -518,7 +286,18 @@ export function getScrollToFret(fretboard: FretboardType) {
     highlightedFrets.sort((a, b) => a - b);
     const minFret = highlightedFrets[0];
     const maxFret = highlightedFrets[highlightedFrets.length - 1];
-    return (maxFret + minFret) / 2;
+    const scrollToFret = (maxFret + minFret) / 2;
+    if (isNaN(scrollToFret)) {
+        return {
+            scrollToFret: defaultScrollToFret,
+            scrollToFretUpdated: false,
+        };
+    }
+
+    return {
+        scrollToFret,
+        scrollToFretUpdated: true,
+    };
 }
 
 export function moveHighight(

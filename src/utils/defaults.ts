@@ -6,7 +6,7 @@ import {
     StringSwitchType,
 } from "../types";
 import { NOT_SELECTED, STRING_SIZE } from "./consts";
-import { rebuildDiffs } from "./utils";
+import { rebuildDiffs } from "./diffs";
 
 export function DEFAULT_NOTESWITCH(): NoteSwitchType {
     return [
