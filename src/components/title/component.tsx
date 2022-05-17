@@ -6,14 +6,14 @@ import {
     useDerivedState,
 } from "../../store";
 import { DEFAULT_FRETBOARD_NAME, darkGrey, COLORS } from "../../utils";
+import { TextButton } from "../Buttons";
 import { ChordSymbol } from "../ChordSymbol";
-import { FlexRow } from "../Common";
+import { Div } from "../Common";
 import {
     TitleContainerDiv,
     EmptyTitleContainerDiv,
     CurrentFretboardMarker,
     titleFontSize,
-    TitleButton,
 } from "./style";
 
 // Component
@@ -82,24 +82,23 @@ export const Title: React.FC<TitleProps> = ({
             <CurrentFretboardMarker
                 markerColor={isCurrentFretboard ? darkGrey : "transparent"}
             />
-            <TitleButton
-                isPressed={isCurrentFretboard}
-                backgroundColor={COLORS[fretboardIndex][1]}
-            >
-                {chordName ? (
-                    <FlexRow height="100%">
+            <Div width="80%" height="100%">
+                <TextButton
+                    selected={isCurrentFretboard}
+                    backgroundColor={COLORS[fretboardIndex][1]}
+                    activeColor={COLORS[fretboardIndex][1]}
+                >
+                    {chordName ? (
                         <ChordSymbol
                             rootName={rootName}
                             chordName={chordName}
                             fontSize={getFontSize()}
                         />
-                    </FlexRow>
-                ) : (
-                    <FlexRow height="100%">
+                    ) : (
                         <EmptyTitleContainerDiv>+</EmptyTitleContainerDiv>
-                    </FlexRow>
-                )}
-            </TitleButton>
+                    )}
+                </TextButton>
+            </Div>
         </TitleContainerDiv>
     );
 };

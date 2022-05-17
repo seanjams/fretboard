@@ -2,12 +2,9 @@ import { DiffType, FretboardType, FretboardDiffType } from "../types";
 import {
     clearHighlight,
     DEFAULT_FRETBOARD,
-    getFretIndicesFromValue,
     getFretValue,
-    HIGHLIGHTED,
     list,
     mod,
-    NOT_SELECTED,
     setFret,
 } from "../utils";
 import { kCombinations } from "./combinations";
@@ -85,20 +82,18 @@ export function diffToFretboardDiff(
     for (let stringIndex in fretboardA.strings) {
         const fretString = fretboardA.strings[+stringIndex];
         for (let fretIndex in fretString) {
-            const currentStatus = fretboardA.strings[+stringIndex][+fretIndex];
-            const destinationStatus =
-                fretboardB.strings[+stringIndex][+fretIndex];
             const fretValue = getFretValue(+stringIndex, +fretIndex, true);
-
             if (diff[fretValue] !== undefined) {
-                if (
-                    diff[fretValue] === 9999 &&
-                    destinationStatus === HIGHLIGHTED
-                )
-                    fretboardDiff[+stringIndex][+fretIndex] = 10000;
-                if (diff[fretValue] === -9999 && currentStatus === HIGHLIGHTED)
-                    fretboardDiff[+stringIndex][+fretIndex] = -10000;
-                fretboardDiff[+stringIndex][+fretIndex] = diff[fretValue];
+                const destinationIndex =
+                    Math.abs(diff[fretValue]) >= 9999
+                        ? +fretIndex
+                        : +fretIndex + diff[fretValue];
+                fretboardDiff[+stringIndex][+fretIndex] = {
+                    slide: diff[fretValue],
+                    fromStatus: fretboardA.strings[+stringIndex][+fretIndex],
+                    toStatus:
+                        fretboardB.strings[+stringIndex][destinationIndex],
+                };
             }
         }
     }
@@ -152,11 +147,73 @@ export function compare(fretboardA: FretboardType, fretboardB: FretboardType) {
     return [leftDiff, rightDiff];
 }
 
-export function rebuildCarryOverDiffs(
-    fretboards: FretboardType[],
-    leftDiffs: DiffType[],
-    rightDiffs: DiffType[]
+export function rebuildDiffs(fretboards: FretboardType[]) {
+    const leftDiffs: FretboardDiffType[] = [];
+    const rightDiffs: FretboardDiffType[] = [];
+
+    for (let i = 0; i < fretboards.length; i++) {
+        const fretboard = fretboards[i];
+        const compareFretboard = fretboards[i + 1];
+        if (!compareFretboard) continue;
+        const [basicLeftDiff, basicRightDiff] = compare(
+            fretboard,
+            compareFretboard
+        );
+        const leftDiff = diffToFretboardDiff(
+            basicLeftDiff,
+            compareFretboard,
+            fretboard
+        );
+        const rightDiff = diffToFretboardDiff(
+            basicRightDiff,
+            fretboard,
+            compareFretboard
+        );
+
+        rightDiffs[i] = rightDiff;
+        if (i + 1 < fretboards.length) {
+            leftDiffs[i + 1] = leftDiff;
+        }
+    }
+
+    return {
+        fretboards,
+        leftDiffs,
+        rightDiffs,
+    };
+}
+
+function _copyDiffToFretboard(
+    currentDiff: FretboardDiffType,
+    nextFretboard: FretboardType,
+    condition: "fill" | "empty"
 ) {
+    for (let stringIndex in currentDiff) {
+        for (let fretIndex in currentDiff[stringIndex]) {
+            const diff = currentDiff[stringIndex][+fretIndex];
+            let shouldCopy = false;
+            let status = diff.fromStatus;
+            if (condition === "fill") {
+                shouldCopy = diff.slide >= 9999;
+                status = diff.toStatus;
+            } else if (condition === "empty") {
+                shouldCopy = diff.slide <= -9999;
+                status = diff.fromStatus;
+            }
+            if (shouldCopy) {
+                nextFretboard.strings[stringIndex][fretIndex] = status;
+            }
+        }
+    }
+}
+
+function _buildCarryOverDiff(
+    currentFretboard: FretboardType,
+    nextFretboard: FretboardType,
+    currentDiff: FretboardDiffType,
+    nextDiff: FretboardDiffType,
+    stragglerDiff: FretboardDiffType
+): [FretboardDiffType, FretboardDiffType] | undefined {
     // Handles frets that are emptied by diff in transition from fretboardA to fretboardB,
     // because fretboardB had less notes in it. We should "carry over" the emptied frets
     // to the next fretboard in _cascadeHighlight, so all fretboards have the
@@ -172,255 +229,153 @@ export function rebuildCarryOverDiffs(
     // 5. Iterate over these new diffs, and update the actual diffs so that
     //  - Any note that is being filled checks the carryOver notes to decide
     //    if it should be highlighted or not
-    function carryOver(
-        currentFretboard: FretboardType,
-        nextFretboard: FretboardType,
-        currentDiff: DiffType,
-        nextDiff: DiffType
-    ) {
-        const fretboardA = DEFAULT_FRETBOARD();
-        const fretboardB = DEFAULT_FRETBOARD();
-        Object.entries(currentDiff).forEach(([fretValue, diffSlide]) => {
-            if (diffSlide <= -9999) {
-                const fretIndices = getFretIndicesFromValue(+fretValue);
-                fretIndices.forEach(([stringIndex, fretIndex]) => {
-                    fretboardA.strings[stringIndex][fretIndex] =
-                        currentFretboard.strings[stringIndex][fretIndex];
-                });
+    // 6. Notes that disappear (-9999) in this new diff are "stragglers",
+    //    these should be collected and reapplied to next carryOver notes
+
+    if (!currentFretboard || !nextFretboard || !currentDiff || !nextDiff)
+        return;
+    const fretboardA = DEFAULT_FRETBOARD();
+    const fretboardB = DEFAULT_FRETBOARD();
+    _copyDiffToFretboard(stragglerDiff, fretboardA, "empty");
+    _copyDiffToFretboard(currentDiff, fretboardA, "empty");
+    _copyDiffToFretboard(nextDiff, fretboardB, "fill");
+    const carryOverDiff = compare(fretboardA, fretboardB)[1];
+    const carryOverFretboardDiff = diffToFretboardDiff(
+        carryOverDiff,
+        fretboardA,
+        fretboardB
+    );
+
+    stragglerDiff = [{}, {}, {}, {}, {}, {}];
+    for (let stringIndex in carryOverFretboardDiff) {
+        for (let fretIndex in carryOverFretboardDiff[stringIndex]) {
+            const fretDiff = carryOverFretboardDiff[stringIndex][fretIndex];
+            if (fretDiff.slide <= -9999) {
+                // these frets did not get mapped in the carryOver process, and need to be collected
+                stragglerDiff[stringIndex][fretIndex] = { ...fretDiff };
             }
-        });
-        Object.entries(nextDiff).forEach(([fretValue, diffSlide]) => {
-            if (diffSlide >= 9999) {
-                const fretIndices = getFretIndicesFromValue(+fretValue);
-                fretIndices.forEach(([stringIndex, fretIndex]) => {
-                    fretboardB.strings[stringIndex][fretIndex] =
-                        nextFretboard.strings[stringIndex][fretIndex];
-                });
-            }
-        });
-        return compare(fretboardA, fretboardB);
-    }
-
-    let carryOverLeftDiffs: FretboardDiffType[] = [];
-    let carryOverRightDiffs: FretboardDiffType[] = [];
-
-    for (let i = leftDiffs.length - 1; i > 0; i--) {
-        const currentFretboard = fretboards[i];
-        const nextFretboard = fretboards[i - 2];
-        const currentDiff = leftDiffs[i];
-        const nextDiff = leftDiffs[i - 1];
-        if (!currentFretboard || !nextFretboard || !currentDiff || !nextDiff)
-            continue;
-        const carryOverDiff = carryOver(
-            currentFretboard,
-            nextFretboard,
-            currentDiff,
-            nextDiff
-        )[1];
-        const carryOverFretboardDiff = diffToFretboardDiff(
-            carryOverDiff,
-            currentFretboard,
-            nextFretboard
-        );
-        carryOverLeftDiffs[i - 1] = carryOverFretboardDiff;
-    }
-
-    for (let i = 0; i < rightDiffs.length - 1; i++) {
-        const currentFretboard = fretboards[i];
-        const nextFretboard = fretboards[i + 2];
-        const currentDiff = rightDiffs[i];
-        const nextDiff = rightDiffs[i + 1];
-        if (!currentFretboard || !nextFretboard || !currentDiff || !nextDiff)
-            continue;
-        const carryOverDiff = carryOver(
-            currentFretboard,
-            nextFretboard,
-            currentDiff,
-            nextDiff
-        )[1];
-        const carryOverFretboardDiff = diffToFretboardDiff(
-            carryOverDiff,
-            currentFretboard,
-            nextFretboard
-        );
-        carryOverRightDiffs[i + 1] = carryOverFretboardDiff;
-    }
-
-    return {
-        carryOverLeftDiffs,
-        carryOverRightDiffs,
-    };
-}
-
-export function _rebuildDiffs(fretboards: FretboardType[], carryOver = false) {
-    const leftDiffs: FretboardDiffType[] = [];
-    const rightDiffs: FretboardDiffType[] = [];
-    const _leftDiffs: DiffType[] = [];
-    const _rightDiffs: DiffType[] = [];
-
-    for (let i = 0; i < fretboards.length; i++) {
-        const fretboard = fretboards[i];
-        const compareFretboard = fretboards[i + 1];
-
-        let leftDiff: DiffType | null = null;
-        let rightDiff: DiffType | null = null;
-        let leftFretboardDiff: FretboardDiffType | null = null;
-        let rightFretboardDiff: FretboardDiffType | null = null;
-        if (compareFretboard) {
-            [leftDiff, rightDiff] = compare(fretboard, compareFretboard);
-            leftFretboardDiff = diffToFretboardDiff(
-                leftDiff,
-                compareFretboard,
-                fretboard
-            );
-            rightFretboardDiff = diffToFretboardDiff(
-                rightDiff,
-                fretboard,
-                compareFretboard
-            );
-        }
-
-        if (rightDiff && rightFretboardDiff) {
-            _rightDiffs[i] = rightDiff;
-            rightDiffs[i] = rightFretboardDiff;
-        }
-        if (leftDiff && leftFretboardDiff && i + 1 < fretboards.length) {
-            _leftDiffs[i + 1] = leftDiff;
-            leftDiffs[i + 1] = leftFretboardDiff;
         }
     }
 
-    let carryOverDiffs: {
-        carryOverLeftDiffs: FretboardDiffType[];
-        carryOverRightDiffs: FretboardDiffType[];
-    } = {
-        carryOverLeftDiffs: [],
-        carryOverRightDiffs: [],
-    };
-    if (carryOver) {
-        carryOverDiffs = rebuildCarryOverDiffs(
-            fretboards,
-            _leftDiffs,
-            _rightDiffs
-        );
-    }
-
-    return {
-        fretboards,
-        leftDiffs,
-        rightDiffs,
-        ...carryOverDiffs,
-    };
-}
-
-export function rebuildDiffs(fretboards: FretboardType[]) {
-    return _rebuildDiffs(fretboards, false);
-}
-
-export function cascadeDiffs(
-    fretboards: FretboardType[],
-    currentFretboardIndex: number
-) {
-    fretboards = JSON.parse(JSON.stringify(fretboards));
-    fretboards.forEach((fretboard, i) => {
-        if (currentFretboardIndex !== i) clearHighlight(fretboard);
-    });
-    const diffs = _rebuildDiffs(fretboards, true);
-
-    // left
-    for (let i = currentFretboardIndex; i >= 0; i--) {
-        let diff = diffs.leftDiffs[i];
-        let fretboardA = fretboards[i];
-        let fretboardB = fretboards[i - 1];
-        if (!fretboardB) break;
-        let carryOverDiff = undefined;
-        let carryOverFretboard = undefined;
-        if (i < currentFretboardIndex) {
-            carryOverDiff =
-                diffs.carryOverLeftDiffs && diffs.carryOverLeftDiffs[i];
-            carryOverFretboard = fretboards[i + 1];
-        }
-        _cascadeHighlight(
-            fretboardA,
-            fretboardB,
-            diff,
-            carryOverDiff,
-            carryOverFretboard
-        );
-    }
-
-    // reset carryOverFrets
-    // carryOverFrets = [];
-
-    // right
-    for (let i = currentFretboardIndex; i < fretboards.length; i++) {
-        let diff = diffs.rightDiffs[i];
-        let fretboardA = fretboards[i];
-        let fretboardB = fretboards[i + 1];
-        if (!fretboardB) break;
-        let carryOverDiff = undefined;
-        let carryOverFretboard = undefined;
-        if (i > currentFretboardIndex) {
-            carryOverDiff =
-                diffs.carryOverRightDiffs && diffs.carryOverRightDiffs[i];
-            carryOverFretboard = fretboards[i - 1];
-        }
-        _cascadeHighlight(
-            fretboardA,
-            fretboardB,
-            diff,
-            carryOverDiff,
-            carryOverFretboard
-        );
-    }
-
-    return { ...diffs, fretboards };
+    return [carryOverFretboardDiff, stragglerDiff];
 }
 
 // starting at fretboardA, check all strings for any highlighted notes,
 // and copy them to corresponding notes on fretboardB via diff
-export function _cascadeHighlight(
-    fretboardA: FretboardType,
-    fretboardB: FretboardType,
-    diff: FretboardDiffType,
-    carryOverDiff?: FretboardDiffType,
-    carryOverFretboard?: FretboardType
+function _cascadeHighlight(
+    currentFretboard: FretboardType,
+    nextFretboard: FretboardType,
+    currentDiff: FretboardDiffType,
+    nextDiff: FretboardDiffType,
+    carryOverDiff?: FretboardDiffType
 ) {
-    // reset fretboardB's highlighted notes
-    clearHighlight(fretboardB);
-    const shouldCarryOver = !!(carryOverDiff && carryOverFretboard);
-
-    for (let stringIndex in fretboardA.strings) {
-        const fretString = fretboardA.strings[stringIndex];
-        const carryOverFretString = shouldCarryOver
-            ? carryOverFretboard.strings[stringIndex]
-            : undefined;
+    // reset nextFretboard's highlighted notes
+    clearHighlight(nextFretboard);
+    for (let stringIndex in currentFretboard.strings) {
+        const fretString = currentFretboard.strings[stringIndex];
         for (let fretIndex in fretString) {
-            const status = fretString[fretIndex];
-            const diffValue = diff[+stringIndex][+fretIndex];
+            const fretDiff =
+                currentDiff && currentDiff[+stringIndex][+fretIndex];
+            const diffValue = fretDiff && fretDiff.slide;
             const slidesInDiff =
                 diffValue !== undefined && Math.abs(diffValue) < 9999;
-            const carryOverDiffValue = shouldCarryOver
-                ? carryOverDiff[+stringIndex][+fretIndex]
-                : undefined;
-            const slidesInCarryOverDiff =
-                carryOverDiffValue !== undefined &&
-                Math.abs(carryOverDiffValue) < 9999;
             if (slidesInDiff) {
                 const fretDestinationIndex = +fretIndex + diffValue;
-                setFret(fretboardB, +stringIndex, fretDestinationIndex, status);
-            } else if (slidesInCarryOverDiff) {
-                const fretDestinationIndex = +fretIndex + carryOverDiffValue;
-                const carryOverStatus = carryOverFretString
-                    ? carryOverFretString[fretIndex]
-                    : NOT_SELECTED;
+                const status = fretString[fretIndex];
                 setFret(
-                    fretboardB,
+                    nextFretboard,
+                    +stringIndex,
+                    fretDestinationIndex,
+                    status
+                );
+
+                const nextFretDiff =
+                    nextDiff && nextDiff[+stringIndex][fretDestinationIndex];
+                if (nextFretDiff) nextFretDiff.fromStatus = status;
+                continue;
+            }
+
+            // if not set from current diff, attempt to carry over new fret status
+            const carryDiff = carryOverDiff
+                ? carryOverDiff[+stringIndex][+fretIndex]
+                : undefined;
+            const carryDiffValue = carryDiff && carryDiff.slide;
+            const slidesInCarryOverDiff =
+                carryDiffValue !== undefined && Math.abs(carryDiffValue) < 9999;
+            if (carryDiff && slidesInCarryOverDiff) {
+                const fretDestinationIndex = +fretIndex + carryDiffValue;
+                const carryOverStatus = carryDiff.fromStatus;
+                setFret(
+                    nextFretboard,
                     +stringIndex,
                     fretDestinationIndex,
                     carryOverStatus
                 );
+
+                const nextFretDiff =
+                    nextDiff && nextDiff[+stringIndex][fretDestinationIndex];
+                if (nextFretDiff) nextFretDiff.fromStatus = carryOverStatus;
             }
         }
     }
+}
+
+export function cascadeDiffs(
+    currentFretboards: FretboardType[],
+    currentFretboardIndex: number
+) {
+    currentFretboards = JSON.parse(JSON.stringify(currentFretboards));
+    currentFretboards.forEach((fretboard, i) => {
+        if (currentFretboardIndex !== i) clearHighlight(fretboard);
+    });
+    const { fretboards, leftDiffs, rightDiffs } =
+        rebuildDiffs(currentFretboards);
+
+    // closure around fretboards/diffs
+    function cascadeHighlight(reverse = false) {
+        const n = reverse ? -1 : 1;
+        const diffs = reverse ? leftDiffs : rightDiffs;
+        let stragglerDiff: FretboardDiffType = [{}, {}, {}, {}, {}, {}];
+        for (
+            let i = currentFretboardIndex;
+            reverse ? i >= 0 : i < fretboards.length;
+            reverse ? i-- : i++
+        ) {
+            let currentDiff = diffs[i];
+            let nextDiff = diffs[i + n * 1];
+            let currentFretboard = fretboards[i];
+            let nextFretboard = fretboards[i + n * 1];
+            if (!nextFretboard) break;
+            let shouldCarryOver = reverse
+                ? i < currentFretboardIndex
+                : i > currentFretboardIndex;
+            let carryOverDiff = undefined;
+            if (shouldCarryOver) {
+                const prevFretboard = fretboards[i - n * 1];
+                const prevDiff = diffs[i - n * 1];
+                const carryOver = _buildCarryOverDiff(
+                    prevFretboard,
+                    nextFretboard,
+                    prevDiff,
+                    currentDiff,
+                    stragglerDiff
+                );
+                if (carryOver) {
+                    [carryOverDiff, stragglerDiff] = carryOver;
+                }
+            }
+            _cascadeHighlight(
+                currentFretboard,
+                nextFretboard,
+                currentDiff,
+                nextDiff,
+                carryOverDiff
+            );
+        }
+    }
+
+    cascadeHighlight(true);
+    cascadeHighlight(false);
+
+    return rebuildDiffs(fretboards);
 }

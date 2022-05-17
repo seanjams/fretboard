@@ -60,3 +60,14 @@ export const SelectorOption = styled.div.attrs((props: CSSProps) => ({
     padding: 0 ${SP[4]}px;
     z-index: 0;
 `;
+
+export const Divider = styled.div.attrs((props: CSSProps) => ({
+    style: {
+        ...props,
+    },
+}))<CSSProps>`
+    height: 85%;
+    width: 1px;
+    background-color: #ddd;
+    margin: auto 0;
+`;

@@ -12,15 +12,17 @@ import {
     AudioControls,
     DrawerControls,
     HighlightControls,
+    InstructionsControls,
     PositionControls,
     SettingsControls,
 } from "../Controls";
 import { ChordInput } from "../ChordInput";
+import { BottomDrawer, TopDrawer } from "../Drawer";
+import { Instructions } from "../Instructions";
 import { InversionSelector } from "../InversionSelector";
 import { ProgressionSelector } from "../ProgressionSelector";
 import { Slider } from "../Slider";
 import { ContainerDiv, DrawerContainer, GutterDiv } from "./style";
-import { BottomDrawer, TopDrawer } from "../Drawer";
 
 interface DashboardProps {
     appStore: AppStore;
@@ -54,6 +56,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <Slider appStore={appStore} audioStore={audioStore} />
             </GutterDiv>
             <Div height={`${maxFretboardHeight}px`}>
+                {display === "instructions" && (
+                    <Instructions appStore={appStore} />
+                )}
                 <TopDrawer appStore={appStore}>
                     <DrawerContainer isTop={true}>
                         {display === "change-inversion" ? (
@@ -105,16 +110,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         marginLeft={`${SP[2]}px`}
                         marginRight={`${SP[2]}px`}
                     >
+                        <InstructionsControls appStore={appStore} />
                         <AudioControls
                             appStore={appStore}
                             audioStore={audioStore}
                         />
                     </FlexRow>
                     <Div flexShrink={1}>
-                        <PositionControls
-                            appStore={appStore}
-                            audioStore={audioStore}
-                        />
+                        <PositionControls appStore={appStore} />
                     </Div>
                 </FlexRow>
             </GutterDiv>

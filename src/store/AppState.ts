@@ -316,7 +316,7 @@ export const appReducers = {
     setDisplay(state: AppStateType, display: DisplayTypes) {
         let showTopDrawer = state.showTopDrawer;
         let showBottomDrawer = state.showBottomDrawer;
-        if (display === "normal") {
+        if (display === "normal" || display === "instructions") {
             showTopDrawer = false;
             showBottomDrawer = false;
         } else if (display === "change-inversion") {

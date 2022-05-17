@@ -112,7 +112,7 @@ const getDiffFretIndex = (
         diff[stringIndex][fretIndex] === undefined
     )
         return undefined;
-    const diffSteps = diff[stringIndex][fretIndex];
+    const diffSteps = diff[stringIndex][fretIndex].slide;
     return Math.abs(diffSteps) < 9999 ? fretIndex + diffSteps : undefined;
 };
 
@@ -125,8 +125,8 @@ const getDiffEmptyFill = (
     if (!diff || !diff[stringIndex][fretIndex]) return false;
 
     return fill
-        ? diff[stringIndex][fretIndex] >= 9999
-        : diff[stringIndex][fretIndex] <= -9999;
+        ? diff[stringIndex][fretIndex].slide >= 9999
+        : diff[stringIndex][fretIndex].slide <= -9999;
 };
 
 const getFretName = (fretValue: number, label: LabelTypes) => {
@@ -187,20 +187,12 @@ export const Fret: React.FC<FretProps> = ({
     // for disabling note selection when fretboard is small
     const isDisabledRef = useRef(display !== "normal");
     // for turning Highlight status off after drag sequence
-    const temporaryHighlightMode = useRef(false);
-    const temporaryEraseMode = useRef(false);
+    // const temporaryHighlightMode = useRef(false);
+    // const temporaryEraseMode = useRef(false);
 
     // state CSS props for first render
-    const backgroundColor = getBackgroundColor(
-        currentFretStatusRef.current,
-        fretIsPlayingProgressRef.current,
-        COLORS[fretboard.colorIndex]
-    );
-    // const textColor =
-    //     status === HIGHLIGHTED && !currentFretStatusRef.current
-    //         ? lightGrey
-    //         : darkGrey;
-    const textColor = darkGrey;
+    const backgroundColor = "transparent";
+    const textColor = "transparent";
     // makes frets progressively smaller
     const fretWidth = getFretWidth(FRETBOARD_WIDTH, STRING_SIZE, fretIndex);
     // makes strings progressively thinner
@@ -209,31 +201,30 @@ export const Fret: React.FC<FretProps> = ({
     const { circleSize } = getFretboardDimensions();
     const top = getTopMargin(circleSize);
 
-    useEffect(
-        () =>
-            appStore.addListener((appState) => {
-                const { display, progress, status, fretboard } =
-                    getComputedAppState(appState);
-                const isDisabled = display !== "normal";
-                const currentFretStatus =
-                    fretboard.strings[stringIndex][fretIndex];
+    useEffect(() => {
+        // initial move top set background color and other styles
+        moveFret();
+        return appStore.addListener((appState) => {
+            const { display, progress, status, fretboard } =
+                getComputedAppState(appState);
+            const isDisabled = display !== "normal";
+            const currentFretStatus = fretboard.strings[stringIndex][fretIndex];
 
-                // set refs based on changes
-                if (
-                    progressRef.current !== progress ||
-                    statusModeRef.current !== status ||
-                    currentFretStatusRef.current !== currentFretStatus ||
-                    isDisabledRef.current !== isDisabled
-                ) {
-                    progressRef.current = progress;
-                    statusModeRef.current = status;
-                    currentFretStatusRef.current = currentFretStatus;
-                    isDisabledRef.current = isDisabled;
-                    moveFret();
-                }
-            }),
-        []
-    );
+            // set refs based on changes
+            if (
+                progressRef.current !== progress ||
+                statusModeRef.current !== status ||
+                currentFretStatusRef.current !== currentFretStatus ||
+                isDisabledRef.current !== isDisabled
+            ) {
+                progressRef.current = progress;
+                statusModeRef.current = status;
+                currentFretStatusRef.current = currentFretStatus;
+                isDisabledRef.current = isDisabled;
+                moveFret();
+            }
+        });
+    }, []);
 
     useEffect(
         () =>
@@ -353,6 +344,8 @@ export const Fret: React.FC<FretProps> = ({
             stringIndex,
             rightDiffFretIndex
         );
+        // const leftDiffFretStatus = leftDiff[stringIndex][fretIndex].toStatus;
+        // const rightDiffFretStatus = rightDiff[stringIndex][fretIndex].toStatus;
 
         // slider range booleans
         const insideLeft = inRange(progress, i, leftWindow);
@@ -440,7 +433,9 @@ export const Fret: React.FC<FretProps> = ({
                         "transparent";
                 }
 
-                let diffSteps = diff[stringIndex][fretIndex]; // how many frets to move
+                let diffSteps =
+                    diff[stringIndex][fretIndex] &&
+                    diff[stringIndex][fretIndex].slide; // how many frets to move
                 if (diffSteps !== undefined)
                     newLeft = direction * diffSteps * xPercent + 50;
             }

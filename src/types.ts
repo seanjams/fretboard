@@ -50,14 +50,21 @@ export interface FretboardType {
 export type ArrowTypes = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
 
 export type DiffType = { [key in number]: number };
+export type DiffStatusType = {
+    [key in number]: {
+        slide: number;
+        fromStatus: StatusTypes;
+        toStatus: StatusTypes;
+    };
+};
 
 export type FretboardDiffType = [
-    DiffType,
-    DiffType,
-    DiffType,
-    DiffType,
-    DiffType,
-    DiffType
+    DiffStatusType,
+    DiffStatusType,
+    DiffStatusType,
+    DiffStatusType,
+    DiffStatusType,
+    DiffStatusType
 ];
 
 export type StatusTypes = 0 | 1 | 2;
@@ -116,7 +123,8 @@ export type DisplayTypes =
     | "change-chord"
     | "settings"
     | "change-inversion"
-    | "change-progression";
+    | "change-progression"
+    | "instructions";
 
 export type ReactMouseEvent =
     | React.MouseEvent<HTMLDivElement, MouseEvent>

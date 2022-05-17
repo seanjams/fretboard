@@ -262,7 +262,7 @@ export function getFretboardNames(
     }
 
     const notFoundName = DEFAULT_FRETBOARD_NAME();
-    notFoundName.chordName = noteNames.join(", ");
+    notFoundName.chordName = noteNames.join("-");
     return [notFoundName];
 }
 

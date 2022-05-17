@@ -7,7 +7,8 @@ import {
     useTouchHandlers,
 } from "../../store";
 import { FretboardNameType, LabelTypes, ReactMouseEvent } from "../../types";
-import { FLAT_NAMES, SHARP_NAMES } from "../../utils";
+import { COLORS, FLAT_NAMES, SHARP_NAMES } from "../../utils";
+import { TextButton } from "../Buttons";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div, FlexRow } from "../Common";
 
@@ -53,15 +54,15 @@ export const InversionSelector: React.FC<InversionSelectorProps> = ({
         appStore,
         deriveStateFromAppState
     );
-    const { label, names } = getState();
+    const { currentVisibleFretboardIndex, label, names } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
-        const { currentFretboardIndex, progression, fretboard } =
+        const { currentVisibleFretboardIndex, progression, fretboard } =
             getComputedAppState(appState);
         const { label } = progression;
         const { names } = fretboard;
         return {
-            currentFretboardIndex,
+            currentVisibleFretboardIndex,
             label,
             names,
         };
@@ -77,18 +78,31 @@ export const InversionSelector: React.FC<InversionSelectorProps> = ({
         };
 
     return (
-        <FlexRow justifyContent="space-evenly" width="100%" height="100%">
-            {names.map((name, i) => {
-                const onClick = getClickHandler(name);
-                return (
-                    <InversionOption
-                        key={`change-inversion-option-${i}`}
-                        onClick={onClick}
-                        name={name}
-                        label={label}
-                    />
-                );
-            })}
+        <FlexRow width="100%" height="100%">
+            <FlexRow justifyContent="space-evenly" width="75%" height="100%">
+                {names.map((name, i) => {
+                    const onClick = getClickHandler(name);
+                    return (
+                        <InversionOption
+                            key={`change-inversion-option-${i}`}
+                            onClick={onClick}
+                            name={name}
+                            label={label}
+                        />
+                    );
+                })}
+            </FlexRow>
+            <FlexRow justifyContent="space-evenly" width="25%" height="44px">
+                <TextButton
+                    backgroundColor={COLORS[currentVisibleFretboardIndex][1]}
+                    activeColor={COLORS[currentVisibleFretboardIndex][1]}
+                    onClick={() =>
+                        appStore.dispatch.cascadeHighlightedPosition()
+                    }
+                >
+                    Cascade Highlight
+                </TextButton>
+            </FlexRow>
         </FlexRow>
     );
 };

@@ -3,6 +3,7 @@ import { AppStore, useTouchHandlers } from "../../store";
 import { ReactMouseEvent, WindowMouseEvent } from "../../types";
 import { FlexRow } from "../Common";
 import {
+    Divider,
     OverflowContainerDiv,
     SelectorContainer,
     SelectorOption,
@@ -36,16 +37,18 @@ export const ScrollSelectOption: React.FC<OptionProps> = ({
 // Component
 interface Props {
     appStore?: AppStore;
-    onChange?: (item: any, index: number) => void;
-    value: string;
     children?: JSX.Element[];
+    dividers?: boolean;
+    value: string;
+    onChange?: (item: any, index: number) => void;
 }
 
 export const ScrollSelect: React.FC<Props> = ({
     appStore,
     children,
-    onChange,
+    dividers,
     value,
+    onChange,
 }) => {
     // whether the high E string appears on the top or bottom of the fretboard,
     // depending on invert/leftHand views
@@ -114,7 +117,14 @@ export const ScrollSelect: React.FC<Props> = ({
                 ref={scrollContainerRef}
             >
                 <FlexRow width="fit-content" height="100%">
-                    {options}
+                    {dividers
+                        ? options.map((option, i) => (
+                              <FlexRow height="100%" key={option.key}>
+                                  {option}
+                                  {i < options.length - 1 && <Divider />}
+                              </FlexRow>
+                          ))
+                        : options}
                 </FlexRow>
             </OverflowContainerDiv>
         </SelectorContainer>

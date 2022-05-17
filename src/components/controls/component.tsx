@@ -23,7 +23,7 @@ import {
 } from "../../utils";
 import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
-import { IconButton } from "../IconButton";
+import { IconButton } from "../Buttons";
 import {
     PillControlsContainer,
     HighlightCheckboxAnimation,
@@ -40,10 +40,7 @@ interface AudioControlsProps extends ControlsProps {
     audioStore: AudioStore;
 }
 
-export const PositionControls: React.FC<AudioControlsProps> = ({
-    appStore,
-    audioStore,
-}) => {
+export const PositionControls: React.FC<ControlsProps> = ({ appStore }) => {
     const [getState, setState] = useDerivedState(
         appStore,
         deriveStateFromAppState
@@ -463,5 +460,44 @@ export const ProgressionControls: React.FC<ProgressionControlsProps> = ({
                 </IconButton>
             </Div>
         </PillControlsContainer>
+    );
+};
+
+export const InstructionsControls: React.FC<ControlsProps> = ({ appStore }) => {
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
+    const { backgroundColor, display } = getState();
+
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { currentVisibleFretboardIndex, display } =
+            getComputedAppState(appState);
+        return {
+            backgroundColor: COLORS[currentVisibleFretboardIndex][2],
+            display,
+        };
+    }
+
+    const onToggleInstructions = () => {
+        const { display } = appStore.getComputedState();
+        appStore.dispatch.setDisplay(
+            display === "instructions" ? "normal" : "instructions"
+        );
+    };
+
+    return (
+        <Div marginRight={`${SP[2]}px`}>
+            <IconButton
+                onClick={onToggleInstructions}
+                iconHeight={22}
+                iconWidth={22}
+                isCircular={true}
+                selected={display === "instructions"}
+                activeColor={backgroundColor}
+            >
+                {icons.help}
+            </IconButton>
+        </Div>
     );
 };

@@ -7,7 +7,7 @@ import {
     useDerivedState,
 } from "../../store";
 import { WindowMouseEvent } from "../../types";
-import { FLAT_NAMES, mediumGrey, SHARP_NAMES, SP } from "../../utils";
+import { COLORS, FLAT_NAMES, SHARP_NAMES, SP } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { ProgressionControls } from "../Controls";
 import { Div, FlexRow } from "../Common";
@@ -31,15 +31,25 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
         appStore,
         deriveStateFromAppState
     );
-    const { currentProgressionIndex, progressions, display } = getState();
+    const {
+        currentProgressionIndex,
+        display,
+        progressions,
+        visibleFretboards,
+    } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
-        const { currentProgressionIndex, progressions, display } =
-            getComputedAppState(appState);
+        const {
+            currentProgressionIndex,
+            display,
+            progressions,
+            visibleFretboards,
+        } = getComputedAppState(appState);
         return {
             currentProgressionIndex,
-            progressions,
             display,
+            progressions,
+            visibleFretboards,
         };
     }
 
@@ -65,13 +75,15 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
     };
 
     const options = progressions.map((progression, i) => {
-        const progressionNames = progression.fretboards
-            .map(
-                (fretboard) =>
-                    fretboard.names.find((name) => name.isSelected) ||
-                    fretboard.names[0]
-            )
-            .filter((name) => name.chordName);
+        const fretboards =
+            i === currentProgressionIndex
+                ? visibleFretboards
+                : progression.fretboards;
+        const progressionNames = fretboards.map(
+            (fretboard) =>
+                fretboard.names.find((name) => name.isSelected) ||
+                fretboard.names[0]
+        );
 
         function getNoteName(rootIdx: number) {
             return progression.label === "sharp"
@@ -84,31 +96,45 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
                 key={`progression-option-${i}`}
                 value={`progression-option-${i}`}
             >
-                {progressionNames.length ? (
-                    <FlexRow width="100%" height="100%">
-                        {progressionNames.map((name, j) => {
-                            return (
+                <FlexRow width="100%" height="100%">
+                    {progressionNames.map((name, j) => {
+                        return (
+                            <Div
+                                width="25%"
+                                margin={`0 ${SP[2]}px`}
+                                key={`change-progression-name-${i}-${j}`}
+                            >
                                 <Div
-                                    paddingLeft={`${SP[1]}px`}
-                                    paddingRight={`${SP[1]}px`}
-                                    key={`change-progression-name-${i}-${j}`}
+                                    textAlign="left"
+                                    fontSize="8px"
+                                    position="relative"
+                                    top={`-${SP[1]}px`}
+                                    height={`-${SP[1]}px`}
+                                    marginBottom={`-${SP[1]}px`}
+                                    marginLeft={`-${SP[2]}px`}
                                 >
-                                    <ChordSymbol
-                                        rootName={getNoteName(name.rootIdx)}
-                                        chordName={name.chordName}
-                                        fontSize={12}
-                                    />
+                                    {j + 1}.
                                 </Div>
-                            );
-                        })}
-                    </FlexRow>
-                ) : (
-                    <FlexRow width="100%" height="100%">
-                        <EmptyOption key={`change-progression-name-${i}-0`}>
-                            Empty
-                        </EmptyOption>
-                    </FlexRow>
-                )}
+                                <Div
+                                    textAlign="center"
+                                    padding={`0 ${SP[1]}px`}
+                                    width={`calc(100% - ${2 * SP[1]}px)`}
+                                    color={COLORS[j][2]}
+                                >
+                                    {name.chordName ? (
+                                        <ChordSymbol
+                                            rootName={getNoteName(name.rootIdx)}
+                                            chordName={name.chordName}
+                                            fontSize={12}
+                                        />
+                                    ) : (
+                                        <Div>+</Div>
+                                    )}
+                                </Div>
+                            </Div>
+                        );
+                    })}
+                </FlexRow>
                 <LastUpdatedTime>
                     {progression.lastUpdated
                         ? moment(progression.lastUpdated).format(
@@ -123,24 +149,25 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
     return (
         <ProgressionSelectorContainer>
             <FlexRow width="100%" height="100%">
+                <FlexRow height="100%" flexGrow="1">
+                    <ScrollSelect
+                        onChange={getClickHandler}
+                        value={`progression-option-${currentProgressionIndex}`}
+                        dividers={true}
+                    >
+                        {options}
+                    </ScrollSelect>
+                </FlexRow>
                 <FlexRow
                     height="100%"
                     flexShrink="1"
-                    paddingRight={`${SP[2]}px`}
+                    paddingLeft={`${SP[2]}px`}
                 >
                     <ProgressionControls
                         appStore={appStore}
                         onAddClick={onAddProgression}
                         onRemoveClick={onRemoveProgression}
                     />
-                </FlexRow>
-                <FlexRow height="100%" flexGrow="1">
-                    <ScrollSelect
-                        onChange={getClickHandler}
-                        value={`progression-option-${currentProgressionIndex}`}
-                    >
-                        {options}
-                    </ScrollSelect>
                 </FlexRow>
             </FlexRow>
         </ProgressionSelectorContainer>

@@ -45,14 +45,3 @@ export const CurrentFretboardMarker = styled.div.attrs((props: CSSProps) => ({
     margin-bottom: -${SP[2]}px;
     transition: background-color 150ms ease-in-out;
 `;
-
-export const TitleButton = styled.div.attrs((props: CSSProps) => ({
-    style: {
-        ...props,
-        boxShadow: props.isPressed ? "0 0 3px 0 #333 inset" : "0 0 4px 0 #666",
-    },
-}))<CSSProps>`
-    width: 80%;
-    height: 100%;
-    border-radius: ${SP[1]}px;
-`;

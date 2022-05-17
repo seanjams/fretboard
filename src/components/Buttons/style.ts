@@ -7,7 +7,6 @@ export interface CSSProps extends CSS.Properties {
     pressedColor?: string;
     active?: boolean;
     pressed?: boolean;
-    diameter?: number;
     iconWidth?: number;
     iconHeight?: number;
     isCircular?: boolean;
@@ -28,8 +27,6 @@ export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
             : props.backgroundColor,
     },
 }))<CSSProps>`
-    width: ${(props) => props.diameter || 0}px;
-    height: ${(props) => props.diameter || 0}px;
     border-top-left-radius: ${(props) =>
         props.isCircular ? "100%" : `${SP[1]}px`};
     border-top-right-radius: ${(props) =>
@@ -39,7 +36,6 @@ export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
     border-bottom-right-radius: ${(props) =>
         props.isCircular ? "100%" : `${SP[1]}px`};
     text-align: center;
-    line-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;

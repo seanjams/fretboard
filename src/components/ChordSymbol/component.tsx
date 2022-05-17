@@ -41,7 +41,7 @@ const generateCrumbs = (name: string, fontSize: number) => {
 
     name.split("__").forEach((crumb, j) => {
         const key = `crumb-${name}-${j}`;
-        const superScriptFontSize = (fontSize * 2) / 3;
+        const superScriptFontSize = (fontSize * 3) / 4;
 
         crumbs.push(
             j % 2 ? (

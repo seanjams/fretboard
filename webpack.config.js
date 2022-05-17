@@ -31,10 +31,17 @@ module.exports = (env, argv) => ({
                 use: ["style-loader", "css-loader"],
             },
             {
-                test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                test: /\.(png|svg|jpg|jpeg)$/i,
                 loader: "file-loader",
                 options: {
                     name: "assets/icons/[name].[ext]",
+                },
+            },
+            {
+                test: /\.gif$/i,
+                loader: "file-loader",
+                options: {
+                    name: "assets/gifs/[name].[ext]",
                 },
             },
             {

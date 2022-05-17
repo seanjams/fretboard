@@ -113,9 +113,9 @@ export const Fretboard: React.FC<FretboardProps> = ({
         // refactor, get rid of oldFretCenter
         const containerWidth = fretboardContainerRef.current.offsetWidth;
         const containerLeftBound =
-            fretboardContainerRef.current.scrollLeft - 0.4 * containerWidth;
+            fretboardContainerRef.current.scrollLeft - 0.3 * containerWidth;
         const containerRightBound =
-            fretboardContainerRef.current.scrollLeft + 0.4 * containerWidth;
+            fretboardContainerRef.current.scrollLeft + 0.3 * containerWidth;
         const oldScrollLeft = oldFretXPosition - containerWidth / 2;
         const newScrollLeft = newFretXPosition - containerWidth / 2;
         const oldScrollCenter = invert
