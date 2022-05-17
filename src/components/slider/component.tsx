@@ -14,7 +14,7 @@ import {
 } from "../../utils";
 import { FlexRow } from "../Common";
 import { Title } from "../Title";
-import { ProgressBar, SliderBar } from "./style";
+import { ProgressBar, SliderBar, SliderMarker } from "./style";
 import { isEqual } from "lodash";
 import { FretboardType, ReactMouseEvent, WindowMouseEvent } from "../../types";
 
@@ -71,7 +71,8 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
 
     useEffect(() => {
         // set initial slider position
-        setLeftFromProgress();
+        setTimeout(setLeftFromProgress, 0);
+
         return appStore.addListener((appState) => {
             const { isAnimating } = getComputedAppState(appState);
             if (isAnimatingRef.current !== isAnimating) {
@@ -350,9 +351,11 @@ export const Slider: React.FC<SliderProps> = ({ appStore, audioStore }) => {
                     ref={sliderBarRef}
                     left={`${left}px`}
                     height="44px"
-                    width="44px"
+                    width="12.5%"
                     {...sliderTouchHandlers}
-                />
+                >
+                    <SliderMarker />
+                </SliderBar>
                 {visibleFretboards &&
                     visibleFretboards.map((_, i) => {
                         return (

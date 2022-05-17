@@ -12,7 +12,6 @@ import { Div } from "../Common";
 import {
     TitleContainerDiv,
     EmptyTitleContainerDiv,
-    CurrentFretboardMarker,
     titleFontSize,
 } from "./style";
 
@@ -79,9 +78,6 @@ export const Title: React.FC<TitleProps> = ({
 
     return (
         <TitleContainerDiv>
-            <CurrentFretboardMarker
-                markerColor={isCurrentFretboard ? darkGrey : "transparent"}
-            />
             <Div width="80%" height="100%">
                 <TextButton
                     selected={isCurrentFretboard}

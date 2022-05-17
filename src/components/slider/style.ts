@@ -1,6 +1,6 @@
 import CSS from "csstype";
 import styled from "styled-components";
-import { darkGrey } from "../../utils";
+import { darkGrey, SP } from "../../utils";
 
 // CSS
 interface CSSProps extends CSS.Properties {
@@ -8,6 +8,7 @@ interface CSSProps extends CSS.Properties {
     isLast?: boolean;
 }
 
+// slider container, contains segments for different fretboards
 export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
     style: { ...props },
 }))<CSSProps>`
@@ -25,6 +26,7 @@ export const ProgressBar = styled.div.attrs((props: CSSProps) => ({
     -ms-user-select: none; /* IE10+ */
 `;
 
+// invisible touch area of slider
 export const SliderBar = styled.div.attrs((props: CSSProps) => ({
     style: {
         ...props,
@@ -35,10 +37,7 @@ export const SliderBar = styled.div.attrs((props: CSSProps) => ({
     display: flex;
     align-items: center;
     justify-content: center;
-    color: ${darkGrey};
-    opacity: 0.5;
     touch-action: none;
-    border-radius: 100000000000000px;
     background-color: transparent;
 
     user-select: none; /* standard syntax */
@@ -46,4 +45,18 @@ export const SliderBar = styled.div.attrs((props: CSSProps) => ({
     -moz-user-select: none; /* mozilla browsers */
     -khtml-user-select: none; /* webkit (konqueror) browsers */
     -ms-user-select: none; /* IE10+ */
+`;
+
+// circular marker on top of touch area for visual reference
+export const SliderMarker = styled.div.attrs((props: CSSProps) => ({
+    style: { ...props },
+}))<CSSProps>`
+    position: relative;
+    top: -${SP[10]}px;
+    background-color: ${darkGrey};
+    border-radius: 100%;
+    width: ${SP[2]}px;
+    height: ${SP[2]}px;
+    margin-bottom: -${SP[2]}px;
+    transition: background-color 150ms ease-in-out;
 `;

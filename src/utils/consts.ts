@@ -86,7 +86,7 @@ export const NATURAL_NOTE_KEYMAP: {
 };
 
 // C0 = 0 in this system. Lowest string on guitar is E2 = 28
-export const SP = [4, 8, 12, 16, 20, 24, 30, 32];
+export const SP = [4, 8, 12, 16, 20, 24, 30, 32, 36, 40, 44, 48, 52, 56, 60];
 
 export const STANDARD_TUNING = [28, 33, 38, 43, 47, 52];
 

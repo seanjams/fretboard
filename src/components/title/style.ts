@@ -32,16 +32,3 @@ export const EmptyTitleContainerDiv = styled.div.attrs((props: CSSProps) => ({
     color: ${darkGrey};
     font-size: ${titleFontSize}px;
 `;
-
-export const CurrentFretboardMarker = styled.div.attrs((props: CSSProps) => ({
-    style: { ...props },
-}))<CSSProps>`
-    position: relative;
-    top: -${SP[4]}px;
-    background-color: ${(props) => props.markerColor};
-    border-radius: 100%;
-    width: ${SP[2]}px;
-    height: ${SP[2]}px;
-    margin-bottom: -${SP[2]}px;
-    transition: background-color 150ms ease-in-out;
-`;

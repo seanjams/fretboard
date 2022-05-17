@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
     AppStore,
     AudioStore,
@@ -33,25 +33,42 @@ export const Dashboard: React.FC<DashboardProps> = ({
     appStore,
     audioStore,
 }) => {
+    const { currentVisibleFretboardIndex } = appStore.getComputedState();
     const [getState, setState] = useDerivedState(
         appStore,
         deriveStateFromAppState
     );
-    const { display, backgroundColor } = getState();
+    const { display } = getState();
     const fretboardDimensions = getFretboardDimensions();
     const { maxFretboardHeight } = fretboardDimensions;
+    const containerRef = useRef<HTMLDivElement>(null);
+    const backgroundColor = COLORS[currentVisibleFretboardIndex][0];
+    const backgroundColorRef = useRef(backgroundColor);
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
-        const { display, currentVisibleFretboardIndex } =
-            getComputedAppState(appState);
+        const { display } = getComputedAppState(appState);
         return {
             display,
-            backgroundColor: COLORS[currentVisibleFretboardIndex][0],
         };
     }
 
+    useEffect(() => {
+        return appStore.addListener((appState) => {
+            const { currentVisibleFretboardIndex } =
+                getComputedAppState(appState);
+            const backgroundColor = COLORS[currentVisibleFretboardIndex][0];
+            if (backgroundColor !== backgroundColorRef.current) {
+                backgroundColorRef.current = backgroundColor;
+                if (containerRef.current) {
+                    containerRef.current.style.backgroundColor =
+                        backgroundColor;
+                }
+            }
+        });
+    }, []);
+
     return (
-        <ContainerDiv backgroundColor={backgroundColor}>
+        <ContainerDiv ref={containerRef} backgroundColor={backgroundColor}>
             <GutterDiv {...fretboardDimensions} isTop={true}>
                 <Slider appStore={appStore} audioStore={audioStore} />
             </GutterDiv>
