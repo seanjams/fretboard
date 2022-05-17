@@ -65,15 +65,6 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
         appStore.dispatch.setCurrentProgressionIndex(i);
     };
 
-    const onAddProgression = () => {
-        appStore.dispatch.addProgression();
-    };
-
-    const onRemoveProgression = () => {
-        if (getState().progressions.length <= 1) return;
-        appStore.dispatch.removeProgression();
-    };
-
     const options = progressions.map((progression, i) => {
         const fretboards =
             i === currentProgressionIndex
@@ -163,11 +154,7 @@ export const ProgressionSelector: React.FC<ProgressionSelectorProps> = ({
                     flexShrink="1"
                     paddingLeft={`${SP[2]}px`}
                 >
-                    <ProgressionControls
-                        appStore={appStore}
-                        onAddClick={onAddProgression}
-                        onRemoveClick={onRemoveProgression}
-                    />
+                    <ProgressionControls appStore={appStore} />
                 </FlexRow>
             </FlexRow>
         </ProgressionSelectorContainer>

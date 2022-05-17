@@ -12,7 +12,6 @@ import {
     AudioControls,
     DrawerControls,
     HighlightControls,
-    InstructionsControls,
     PositionControls,
     SettingsControls,
 } from "../Controls";
@@ -127,7 +126,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         marginLeft={`${SP[2]}px`}
                         marginRight={`${SP[2]}px`}
                     >
-                        <InstructionsControls appStore={appStore} />
                         <AudioControls
                             appStore={appStore}
                             audioStore={audioStore}

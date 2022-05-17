@@ -53,7 +53,7 @@ const ChordRoot: React.FC<ChordRootProps> = ({
                 <ChordSymbol
                     rootName={rootName || ""}
                     chordName=""
-                    fontSize={12}
+                    fontSize={16}
                 />
             </RootTag>
         </FlexRow>
@@ -165,7 +165,7 @@ export const ChordInput: React.FC<ChordInputProps> = ({
                             <ChordSymbol
                                 rootName=""
                                 chordName={name || ""}
-                                fontSize={12}
+                                fontSize={16}
                             />
                         </ScrollSelectOption>
                     ))}

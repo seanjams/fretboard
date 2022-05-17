@@ -40,6 +40,7 @@ interface AudioControlsProps extends ControlsProps {
     audioStore: AudioStore;
 }
 
+// Arrow controls that move around highlighted position
 export const PositionControls: React.FC<ControlsProps> = ({ appStore }) => {
     const [getState, setState] = useDerivedState(
         appStore,
@@ -104,6 +105,7 @@ export const PositionControls: React.FC<ControlsProps> = ({ appStore }) => {
     );
 };
 
+// Slider that dictates the select/highlight mode with erase button
 export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
     const [getState, setState] = useDerivedState(
         appStore,
@@ -121,11 +123,18 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
     }
 
     const onClear = () => {
-        const { status } = appStore.state;
-        if (status === HIGHLIGHTED) {
-            appStore.dispatch.clearHighlight();
-        } else {
+        const { status, fretboard } = appStore.getComputedState();
+        // only clear when in SELECT mode or there is no fret highlighted
+        let clearAll =
+            status !== HIGHLIGHTED ||
+            fretboard.strings.every((fretString, stringIndex) =>
+                fretString.every((fretStatus) => fretStatus !== HIGHLIGHTED)
+            );
+
+        if (clearAll) {
             appStore.dispatch.clear();
+        } else {
+            appStore.dispatch.clearHighlight();
         }
     };
 
@@ -171,42 +180,7 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
     );
 };
 
-export const SliderControls: React.FC<ControlsProps> = ({ appStore }) => {
-    const [getState, setState] = useDerivedState(
-        appStore,
-        deriveStateFromAppState
-    );
-    const { backgroundColor } = getState();
-
-    function deriveStateFromAppState(appState: typeof appStore.state) {
-        const { currentVisibleFretboardIndex } = getComputedAppState(appState);
-        return {
-            backgroundColor: COLORS[currentVisibleFretboardIndex][2],
-        };
-    }
-
-    return (
-        <PillControlsContainer>
-            <Div className="pill-button-container">
-                <IconButton
-                    onClick={appStore.dispatch.addFretboard}
-                    activeColor={backgroundColor}
-                >
-                    {icons.plus}
-                </IconButton>
-            </Div>
-            <Div className="pill-button-container">
-                <IconButton
-                    onClick={appStore.dispatch.removeFretboard}
-                    activeColor={backgroundColor}
-                >
-                    {icons.minus}
-                </IconButton>
-            </Div>
-        </PillControlsContainer>
-    );
-};
-
+// Controls that open the bottom drawer - Help / Settings / Chord / Load
 export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
     const [getState, setState] = useDerivedState(
         appStore,
@@ -224,8 +198,7 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
     }
 
     const onShowDisplay = (newDisplay: DisplayTypes) => () => {
-        const { display, status } = appStore.state;
-        // if (status !== HIGHLIGHTED) appStore.dispatch.setStatus(HIGHLIGHTED);
+        const { display } = appStore.state;
         appStore.dispatch.setDisplay(
             display === newDisplay ? "normal" : newDisplay
         );
@@ -233,6 +206,16 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
 
     return (
         <PillControlsContainer>
+            <Div className="pill-button-container">
+                <IconButton
+                    onClick={onShowDisplay("instructions")}
+                    selected={display === "instructions"}
+                    activeColor={backgroundColor}
+                >
+                    {icons.help}
+                </IconButton>
+                <PillButtonLabel>Help</PillButtonLabel>
+            </Div>
             <Div className="pill-button-container">
                 <IconButton
                     onClick={onShowDisplay("settings")}
@@ -267,6 +250,7 @@ export const DrawerControls: React.FC<ControlsProps> = ({ appStore }) => {
     );
 };
 
+// Play / Stop buttons for Audio
 export const AudioControls: React.FC<AudioControlsProps> = ({
     appStore,
     audioStore,
@@ -321,6 +305,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
     );
 };
 
+// Checkboxes within the Settings menu in the bottom drawer
 export const SettingsControls: React.FC<AudioControlsProps> = ({
     appStore,
     audioStore,
@@ -421,16 +406,8 @@ export const SettingsControls: React.FC<AudioControlsProps> = ({
     );
 };
 
-interface ProgressionControlsProps extends ControlsProps {
-    onAddClick: (event: WindowMouseEvent) => void;
-    onRemoveClick: (event: WindowMouseEvent) => void;
-}
-
-export const ProgressionControls: React.FC<ProgressionControlsProps> = ({
-    appStore,
-    onAddClick,
-    onRemoveClick,
-}) => {
+// Controls for adding / removing progression
+export const ProgressionControls: React.FC<ControlsProps> = ({ appStore }) => {
     const [getState, setState] = useDerivedState(
         appStore,
         deriveStateFromAppState
@@ -438,66 +415,41 @@ export const ProgressionControls: React.FC<ProgressionControlsProps> = ({
     const { backgroundColor } = getState();
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
-        const { currentVisibleFretboardIndex } = getComputedAppState(appState);
+        const { currentVisibleFretboardIndex, progressions } =
+            getComputedAppState(appState);
         return {
             backgroundColor: COLORS[currentVisibleFretboardIndex][2],
+            progressions,
         };
     }
+
+    const onAddProgression = () => {
+        appStore.dispatch.addProgression();
+    };
+
+    const onRemoveProgression = () => {
+        if (getState().progressions.length <= 1) return;
+        appStore.dispatch.removeProgression();
+    };
 
     return (
         <PillControlsContainer>
             <Div className="pill-button-container">
-                <IconButton onClick={onAddClick} activeColor={backgroundColor}>
+                <IconButton
+                    onClick={onAddProgression}
+                    activeColor={backgroundColor}
+                >
                     {icons.plus}
                 </IconButton>
             </Div>
             <Div className="pill-button-container">
                 <IconButton
-                    onClick={onRemoveClick}
+                    onClick={onRemoveProgression}
                     activeColor={backgroundColor}
                 >
                     {icons.minus}
                 </IconButton>
             </Div>
         </PillControlsContainer>
-    );
-};
-
-export const InstructionsControls: React.FC<ControlsProps> = ({ appStore }) => {
-    const [getState, setState] = useDerivedState(
-        appStore,
-        deriveStateFromAppState
-    );
-    const { backgroundColor, display } = getState();
-
-    function deriveStateFromAppState(appState: typeof appStore.state) {
-        const { currentVisibleFretboardIndex, display } =
-            getComputedAppState(appState);
-        return {
-            backgroundColor: COLORS[currentVisibleFretboardIndex][2],
-            display,
-        };
-    }
-
-    const onToggleInstructions = () => {
-        const { display } = appStore.getComputedState();
-        appStore.dispatch.setDisplay(
-            display === "instructions" ? "normal" : "instructions"
-        );
-    };
-
-    return (
-        <Div marginRight={`${SP[2]}px`}>
-            <IconButton
-                onClick={onToggleInstructions}
-                iconHeight={22}
-                iconWidth={22}
-                isCircular={true}
-                selected={display === "instructions"}
-                activeColor={backgroundColor}
-            >
-                {icons.help}
-            </IconButton>
-        </Div>
     );
 };

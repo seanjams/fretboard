@@ -145,13 +145,10 @@ export const appReducers = {
         fretboards[currentFretboardIndex] = DEFAULT_FRETBOARD(
             currentFretboardIndex
         );
-        return this.setCurrentProgression(
-            { ...state, status: SELECTED },
-            {
-                ...progression,
-                ...rebuildDiffs([...fretboards]),
-            }
-        );
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...rebuildDiffs([...fretboards]),
+        });
     },
 
     clearHighlight(state: AppStateType) {
