@@ -37,6 +37,7 @@ import {
     getFretboardDimensions,
     white,
     COLORS,
+    fretThemeGrey,
 } from "../../utils";
 import { ChordSymbol } from "../ChordSymbol";
 import { Div } from "../Common";
@@ -83,11 +84,12 @@ const getBackgroundColor = (
     const playingColor = colors[0] || gold;
     const isSelected = fretStatus !== NOT_SELECTED;
     const isHighlighted = fretStatus === HIGHLIGHTED;
+    const secondaryColor = fretThemeGrey;
 
     return isHighlighted
         ? colorFade(playingColor, primaryColor, progress) || primaryColor
         : isSelected
-        ? lightGrey
+        ? secondaryColor
         : "transparent";
 };
 
@@ -621,7 +623,7 @@ export const Fret: React.FC<FretProps> = ({
                 fretIndex,
                 toStatus
             );
-            playNoteAudio();
+            if (toStatus === HIGHLIGHTED) playNoteAudio();
         }
 
         return [toStatus, toDragStatus];

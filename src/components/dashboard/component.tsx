@@ -1,11 +1,6 @@
-import React, { useEffect, useRef } from "react";
-import {
-    AppStore,
-    AudioStore,
-    getComputedAppState,
-    useDerivedState,
-} from "../../store";
-import { COLORS, getFretboardDimensions, SP } from "../../utils";
+import React, { useRef } from "react";
+import { AppStore, AudioStore, useDerivedState } from "../../store";
+import { getFretboardDimensions, SP } from "../../utils";
 import { Fretboard } from "../Fretboard";
 import { Div, FlexRow } from "../Common";
 import {
@@ -22,6 +17,7 @@ import { InversionSelector } from "../InversionSelector";
 import { ProgressionSelector } from "../ProgressionSelector";
 import { Slider } from "../Slider";
 import { ContainerDiv, DrawerContainer, GutterDiv } from "./style";
+import { Modal } from "../Modal";
 
 interface DashboardProps {
     appStore: AppStore;
@@ -32,7 +28,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     appStore,
     audioStore,
 }) => {
-    const { currentVisibleFretboardIndex } = appStore.getComputedState();
     const [getState, setState] = useDerivedState(
         appStore,
         deriveStateFromAppState
@@ -41,39 +36,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const fretboardDimensions = getFretboardDimensions();
     const { maxFretboardHeight } = fretboardDimensions;
     const containerRef = useRef<HTMLDivElement>(null);
-    const backgroundColor = COLORS[currentVisibleFretboardIndex][0];
-    const backgroundColorRef = useRef(backgroundColor);
 
     function deriveStateFromAppState(appState: typeof appStore.state) {
-        const { display } = getComputedAppState(appState);
+        const { display } = appState;
         return {
             display,
         };
     }
 
-    useEffect(() => {
-        return appStore.addListener((appState) => {
-            const { currentVisibleFretboardIndex } =
-                getComputedAppState(appState);
-            const backgroundColor = COLORS[currentVisibleFretboardIndex][0];
-            if (backgroundColor !== backgroundColorRef.current) {
-                backgroundColorRef.current = backgroundColor;
-                if (containerRef.current) {
-                    containerRef.current.style.backgroundColor =
-                        backgroundColor;
-                }
-            }
-        });
-    }, []);
-
     return (
-        <ContainerDiv ref={containerRef} backgroundColor={backgroundColor}>
+        <ContainerDiv ref={containerRef}>
             <GutterDiv {...fretboardDimensions} isTop={true}>
                 <Slider appStore={appStore} audioStore={audioStore} />
             </GutterDiv>
             <Div height={`${maxFretboardHeight}px`}>
                 {display === "instructions" && (
-                    <Instructions appStore={appStore} />
+                    <Modal appStore={appStore}>
+                        <Instructions appStore={appStore} />
+                    </Modal>
                 )}
                 <TopDrawer appStore={appStore}>
                     <DrawerContainer isTop={true}>

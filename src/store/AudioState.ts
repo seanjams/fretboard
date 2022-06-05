@@ -198,7 +198,12 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
         interval: number,
         strumType: PatternName = "up"
     ) {
-        if (!this.state.players || !this.state.players.loaded) return;
+        if (
+            !this.state.players ||
+            !this.state.players.loaded ||
+            this.state.isMuted
+        )
+            return;
         // play each note at [stringIndex, fretIndex] in "sounds",
         // every "interval" milliseconds
         this.stopAll();

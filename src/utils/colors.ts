@@ -1,13 +1,13 @@
 export const darkGrey = "#404040";
 export const mediumGrey = "#808080";
 export const lightGrey = "#C1BFB5";
+export const fretThemeGrey = "#dbd8cd";
 export const lighterGrey = "#F5F5F5";
 export const lightBlue = "#2bdfff";
 export const sandy = "#F2E3BC";
 export const oliveGreen = "#BBDFC5";
 export const gold = "#FFD700";
-// export const backgroundThemeColor = "#ff938e";
-export const backgroundThemeColor = "#DDEEDD";
+export const backgroundThemeColor = "#d4dbe3";
 export const white = "#FFFFFF";
 
 // button, background, highlight

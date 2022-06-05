@@ -38,17 +38,17 @@ module.exports = (env, argv) => ({
                 },
             },
             {
-                test: /\.gif$/i,
-                loader: "file-loader",
-                options: {
-                    name: "assets/gifs/[name].[ext]",
-                },
-            },
-            {
                 test: /\.(mp3|wav|ogg)$/i,
                 loader: "file-loader",
                 options: {
                     name: "assets/audio/[name].[ext]",
+                },
+            },
+            {
+                test: /\.mp4$/i,
+                loader: "file-loader",
+                options: {
+                    name: "assets/video/[name].[ext]",
                 },
             },
         ],

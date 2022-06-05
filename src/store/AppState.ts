@@ -428,11 +428,11 @@ export const appReducers = {
     addProgression(state: AppStateType): AppStateType {
         let { progressions } = state;
         progressions = [...progressions];
-        progressions.unshift(DEFAULT_PROGRESSION());
+        progressions.push(DEFAULT_PROGRESSION());
         return {
             ...state,
             progressions,
-            currentProgressionIndex: 0,
+            currentProgressionIndex: progressions.length - 1,
         };
     },
 

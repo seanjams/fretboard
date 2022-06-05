@@ -452,9 +452,11 @@ export const getFretboardDimensions = () => {
     const INPUT_PERCENTAGE = 0.2;
     const FRETBOARD_PERCENTAGE = MAIN_PERCENTAGE - INPUT_PERCENTAGE;
 
-    const height = getScreenDimensions()[1];
-    const gutterHeight = height * GUTTER_PERCENTAGE - SAFETY_AREA_MARGIN;
+    const [width, height] = getScreenDimensions();
+    const screenHeight = height;
+    const screenWidth = width;
 
+    const gutterHeight = height * GUTTER_PERCENTAGE - SAFETY_AREA_MARGIN;
     const maxInputHeight = height * INPUT_PERCENTAGE;
     const minInputHeight = height * 0;
     const minFretboardHeight = height * FRETBOARD_PERCENTAGE;
@@ -464,12 +466,14 @@ export const getFretboardDimensions = () => {
     const circleSize = Math.floor((maxFretboardHeight * 0.72) / 6);
 
     return {
+        circleSize,
         gutterHeight,
-        minInputHeight,
-        maxInputHeight,
         minFretboardHeight,
         maxFretboardHeight,
-        circleSize,
+        minInputHeight,
+        maxInputHeight,
+        screenHeight,
+        screenWidth,
     };
 };
 

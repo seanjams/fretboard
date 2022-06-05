@@ -22,6 +22,7 @@ export const ContainerDiv = styled.div.attrs((props: CSSProps) => ({
     font-family: Arial;
     overflow: hidden;
     transition: background-color 350ms ease-in-out;
+    background-color: ${backgroundThemeColor};
 `;
 
 export const GutterDiv = styled.div.attrs((props: CSSProps) => ({
