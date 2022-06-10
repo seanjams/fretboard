@@ -61,6 +61,7 @@
     </platform>
     <preference name="Allow3DTouchLinkPreview" value="true" />
     <preference name="AllowBackForwardNavigationGestures" value="false" />
+    <preference name="AllowInlineMediaPlayback" value="true"/>
     <preference name="AllowNewWindows" value="false" />
     <preference name="AutoHideSplashScreen" value="false" />
     <preference name="MediaPlaybackAllowsAirPlay" value="true" />

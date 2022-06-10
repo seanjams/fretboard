@@ -60,7 +60,7 @@ module.exports = (env, argv) => ({
         // }),
     ],
     devServer: {
-        contentBase: path.join(__dirname, "./www"),
+        static: path.join(__dirname, "./www"),
         compress: true,
         port: 3000,
     },

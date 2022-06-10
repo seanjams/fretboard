@@ -13,6 +13,7 @@ node_modules/
 # build files
 www/assets
 www/bundle.js
+www/bundle.js.LICENSE.txt
 
 # sound sprites that I might keep around
 unused_assets

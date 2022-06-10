@@ -335,12 +335,12 @@ export function moveHighight(
                     verticalStringIncrement,
                     verticalIntervalIncrement
                 );
-                conditions = [
-                    newStringIndex < 0,
-                    newStringIndex >= fretboard.strings.length,
-                    newFretIndex < 0,
-                    newFretIndex >= STRING_SIZE,
-                ];
+                const stringInRange =
+                    newStringIndex >= 0 &&
+                    newStringIndex < fretboard.strings.length;
+                const fretInRange =
+                    newFretIndex >= 0 || newFretIndex < STRING_SIZE;
+                conditions = [!stringInRange, !fretInRange];
             } else {
                 // find new note value, and apply to same string
                 [newStringIndex, newFretIndex] = getNextHighlightedFretIndex(
@@ -350,11 +350,10 @@ export function moveHighight(
                     0,
                     inc
                 );
-                conditions = [
-                    newFretIndex === +fretIndex,
-                    newFretIndex < 0,
-                    newFretIndex >= STRING_SIZE,
-                ];
+                const isSameFret = newFretIndex === +fretIndex;
+                const fretInRange =
+                    newFretIndex >= 0 || newFretIndex < STRING_SIZE;
+                conditions = [isSameFret, !fretInRange];
             }
 
             if (conditions.some((_) => _)) {

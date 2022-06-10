@@ -16,7 +16,7 @@ const InstructionVideo: React.FC<VideoProps> = ({ src, width, height }) => {
     return (
         <VideoContainer width={`${width}px`} height={`${height}px`}>
             <Div />
-            <video autoPlay loop muted controls={false}>
+            <video autoPlay loop muted playsInline controls={false}>
                 <source src={src} type="video/mp4"></source>
             </video>
         </VideoContainer>
