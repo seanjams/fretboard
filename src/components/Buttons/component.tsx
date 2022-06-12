@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { useTouchHandlers } from "../../store";
 import { ReactMouseEvent, WindowMouseEvent } from "../../types";
 import { lightBlue, lighterGrey } from "../../utils";
-import { Div, FlexRow } from "../Common";
+import { FlexRow } from "../Common";
 import { ButtonDiv } from "./style";
 
 // Icon Button
@@ -12,6 +12,8 @@ export interface IconButtonProps {
     backgroundColor?: string;
     iconHeight?: number;
     iconWidth?: number;
+    buttonHeight?: number;
+    buttonWidth?: number;
     isCircular?: boolean;
     selected?: boolean;
 }
@@ -22,6 +24,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
     backgroundColor,
     iconHeight,
     iconWidth,
+    buttonHeight,
+    buttonWidth,
     isCircular,
     selected,
     children,
@@ -29,6 +33,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
     const [active, setActive] = useState(selected || false);
     const activeRef = useRef(active);
     activeRef.current = active;
+    // recommended button height for iOS
+    const defaultButtonHeight = 44;
 
     const touchHandlers = useTouchHandlers({
         onStart: (event: ReactMouseEvent) => {
@@ -45,8 +51,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
     return (
         <ButtonDiv
             {...touchHandlers}
-            height="44px"
-            width="44px"
+            height={`${buttonHeight || defaultButtonHeight}px`}
+            width={`${buttonWidth || defaultButtonHeight}px`}
             lineHeight={0}
             backgroundColor={backgroundColor || lighterGrey}
             active={active}

@@ -116,7 +116,12 @@ export type ChordTypes =
     | "Symmetric Dim."
     | "Chromatic";
 
-export type DragStatusTypes = "on" | "off" | null;
+export type DragStatusTypes =
+    | "on-all"
+    | "on-selected"
+    | "off-all"
+    | "off-selected"
+    | null;
 
 export type DisplayTypes =
     | "normal"

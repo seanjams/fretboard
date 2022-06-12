@@ -62,8 +62,12 @@ export function getFretValue(
     return normalize ? mod(fretValue, 12) : fretValue;
 }
 
-export function getFretIndicesFromValue(fretValue: number) {
+export function getFretIndicesFromValue(
+    fretboard: FretboardType,
+    fretValue: number
+): [[number, number][], number] {
     const fretIndices: [number, number][] = [];
+    let highlightedCount = 0;
     STANDARD_TUNING.forEach((openStringValue, stringIndex) => {
         const leftBound = openStringValue;
         const rightBound = openStringValue + STRING_SIZE;
@@ -72,10 +76,12 @@ export function getFretIndicesFromValue(fretValue: number) {
         while (nextFretValue < rightBound) {
             const fretIndex = nextFretValue - openStringValue;
             fretIndices.push([stringIndex, fretIndex]);
+            if (fretboard.strings[stringIndex][fretIndex] === HIGHLIGHTED)
+                highlightedCount++;
             nextFretValue += 12;
         }
     });
-    return fretIndices;
+    return [fretIndices, highlightedCount];
 }
 
 export function setFret(
@@ -86,17 +92,15 @@ export function setFret(
 ): void {
     // set a fret and all corresponding frets on a fretboard
     const fretValue = getFretValue(stringIndex, fretIndex);
-    const fretIndices = getFretIndicesFromValue(fretValue);
-    let highlightedCount = fretIndices.filter(
-        ([otherStringIndex, otherFretIndex]) =>
-            fretboard.strings[otherStringIndex][otherFretIndex] === HIGHLIGHTED
-    ).length;
+    const [fretIndices, highlightedCount] = getFretIndicesFromValue(
+        fretboard,
+        fretValue
+    );
     fretIndices.forEach(([otherStringIndex, otherFretIndex]) => {
         let otherString = fretboard.strings[otherStringIndex];
         if (status !== NOT_SELECTED) {
             // if selecting/highlighting a note, go through other notes of matching fretValue,
             // and set them to be at least SELECTED, if not already set higher
-
             if (
                 otherStringIndex === stringIndex &&
                 otherFretIndex === fretIndex
