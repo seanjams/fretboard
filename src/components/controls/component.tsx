@@ -20,6 +20,9 @@ import {
     ARPEGGIATE_LOW_TO_HIGH,
     COLORS,
     SP,
+    lighterGrey,
+    mediumGrey,
+    white,
 } from "../../utils";
 import { Checkbox } from "../Checkbox";
 import { Div, FlexRow } from "../Common";
@@ -105,7 +108,7 @@ export const PositionControls: React.FC<ControlsProps> = ({ appStore }) => {
     );
 };
 
-// Slider that dictates the select/highlight mode with erase button
+// (Deprecated) Slider that dictates the select/highlight mode with erase button
 export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
     const [getState, setState] = useDerivedState(
         appStore,
@@ -177,6 +180,55 @@ export const HighlightControls: React.FC<ControlsProps> = ({ appStore }) => {
                 </HighlightCheckboxContainer>
             </HighlightCheckboxAnimation>
         </FlexRow>
+    );
+};
+
+// Clear Button for highlighted/selected notes
+export const ClearControls: React.FC<ControlsProps> = ({ appStore }) => {
+    const [getState, setState] = useDerivedState(
+        appStore,
+        deriveStateFromAppState
+    );
+    const { backgroundColor, isHighlighted } = getState();
+    const isHighlightedRef = useRef(isHighlighted);
+    isHighlightedRef.current = isHighlighted;
+
+    function deriveStateFromAppState(appState: typeof appStore.state) {
+        const { currentVisibleFretboardIndex, fretboard } =
+            getComputedAppState(appState);
+        const isHighlighted = fretboard.strings.some((fretString) =>
+            fretString.some((fret) => fret === HIGHLIGHTED)
+        );
+        return {
+            isHighlighted,
+            backgroundColor: COLORS[currentVisibleFretboardIndex][1],
+        };
+    }
+
+    const onClear = () => {
+        // only clear when in SELECT mode or there is no fret highlighted
+        if (isHighlightedRef.current) {
+            appStore.dispatch.clearHighlight();
+        } else {
+            appStore.dispatch.clear();
+        }
+    };
+
+    return (
+        <Div className="pill-button-container clear-button">
+            <IconButton
+                onClick={onClear}
+                iconHeight={18}
+                iconWidth={18}
+                isCircular={true}
+                iconColor={isHighlighted ? white : mediumGrey}
+                backgroundColor={isHighlighted ? backgroundColor : lighterGrey}
+                activeColor={isHighlighted ? backgroundColor : mediumGrey}
+            >
+                {icons.bin}
+            </IconButton>
+            <PillButtonLabel>Clear</PillButtonLabel>
+        </Div>
     );
 };
 

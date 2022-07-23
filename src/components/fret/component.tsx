@@ -665,8 +665,8 @@ export const Fret: React.FC<FretProps> = ({
             },
         },
         {
-            extraLongPressDelay: 1500,
-            longPressDelay: 400,
+            extraLongPressDelay: 1000,
+            longPressDelay: 150,
         }
     );
 

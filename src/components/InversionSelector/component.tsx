@@ -96,11 +96,25 @@ export const InversionSelector: React.FC<InversionSelectorProps> = ({
                 <TextButton
                     backgroundColor={COLORS[currentVisibleFretboardIndex][1]}
                     activeColor={COLORS[currentVisibleFretboardIndex][1]}
+                    onClick={() => appStore.dispatch.copyFretboard(-1)}
+                >
+                    Copy Left
+                </TextButton>
+                <TextButton
+                    backgroundColor={COLORS[currentVisibleFretboardIndex][1]}
+                    activeColor={COLORS[currentVisibleFretboardIndex][1]}
                     onClick={() =>
                         appStore.dispatch.cascadeHighlightedPosition()
                     }
                 >
                     Cascade Highlight
+                </TextButton>
+                <TextButton
+                    backgroundColor={COLORS[currentVisibleFretboardIndex][1]}
+                    activeColor={COLORS[currentVisibleFretboardIndex][1]}
+                    onClick={() => appStore.dispatch.copyFretboard(1)}
+                >
+                    Copy Right
                 </TextButton>
             </FlexRow>
         </FlexRow>

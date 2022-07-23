@@ -5,8 +5,8 @@ import { Fretboard } from "../Fretboard";
 import { Div, FlexRow } from "../Common";
 import {
     AudioControls,
+    ClearControls,
     DrawerControls,
-    HighlightControls,
     PositionControls,
     SettingsControls,
 } from "../Controls";
@@ -98,7 +98,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         marginLeft={`${SP[2]}px`}
                         marginRight={`${SP[2]}px`}
                     >
-                        <HighlightControls appStore={appStore} />
+                        <ClearControls appStore={appStore} />
                     </FlexRow>
                     <FlexRow
                         flexGrow={1}

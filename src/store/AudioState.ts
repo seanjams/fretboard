@@ -249,7 +249,7 @@ export class AudioStore extends Store<AudioStateType, typeof audioReducers> {
             strumSounds = strumSounds.concat(
                 strumSounds.slice(0, -1).reverse()
             );
-            strumDelay = 275;
+            strumDelay = 220;
         }
         this.playNotes(strumSounds, strumDelay);
     }

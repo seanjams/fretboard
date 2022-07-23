@@ -300,6 +300,22 @@ export const appReducers = {
         });
     },
 
+    copyFretboard(state: AppStateType, inc: number) {
+        const { fretboard, progression, currentFretboardIndex } =
+            getComputedAppState(state);
+        const { fretboards } = progression;
+        const newFretboards = [...fretboards];
+        const copyIndex = currentFretboardIndex + inc;
+        if (copyIndex < 0 || copyIndex >= fretboards.length) return state;
+        const newFretboard = JSON.parse(JSON.stringify(fretboards[copyIndex]));
+        newFretboard.strings = JSON.parse(JSON.stringify(fretboard.strings));
+        newFretboards.splice(copyIndex, 1, newFretboard);
+        return this.setCurrentProgression(state, {
+            ...progression,
+            ...rebuildDiffs(newFretboards),
+        });
+    },
+
     setShowTopDrawer(state: AppStateType, showTopDrawer: boolean) {
         const showBottomDrawer = showTopDrawer ? false : state.showBottomDrawer;
         return { ...state, showBottomDrawer, showTopDrawer };

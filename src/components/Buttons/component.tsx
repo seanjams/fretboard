@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useTouchHandlers } from "../../store";
 import { ReactMouseEvent, WindowMouseEvent } from "../../types";
-import { lightBlue, lighterGrey } from "../../utils";
+import { lightBlue, lighterGrey, mediumGrey, white } from "../../utils";
 import { FlexRow } from "../Common";
 import { ButtonDiv } from "./style";
 
@@ -9,11 +9,13 @@ import { ButtonDiv } from "./style";
 export interface IconButtonProps {
     onClick?: (event: WindowMouseEvent) => void;
     activeColor?: string;
+    activeIconColor?: string;
     backgroundColor?: string;
-    iconHeight?: number;
-    iconWidth?: number;
     buttonHeight?: number;
     buttonWidth?: number;
+    iconColor?: string;
+    iconHeight?: number;
+    iconWidth?: number;
     isCircular?: boolean;
     selected?: boolean;
 }
@@ -21,11 +23,13 @@ export interface IconButtonProps {
 export const IconButton: React.FC<IconButtonProps> = ({
     onClick,
     activeColor,
+    activeIconColor,
     backgroundColor,
-    iconHeight,
-    iconWidth,
     buttonHeight,
     buttonWidth,
+    iconColor,
+    iconHeight,
+    iconWidth,
     isCircular,
     selected,
     children,
@@ -59,6 +63,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
             activeColor={activeColor || lightBlue}
             pressed={selected}
             pressedColor={activeColor || lightBlue}
+            iconColor={iconColor || mediumGrey}
+            activeIconColor={activeIconColor || white}
             className="button-div"
             iconWidth={iconWidth}
             iconHeight={iconHeight}

@@ -3,13 +3,15 @@ import styled from "styled-components";
 import { mediumGrey, SP, white } from "../../utils";
 
 export interface CSSProps extends CSS.Properties {
-    activeColor?: string;
-    pressedColor?: string;
     active?: boolean;
-    pressed?: boolean;
-    iconWidth?: number;
+    activeColor?: string;
+    activeIconColor?: string;
+    iconColor?: string;
     iconHeight?: number;
+    iconWidth?: number;
     isCircular?: boolean;
+    pressed?: boolean;
+    pressedColor?: string;
 }
 
 export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
@@ -54,7 +56,9 @@ export const ButtonDiv = styled.div.attrs((props: CSSProps) => ({
 
         path {
             fill: ${(props) =>
-                props.pressed || props.active ? white : mediumGrey};
+                props.pressed || props.active
+                    ? props.activeIconColor
+                    : props.iconColor};
             transition: fill 50ms ease-in-out;
         }
     }
